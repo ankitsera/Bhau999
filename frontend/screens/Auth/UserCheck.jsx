@@ -10,17 +10,26 @@ import {
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Ionicons";
+import Snackbar from 'react-native-snackbar';
 
-const Login = () => {
+const UserCheck = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
 
   const handleLogin = () => {
     const phoneRegex = /^[0-9]{10}$/;
 
     if (phoneNumber.trim() === "") {
-      Alert.alert("Validation Error", "Please enter your mobile number");
+      Snackbar.show({
+        text: 'Please enter your mobile number',
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: '#d32f2f',
+      })
     } else if (!phoneRegex.test(phoneNumber)) {
-      Alert.alert("Validation Error", "Please enter a valid 10-digit mobile number");
+      Snackbar.show({
+        text: 'Please enter a valid 10-digit mobile number',
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: '#d32f2f',
+      });
     } else {
       Alert.alert("Success", "Mobile number is valid ✅");
       // Proceed with navigation or OTP logic here
@@ -35,11 +44,11 @@ const Login = () => {
       {/* Main Content */}
       <View style={styles.content}>
         {/* Illustration */}
-        {/* <Image
-          source={require("../assets/login_image.png")} // Replace with your local image
+        <Image
+          source={require("../../assets/Images/signup.webp")} // Replace with your local image
           style={styles.image}
           resizeMode="contain"
-        /> */}
+        />
 
         {/* Title */}
         <Text style={styles.title}>ENTER YOUR MOBILE NUMBER</Text>
@@ -77,13 +86,17 @@ const Login = () => {
               <Icon name="logo-whatsapp" size={22} color="#000" />
             </TouchableOpacity>
           </View>
+          <View style={styles.bottomText}>
+            <Text style={{fontWeight:"bold"}}>Don't have an account</Text> 
+            <TouchableOpacity><Text style={styles.signUp}>Sign Up</Text></TouchableOpacity>
+          </View>
         </View>
       </View>
     </SafeAreaProvider>
   );
 };
 
-export default Login;
+export default UserCheck;
 
 const styles = StyleSheet.create({
   container: {
@@ -91,15 +104,33 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   headerBg: {
-    height: 150,
+    height: 200,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 0,
     backgroundColor: "#3FA16C",
-    borderBottomLeftRadius: 50,
-    borderBottomRightRadius: 50,
   },
+
+  // ----- Content Card -----
   content: {
+    flex: 1,
     alignItems: "center",
-    marginTop: -50,
+    marginTop: 90,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    paddingTop: 24,
+    paddingBottom: 32,
+    zIndex: 1,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 14,
   },
+
   image: {
     width: 180,
     height: 180,
@@ -118,6 +149,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 15,
     paddingVertical: 12,
+    elevation: 4, // Shadow for Android
+    shadowColor: "#000", // Shadow for iOS
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
   },
   icon: {
     marginRight: 8,
@@ -167,5 +203,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 5,
     elevation: 5,
+  },
+  bottomText:{
+    flexDirection: "row",
+    marginTop: 15,
+    gap: 5,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  signUp: {
+    fontSize: 17,
+    fontWeight: "bold",
+    color: "#46936aff",
   },
 });

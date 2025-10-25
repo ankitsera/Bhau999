@@ -4,9 +4,10 @@ import { NavigationContainer, NavigationContainerRef} from "@react-navigation/na
 import { HeaderButtonsProvider } from "react-navigation-header-buttons/HeaderButtonsProvider";
 import { useTheme } from '../contexts/ThemeContext';
 import { lightTheme, darkTheme } from '../contexts/Themes';
-import Home from "../src/Home";
-import Login from "../src/Auth/Login";
-import Signup from "../src/Auth/Signup";
+import Home from "../screens/Home";
+import UserCheck from "../screens/Auth/UserCheck";
+import Signup from "../screens/Auth/Signup";
+import Login from "../screens/Auth/Login";
 
 const Stack = createNativeStackNavigator();
 
@@ -40,8 +41,9 @@ const Navigation = ({ navigationRef }) => {
             }}
         >
         <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} /> 
-        <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} /> 
+        <Stack.Screen name="UserCheck" component={UserCheck} options={{ headerShown: false }} /> 
         <Stack.Screen name="Signup" component={Signup} options={{ headerShown: false }} /> 
+        <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} /> 
         </Stack.Navigator>
       </HeaderButtonsProvider>
     </NavigationContainer>
