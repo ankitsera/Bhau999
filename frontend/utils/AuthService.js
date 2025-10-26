@@ -41,6 +41,21 @@ export const login = async (mobileNumber, password) => {
   return { user };
 };
 
+export const userCheck = async (mobileNumber) => {
+  const response = await fetch(`${API_URL}/user-check`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ mobileNumber }),
+  });
+
+  if(!response.ok) {
+    throw new Error("User check failed");
+  }
+
+}
+
 export const logOut = async (setUser) => {
   await AsyncStorage.removeItem("@user");
 };

@@ -12,7 +12,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Ionicons";
 import Snackbar from 'react-native-snackbar';
 
-const UserCheck = () => {
+const UserCheck = ({navigation}) => {
   const [phoneNumber, setPhoneNumber] = useState("");
 
   const handleLogin = () => {
@@ -31,8 +31,7 @@ const UserCheck = () => {
         backgroundColor: '#d32f2f',
       });
     } else {
-      Alert.alert("Success", "Mobile number is valid ✅");
-      // Proceed with navigation or OTP logic here
+      
     }
   };
 
@@ -45,7 +44,7 @@ const UserCheck = () => {
       <View style={styles.content}>
         {/* Illustration */}
         <Image
-          source={require("../../assets/Images/signup.webp")} // Replace with your local image
+          source={require("../../assets/Images/UserCheck.webp")} // Replace with your local image
           style={styles.image}
           resizeMode="contain"
         />
@@ -88,7 +87,10 @@ const UserCheck = () => {
           </View>
           <View style={styles.bottomText}>
             <Text style={{fontWeight:"bold"}}>Don't have an account</Text> 
-            <TouchableOpacity><Text style={styles.signUp}>Sign Up</Text></TouchableOpacity>
+            <TouchableOpacity
+              onPress={()=>{navigation.navigate("Signup")}}>
+              <Text style={styles.signUp}>Sign Up</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>

@@ -1,17 +1,17 @@
 // src/screens/Login.jsx
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Icon from "react-native-vector-icons/Ionicons";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Icon from 'react-native-vector-icons/Ionicons';
 
-const GREEN = "#328555ff";
-const TILE_GREEN = "#41B773";
+const GREEN = '#328555ff';
+const TILE_GREEN = '#41B773';
 
 const TileIcon = ({ name }) => (
   <View style={styles.tile}>
@@ -20,9 +20,9 @@ const TileIcon = ({ name }) => (
 );
 
 const Login = ({ route }) => {
-  const phoneNumber = route?.params?.phoneNumber || "1234567890";
+  const phoneNumber = route?.params?.phoneNumber || '1234567890';
 
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const [phoneFocused, setPhoneFocused] = useState(false);
@@ -30,7 +30,7 @@ const Login = ({ route }) => {
 
   const onLogin = () => {
     // TODO: auth
-    console.log("login with", phoneNumber, password);
+    console.log('login with', phoneNumber, password);
   };
 
   return (
@@ -43,11 +43,15 @@ const Login = ({ route }) => {
         <View style={styles.textHeader}>
           <Text style={styles.title}>Login Now</Text>
           <Text style={styles.subtitle}>Sign in your account</Text>
-          <Text style={[styles.subtitle, { marginTop: 4 }]}>Enter Your Password</Text>
+          <Text style={[styles.subtitle, { marginTop: 4 }]}>
+            Enter Your Password
+          </Text>
         </View>
 
         {/* Phone (read-only) */}
-        <View style={[styles.fieldContainer, phoneFocused && styles.inputFocused]}>
+        <View
+          style={[styles.fieldContainer, phoneFocused && styles.inputFocused]}
+        >
           <TileIcon name="phone-portrait-outline" />
           <TextInput
             style={styles.input}
@@ -59,7 +63,9 @@ const Login = ({ route }) => {
         </View>
 
         {/* Password (inline, with eye on the right) */}
-        <View style={[styles.fieldContainer, passFocused && styles.inputFocused]}>
+        <View
+          style={[styles.fieldContainer, passFocused && styles.inputFocused]}
+        >
           <TileIcon name="key-outline" />
           <TextInput
             style={styles.input}
@@ -79,10 +85,12 @@ const Login = ({ route }) => {
             onPress={() => setShowPassword(v => !v)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             accessibilityRole="button"
-            accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+            accessibilityLabel={
+              showPassword ? 'Hide password' : 'Show password'
+            }
           >
             <Icon
-              name={showPassword ? "eye-off-outline" : "eye-outline"}
+              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
               size={22}
               color="#666"
             />
@@ -90,9 +98,18 @@ const Login = ({ route }) => {
         </View>
 
         {/* Login button */}
-        <TouchableOpacity style={styles.loginBtn} onPress={onLogin} activeOpacity={0.85}>
+        <TouchableOpacity
+          style={styles.loginBtn}
+          onPress={onLogin}
+          activeOpacity={0.85}
+        >
           <Text style={styles.loginText}>Login</Text>
-          <Icon name="chevron-forward" size={22} color="#fff" style={{ marginLeft: 8 }} />
+          <Icon
+            name="chevron-forward"
+            size={22}
+            color="#fff"
+            style={{ marginLeft: 8 }}
+          />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -102,22 +119,25 @@ const Login = ({ route }) => {
 export default Login;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#ffffff" },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#ffffff' 
+  },
 
   headerBg: {
     height: 200,
-    position: "absolute",
+    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     zIndex: 0,
-    backgroundColor: "#3FA16C",
+    backgroundColor: '#3FA16C',
   },
 
   card: {
     flex: 1,
     marginTop: 60,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderTopLeftRadius: 36,
     borderTopRightRadius: 36,
     paddingTop: 24,
@@ -125,7 +145,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     zIndex: 1,
     elevation: 10,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.15,
     shadowRadius: 14,
@@ -136,27 +156,27 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 36,
-    fontWeight: "600",
-    color: "#121212",
+    fontWeight: '600',
+    color: '#121212',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 18,
-    color: "#303030",
+    color: '#303030',
     opacity: 0.8,
   },
 
   fieldContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 12,
     marginTop: 22,
 
     elevation: 6,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.12,
     shadowRadius: 12,
@@ -171,36 +191,36 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 14,
     backgroundColor: TILE_GREEN,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 12,
   },
 
   input: {
     flex: 1,
     fontSize: 18,
-    color: "#000",
+    color: '#000',
     paddingRight: 8, // breathing room before eye icon
   },
 
   loginBtn: {
     marginTop: 28,
-    alignSelf: "center",
-    flexDirection: "row",
-    alignItems: "center",
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: TILE_GREEN,
     paddingVertical: 14,
     paddingHorizontal: 28,
     borderRadius: 36,
     elevation: 4,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 10,
   },
   loginText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 20,
-    fontWeight: "700",
+    fontWeight: '700',
   },
 });

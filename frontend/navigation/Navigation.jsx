@@ -32,7 +32,7 @@ const Navigation = ({ navigationRef }) => {
     <NavigationContainer ref={navigationRef} linking={linking}>
       <HeaderButtonsProvider stackType={"native"}>
         <Stack.Navigator
-          initialRouteName="Login"
+          initialRouteName="Home"
             screenOptions={{
               headerStyle: {
                 backgroundColor: theme.container.backgroundColor,
