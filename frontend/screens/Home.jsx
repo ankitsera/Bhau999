@@ -1,4 +1,3 @@
-// src/screens/Home.jsx
 import React, { useContext, useState } from "react";
 import {
   View,
@@ -12,17 +11,20 @@ import {
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { AuthContext } from "../contexts/AuthContext";
 import SideBarNavigation from "../components/SideBarNavigation";
+import Footer from "../components/Footer";
+import TopStrip from "../components/TopStrip";
+import GamesList from "../components/GamesList";
 
 const Header = ({ navigation }) => {
-  const { user, logout } = useContext(AuthContext);
+  const { logout } = useContext(AuthContext);
   const [isSideBarVisible, setIsSideBarVisible] = useState(false);
 
   return (
     <View style={styles.headerRoot}>
-      {/* Transparent status bar that content draws under */}
+      {/* keep translucent so modal overlay can cover status bar */}
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
 
-      {/* Sidebar modal covering the full screen (including status bar) */}
+      {/* Sidebar modal */}
       <Modal
         visible={isSideBarVisible}
         transparent
@@ -38,16 +40,11 @@ const Header = ({ navigation }) => {
               closeSidebar={() => setIsSideBarVisible(false)}
             />
           </View>
-
-          {/* Full-screen dark overlay */}
-          <Pressable
-            style={styles.overlay}
-            onPress={() => setIsSideBarVisible(false)}
-          />
+          <Pressable style={styles.overlay} onPress={() => setIsSideBarVisible(false)} />
         </View>
       </Modal>
 
-      {/* Top Header */}
+      {/* Top bar */}
       <View style={styles.header}>
         <View style={styles.logo}>
           <Pressable
@@ -57,7 +54,6 @@ const Header = ({ navigation }) => {
           >
             <MaterialIcons name="menu" size={30} color="black" />
           </Pressable>
-
           <Text style={styles.brandText}>AS Online</Text>
         </View>
 
@@ -72,11 +68,21 @@ const Header = ({ navigation }) => {
 const Home = ({ navigation }) => {
   return (
     <View style={styles.container}>
+      {/* fixed header */}
       <Header navigation={navigation} />
-      
-      <View style={{ flex: 1 }}>
-        
+
+      {/* fixed top strip right below header */}
+      <View style={styles.topStripContainer}>
+        <TopStrip />
       </View>
+
+      {/* only GamesList scrolls */}
+      <View style={styles.gamesListContainer}>
+        <GamesList />
+      </View>
+
+      {/* fixed footer */}
+      <Footer navigation={navigation} />
     </View>
   );
 };
@@ -87,33 +93,41 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    // let content render under translucent status bar but keep header visible on Android
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight || 0 : 0,
   },
 
-  /* Header container */
+  /* Header */
   headerRoot: {
     width: "100%",
+    backgroundColor: "#fff",
   },
   header: {
-    width: "100%",
     height: 70,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 15,
+    backgroundColor: "#fff",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
-  logo: {
-    flexDirection: "row",
-    alignItems: "center",
+  logo: { flexDirection: "row", alignItems: "center" },
+  hamburger: { marginHorizontal: 5 },
+  brandText: { fontWeight: "800", color: "#000", fontSize: 20, marginLeft: 6 },
+
+  /* TopStrip */
+  topStripContainer: {
+    backgroundColor: "#fff",
   },
-  hamburger: {
-    marginHorizontal: 5,
-  },
-  brandText: {
-    fontWeight: "800",
-    color: "#000",
-    fontSize: 20,
-    marginLeft: 6,
+
+  /* Games */
+  gamesListContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
   },
 
   /* Sidebar modal + overlay */
@@ -133,10 +147,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     zIndex: 50,
   },

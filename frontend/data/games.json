@@ -1,0 +1,6 @@
+[
+  { "id": 1, "name": "KRANTI MORNING", "resultNumber": "159-57-133", "openTime": "09:10 AM", "closeTime": "10:10 AM" },
+  { "id": 2, "name": "KALYANI MORNING", "resultNumber": "246-21-399", "openTime": "10:15 AM", "closeTime": "11:15 AM" },
+  { "id": 3, "name": "NANDINI MORNING", "resultNumber": "120-33-247", "openTime": "11:20 AM", "closeTime": "12:20 PM" },
+  { "id": 4, "name": "SRIDEVI", "resultNumber": "167-49-360", "openTime": "11:25 AM", "closeTime": "12:25 PM" }
+]
