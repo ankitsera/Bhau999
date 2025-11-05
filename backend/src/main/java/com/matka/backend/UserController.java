@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -37,6 +38,8 @@ public class UserController {
         }
         // Hash the password before saving
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        // set signup date
+        user.setDateSignup(LocalDateTime.now());
         userRepository.save(user);
         log.info("Signup successful for mobile='{}'", user.getMobileNumber());
         return ResponseEntity.ok("Signup successful");
@@ -51,7 +54,9 @@ public class UserController {
             boolean ok = passwordEncoder.matches(loginRequest.getPassword(), userOpt.get().getPassword());
             if (ok) {
                 log.info("Login successful for mobile='{}'", userOpt.get().getMobileNumber());
-                return ResponseEntity.ok("Login successful");
+                User u = userOpt.get();
+                UserResponse resp = new UserResponse(u.getMobileNumber(), u.getUsername(), u.getDateSignup());
+                return ResponseEntity.ok(resp);
             } else {
                 log.info("Login failed (bad password) for identifier='{}'", loginRequest.getMobile());
             }
@@ -84,9 +89,8 @@ public class UserController {
 
         Optional<User> userOpt = userRepository.findByMobileNumber(mobile);
         if (userOpt.isPresent()) {
-            User u = userOpt.get();
-            log.info("checkUser: user exists for mobile='{}', username='{}'", mobile, u.getUsername());
-            return ResponseEntity.ok(Map.of("status", "EXISTS", "message", "User exists", "username", u.getUsername()));
+            log.info("checkUser: user exists for mobile='{}'", mobile);
+            return ResponseEntity.ok(Map.of("status", "EXISTS", "message", "User exists"));
         }
 
         log.info("checkUser: mobile '{}' is new", mobile);
@@ -94,11 +98,28 @@ public class UserController {
     }
 
     public static class LoginRequest {
-        private String mobile;
+        private String mobileNumber;
         private String password;
-        public String getMobile() { return mobile; }
-        public void setMobile(String mobile) { this.mobile = mobile; }
+        public String getMobile() { return mobileNumber; }
+        public void setMobile(String mobile) { this.mobileNumber = mobile; }
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
+    }
+
+    // Response DTO for successful login (sanitized)
+    public static class UserResponse {
+        private String mobileNumber;
+        private String username;
+        private LocalDateTime dateSignup;
+
+        public UserResponse(String mobileNumber, String username, LocalDateTime dateSignup) {
+            this.mobileNumber = mobileNumber;
+            this.username = username;
+            this.dateSignup = dateSignup;
+        }
+
+        public String getMobileNumber() { return mobileNumber; }
+        public String getUsername() { return username; }
+        public LocalDateTime getDateSignup() { return dateSignup; }
     }
 }
