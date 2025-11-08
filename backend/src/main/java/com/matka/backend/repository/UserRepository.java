@@ -1,5 +1,6 @@
-package com.matka.backend;
+package com.matka.backend.repository;
 
+import com.matka.backend.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

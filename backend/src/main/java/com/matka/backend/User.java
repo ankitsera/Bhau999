@@ -18,6 +18,9 @@ public class User {
 
     @Column(name = "date_signup", nullable = false)
     private LocalDateTime dateSignup;
+    
+    @Column(name = "balance", nullable = false)
+    private Integer balance = 0;
 
     // Getters and setters
     public String getMobileNumber() { return mobileNumber; }
@@ -31,4 +34,6 @@ public class User {
 
     public LocalDateTime getDateSignup() { return dateSignup; }
     public void setDateSignup(LocalDateTime dateSignup) { this.dateSignup = dateSignup; }
+    public Integer getBalance() { return balance; }
+    public void setBalance(Integer balance) { this.balance = balance; }
 }

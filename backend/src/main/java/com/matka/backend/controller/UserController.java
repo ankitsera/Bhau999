@@ -1,5 +1,7 @@
-package com.matka.backend;
+package com.matka.backend.controller;
 
+import com.matka.backend.User;
+import com.matka.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +15,6 @@ import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/auth")
-
 public class UserController {
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
     @Autowired
@@ -76,11 +77,11 @@ public class UserController {
      * Accepts POST with JSON body: {"mobile":"<10-digit>"}
      * Returns 400 with {code, message} if invalid mobile format.
      * Returns 200 with {status: "NEW", message: ...} if not found.
-     * Returns 200 with {status: "EXISTS", message: ..., username: <username>} if found.
+     * Returns 200 with {status: "EXISTS", message: ...} if found.
      */
     @PostMapping("/checkUser")
     public ResponseEntity<?> checkUser(@RequestBody Map<String, String> body) {
-        String mobile = body == null ? null : body.get("mobileNumber");
+        String mobile = body == null ? null : (body.get("mobile") != null ? body.get("mobile") : body.get("mobileNumber"));
         log.info("Received checkUser request for '{}'", mobile);
         if (mobile == null || !MOBILE_PATTERN.matcher(mobile).matches()) {
             log.info("checkUser failed: invalid mobile '{}'", mobile);

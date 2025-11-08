@@ -20,10 +20,8 @@ public class SecurityConfig {
         http
             .csrf().disable()
             .cors().and()
-            .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/api/auth/**").permitAll()
-                .anyRequest().authenticated()
-            )
+            // Development mode: permit all endpoints. Replace with proper auth in production.
+            .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
