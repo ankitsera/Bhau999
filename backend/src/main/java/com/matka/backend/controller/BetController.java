@@ -89,4 +89,11 @@ public class BetController {
         log.info("Saved bet id={} mobile={} game={} type={} amount={} newBalance={}", saved.getId(), saved.getMobileNumber(), saved.getGameName(), saved.getType(), saved.getAmount(), newBalance);
         return ResponseEntity.ok(saved);
     }
+
+    // List all bets
+    @GetMapping
+    public ResponseEntity<java.util.List<Bet>> listAll() {
+        java.util.List<Bet> list = betRepository.findAll();
+        return ResponseEntity.ok(list);
+    }
 }

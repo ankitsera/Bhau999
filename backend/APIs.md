@@ -37,7 +37,7 @@ Table of contents
 
 - Behavior:
   - Validates `mobileNumber` is exactly 10 digits.
-  - Hashes `password` with BCrypt before saving.
+  - Stores `password` as provided (plain text) — NOT RECOMMENDED for production.
   - Sets `dateSignup` to server time.
   - `mobileNumber` is the user's primary key in DB.
 
@@ -51,7 +51,7 @@ Table of contents
 
 ```
 {
-  "mobile": "9876543210",
+  "mobileNumber": "9876543210",
   "password": "plaintext"
 }
 ```
@@ -63,7 +63,11 @@ Table of contents
 {
   "mobileNumber": "9876543210",
   "username": "alice",
-  "dateSignup": "2025-11-08T12:34:56"
+  "dateSignup": "2025-11-08T12:34:56",
+  "balance": 1500,
+  "accountNumber": "XXXXXXXX1234",
+  "ifscCode": "ABCD0123456",
+  "upiId": "alice@upi"
 }
 ```
 
@@ -71,10 +75,10 @@ Table of contents
 
 ### POST /api/auth/checkUser
 - Purpose: Check whether a mobile number is registered.
-- Request JSON (accepts `mobile` or `mobileNumber`):
+- Request JSON (use `mobileNumber`):
 
 ```
-{ "mobile": "9876543210" }
+{ "mobileNumber": "9876543210" }
 ```
 
 - Response:

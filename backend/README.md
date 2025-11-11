@@ -79,11 +79,12 @@ Base path: `/api/auth`
   - On success: HTTP 200, body: `"Signup successful"`
 
 - `POST /api/auth/login` — login using mobile number and password
-  - JSON body: `{ "usernameOrMobile": "<mobile>", "password": "<pw>" }`
+  - JSON body: `{ "mobileNumber": "<mobile>", "password": "<pw>" }`
   - On success: HTTP 200, body: `"Login successful"`
 
 Notes:
-- The code currently requires login by mobile number only (username is not unique). Passwords are hashed with BCrypt before being stored.
+- The code currently requires login by mobile number only (username is not unique).
+- Passwords are stored in plain text (NOT RECOMMENDED). Do NOT use this in production. See the code and security notes below.
 - Security configuration allows unauthenticated access to `/api/auth/**`.
 
 ## Test the API (examples)
@@ -122,7 +123,7 @@ USE matka_user_db;
 SELECT mobile_number, username, password FROM users WHERE mobile_number = '9991112222';
 ```
 
-The `password` column should contain a BCrypt hash (starts with `$2a$` or `$2b$`).
+The `password` column will contain the password exactly as provided (plain text). This is insecure — prefer hashing with BCrypt or using an encryption service.
 
 ## Troubleshooting
 - 401 Unauthorized on `/api/auth/**`: make sure the `SecurityConfig` class is present (it permits `/api/auth/**`). Restart the app after changes.

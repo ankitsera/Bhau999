@@ -52,4 +52,11 @@ public class TransactionController {
         log.info("Saved transaction id={} mobile={} amount={} newBalance={}", saved.getId(), saved.getMobileNumber(), saved.getAmount(), newBalance);
         return ResponseEntity.ok(saved);
     }
+
+    // List all transactions
+    @GetMapping
+    public ResponseEntity<java.util.List<TransactionEntity>> listAll() {
+        java.util.List<TransactionEntity> list = transactionRepository.findAll();
+        return ResponseEntity.ok(list);
+    }
 }
