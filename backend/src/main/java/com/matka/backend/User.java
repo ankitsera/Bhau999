@@ -18,6 +18,18 @@ public class User {
 
     @Column(name = "date_signup", nullable = false)
     private LocalDateTime dateSignup;
+    
+    @Column(name = "balance", nullable = false)
+    private Integer balance = 0;
+
+    @Column(name = "account_number")
+    private String accountNumber;
+
+    @Column(name = "ifsc_code")
+    private String ifscCode;
+
+    @Column(name = "upi_id")
+    private String upiId;
 
     // Getters and setters
     public String getMobileNumber() { return mobileNumber; }
@@ -31,4 +43,15 @@ public class User {
 
     public LocalDateTime getDateSignup() { return dateSignup; }
     public void setDateSignup(LocalDateTime dateSignup) { this.dateSignup = dateSignup; }
+    public Integer getBalance() { return balance; }
+    public void setBalance(Integer balance) { this.balance = balance; }
+
+    public String getAccountNumber() { return accountNumber; }
+    public void setAccountNumber(String accountNumber) { this.accountNumber = accountNumber; }
+
+    public String getIfscCode() { return ifscCode; }
+    public void setIfscCode(String ifscCode) { this.ifscCode = ifscCode; }
+
+    public String getUpiId() { return upiId; }
+    public void setUpiId(String upiId) { this.upiId = upiId; }
 }
