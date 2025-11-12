@@ -8,6 +8,9 @@ import Home from "../screens/Home";
 import UserCheck from "../screens/Auth/UserCheck";
 import Signup from "../screens/Auth/Signup";
 import Login from "../screens/Auth/Login";
+import AddMoney from "../screens/Sidebar/AddMoney";
+import WithdrawMoney from "../screens/Sidebar/WithdrawMoney";
+import MyBids from "../screens/Sidebar/MyBids";
 
 const Stack = createNativeStackNavigator();
 
@@ -44,6 +47,9 @@ const Navigation = ({ navigationRef }) => {
         <Stack.Screen name="UserCheck" component={UserCheck} options={{ headerShown: false }} /> 
         <Stack.Screen name="Signup" component={Signup} options={{ headerShown: false }} /> 
         <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} /> 
+        <Stack.Screen name="AddMoney" component={AddMoney} options={{ headerShown: false }} /> 
+        <Stack.Screen name="WithdrawMoney" component={WithdrawMoney} options={{ headerShown: false }} /> 
+        <Stack.Screen name="MyBids" component={MyBids} options={{ headerShown: false }} /> 
         </Stack.Navigator>
       </HeaderButtonsProvider>
     </NavigationContainer>

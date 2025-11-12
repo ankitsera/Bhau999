@@ -31,7 +31,15 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
 
   const handleSidebarClick = menu => {
     closeSidebar();
-    navigation.navigate(menu);
+    if(menu==='Add Money'){
+      navigation.navigate("AddMoney");
+    }else if(menu==='Withdraw Money'){
+      navigation.navigate("WithdrawMoney");
+    }else if(menu==='My Bids'){
+      navigation.navigate("MyBids");
+    }else{
+      navigation.navigate(menu);
+    }
   };
 
   const renderMenuItem = ({ item }) => (

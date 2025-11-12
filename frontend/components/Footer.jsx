@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Platform,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,11 +14,13 @@ const GREEN = "#3FA16C";
 const Footer = ({ navigation, active = "Home" }) => {
   const insets = useSafeAreaInsets();
   const isActive = (tab) => tab === active;
+  const GAP = 2;
 
   return (
-    <View style={[styles.footerWrap, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+    //Need some clarity for padding bottom
+    <View style={[styles.footerWrap, { paddingBottom: insets.bottom }]}>
       {/* Footer bar background */}
-      <View style={styles.footerBar}>
+      <View style={[styles.footerBar, { marginBottom: insets.bottom ? GAP : 0 }]}>
         {/* Left section */}
         <View style={styles.sideTabs}>
           <TabItem
@@ -81,6 +82,12 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     alignItems: "center",
+    backgroundColor: "#fff",
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   footerBar: {
     width: "100%",
