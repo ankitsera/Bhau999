@@ -35,8 +35,12 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
       navigation.navigate("AddMoney");
     }else if(menu==='Withdraw Money'){
       navigation.navigate("WithdrawMoney");
-    }else if(menu==='My Bids'){
-      navigation.navigate("MyBids");
+    }else if(menu==='Game Rate'){
+      navigation.navigate("GameRate");
+    }else if(menu==='Time Table'){
+      navigation.navigate("TimeTable");
+    }else if(menu==='Notice board / Rules'){
+      navigation.navigate("NoticeBoard");
     }else{
       navigation.navigate(menu);
     }

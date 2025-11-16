@@ -24,7 +24,7 @@ const ITEMS = [
     id: "game-results",
     title: "Game Results",
     subtitle: "You can view your market result history",
-    icon: { lib: "MaterialCommunityIcons", name: "clock-time-four-outline" },
+    icon: { lib: "MaterialCommunityIcons", name: "history" },
     onPress: (nav) => nav.navigate("GameResults"),
   },
   {
@@ -38,7 +38,7 @@ const ITEMS = [
     id: "ls-result",
     title: "Lucky Starline Result History",
     subtitle: "You can view starline result",
-    icon: { lib: "MaterialCommunityIcons", name: "clock-outline" },
+    icon: { lib: "MaterialCommunityIcons", name: "history" },
     onPress: (nav) => nav.navigate("StarlineResultHistory"),
   },
   {
@@ -52,7 +52,7 @@ const ITEMS = [
     id: "lj-result",
     title: "Lucky Jackpot Result History",
     subtitle: "You can view Jackpot result",
-    icon: { lib: "MaterialCommunityIcons", name: "clock-outline" },
+    icon: { lib: "MaterialCommunityIcons", name: "history" },
     onPress: (nav) => nav.navigate("JackpotResultHistory"),
   },
 ];
