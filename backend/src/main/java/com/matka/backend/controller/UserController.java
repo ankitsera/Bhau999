@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Optional;
 import java.util.Map;
-import java.util.regex.Pattern;
 import java.time.LocalDateTime;
 
 @RestController
@@ -33,15 +32,15 @@ public class UserController {
     public ResponseEntity<?> signup(@RequestBody User user) {
         log.info("Received signup request for mobile='{}', username='{}'", user.getMobileNumber(), user.getUsername());
 
-        // Validate mobile number: exactly 10 digits
-        if (user.getMobileNumber() == null || !MOBILE_PATTERN.matcher(user.getMobileNumber()).matches()) {
-            log.info("Signup failed: invalid mobile number format: {}", user.getMobileNumber());
-            return ResponseEntity.badRequest().body(Map.of("code", "INVALID_MOBILE", "message", "Mobile number must be exactly 10 digits"));
+        // Validate presence of mobileNumber (format validation handled by frontend)
+        if (user.getMobileNumber() == null) {
+            log.info("Signup failed: missing mobile number");
+            return ResponseEntity.badRequest().body(Map.of("message", "mobileNumber is required"));
         }
 
         if (userRepository.findByMobileNumber(user.getMobileNumber()).isPresent()) {
             log.info("Signup failed: mobile number already exists: {}", user.getMobileNumber());
-            return ResponseEntity.badRequest().body(Map.of("code", "MOBILE_EXISTS", "message", "Mobile number already exists"));
+            return ResponseEntity.badRequest().body(Map.of("message", "Mobile number already exists"));
         }
     // Store password as-is (plain text) — NOT recommended for production
     // NOTE: this stores the password exactly as provided in the DB
@@ -50,7 +49,7 @@ public class UserController {
         user.setDateSignup(LocalDateTime.now());
         userRepository.save(user);
         log.info("Signup successful for mobile='{}'", user.getMobileNumber());
-        return ResponseEntity.ok("Signup successful");
+        return ResponseEntity.ok(Map.of("message", "Signup successful"));
     }
 
     @PostMapping("/auth/login")
@@ -81,11 +80,10 @@ public class UserController {
         }
         // If not found by mobile, you can attempt username-based login — but username is not unique now
         // so we avoid ambiguous username login. Return unauthorized.
-        return ResponseEntity.status(401).body("Invalid credentials");
+        return ResponseEntity.status(401).body(Map.of("message", "Invalid credentials"));
     }
 
-    // Pattern for exactly 10 digits
-    private static final Pattern MOBILE_PATTERN = Pattern.compile("^\\d{10}$");
+    // Note: mobile number format validation is delegated to frontend; controller only checks presence.
 
     // List all users (dev/admin) — moved here so UserController owns user-related APIs
     @GetMapping("/users")
@@ -99,12 +97,12 @@ public class UserController {
     @Transactional
     public ResponseEntity<?> addToBalance(@RequestBody TransactionEntity request) {
         if (request == null || request.getMobileNumber() == null || request.getAmount() == null) {
-            return ResponseEntity.badRequest().body("Missing payload (mobileNumber, amount required)");
+            return ResponseEntity.badRequest().body(Map.of("message", "Missing payload (mobileNumber, amount required)"));
         }
 
         var userOpt = userRepository.findByMobileNumber(request.getMobileNumber());
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(404).body("User not found: " + request.getMobileNumber());
+            return ResponseEntity.status(404).body(Map.of("message", "User not found: " + request.getMobileNumber()));
         }
 
         var user = userOpt.get();
@@ -122,7 +120,7 @@ public class UserController {
         transactionRepository.save(tx);
 
         log.info("Credited user {} amount={} newBalance={}", user.getMobileNumber(), request.getAmount(), newBalance);
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(Map.of("message", "Balance updated", "user", user));
     }
 
     /**
@@ -134,22 +132,22 @@ public class UserController {
      */
     @PostMapping("/auth/checkUser")
     public ResponseEntity<?> checkUser(@RequestBody Map<String, String> body) {
-        // Expect JSON body: { "mobileNumber": "<10-digit>" }
+        // Expect JSON body: { "mobileNumber": "<mobile>" }
         String mobile = body == null ? null : body.get("mobileNumber");
         log.info("Received checkUser request for '{}'", mobile);
-        if (mobile == null || !MOBILE_PATTERN.matcher(mobile).matches()) {
-            log.info("checkUser failed: invalid mobile '{}'", mobile);
-            return ResponseEntity.badRequest().body(Map.of("code", "INVALID_MOBILE", "message", "Mobile number must be exactly 10 digits"));
+        if (mobile == null) {
+            log.info("checkUser failed: missing mobileNumber");
+            return ResponseEntity.badRequest().body(Map.of("message", "mobileNumber is required"));
         }
 
         Optional<User> userOpt = userRepository.findByMobileNumber(mobile);
         if (userOpt.isPresent()) {
             log.info("checkUser: user exists for mobile='{}'", mobile);
-            return ResponseEntity.ok(Map.of("status", "EXISTS", "message", "User exists"));
+            return ResponseEntity.ok(Map.of("message", "User exists"));
         }
 
-        log.info("checkUser: mobile '{}' is new", mobile);
-        return ResponseEntity.ok(Map.of("status", "NEW", "message", "Mobile not registered"));
+        log.info("checkUser: mobile '{}' is not registered", mobile);
+        return ResponseEntity.status(404).body(Map.of("message", "User not found"));
     }
 
     public static class LoginRequest {
