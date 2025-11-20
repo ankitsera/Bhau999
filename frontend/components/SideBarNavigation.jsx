@@ -8,11 +8,11 @@ import {
   StatusBar,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import { AuthContext } from '../contexts/AuthContext'; // adjust path if needed
+import { AuthContext } from '../contexts/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const SideBarNavigation = ({ navigation, closeSidebar }) => {
-  const { user } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
 
   const menuItems = [
     { name: 'Home', icon: 'home' },
@@ -27,21 +27,29 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
     { name: 'Time Table', icon: 'access-time' },
     { name: 'Notice board / Rules', icon: 'rule' },
     { name: 'Settings', icon: 'settings' },
+    { name: 'Logout', icon: 'logout' },
   ];
+
+  // Map menu names to screen names and special handlers
+  const menuNavigationMap = {
+    'Add Money': 'AddMoney',
+    'Withdraw Money': 'WithdrawMoney',
+    'My Bids': 'MyBids',
+    'Game Rate': 'GameRate',
+    'Time Table': 'TimeTable',
+    'Notice board / Rules': 'NoticeBoard',
+    'Logout': () => logout(navigation),
+  };
 
   const handleSidebarClick = menu => {
     closeSidebar();
-    if(menu==='Add Money'){
-      navigation.navigate("AddMoney");
-    }else if(menu==='Withdraw Money'){
-      navigation.navigate("WithdrawMoney");
-    }else if(menu==='Game Rate'){
-      navigation.navigate("GameRate");
-    }else if(menu==='Time Table'){
-      navigation.navigate("TimeTable");
-    }else if(menu==='Notice board / Rules'){
-      navigation.navigate("NoticeBoard");
-    }else{
+    const action = menuNavigationMap[menu];
+    
+    if (typeof action === 'function') {
+      action();
+    } else if (action) {
+      navigation.navigate(action);
+    } else {
       navigation.navigate(menu);
     }
   };
@@ -79,8 +87,8 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
             </Text>
             <Text style={styles.since}>
               Since{' '}
-              {user?.createdAt
-                ? user.createdAt.slice(0, 10).split('-').reverse().join('/')
+              {user?.dateSignup
+                ? user.dateSignup.slice(0, 10).split('-').reverse().join('/')
                 : '26/10/2025'}
             </Text>
           </View>

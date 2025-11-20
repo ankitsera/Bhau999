@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,12 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { AuthContext } from '../../contexts/AuthContext';
 
 const GREEN = '#3FA16C';
 
 const AddMoney = ({ navigation }) => {
+  const { user } = useContext(AuthContext);
   const insets = useSafeAreaInsets();
   const [amount, setAmount] = useState('');
 
@@ -41,10 +43,12 @@ const AddMoney = ({ navigation }) => {
           <View style={styles.walletRight}>
             <MaterialCommunityIcons
               name="wallet-outline"
-              size={22}
+              size={28}
               color="#000"
             />
-            <Text style={styles.walletAmt}>0.0</Text>
+            <Text style={styles.walletAmt}>
+              {user?.balance ? user.balance : '0.0'}
+            </Text>
           </View>
         </View>
       </View>
@@ -57,12 +61,11 @@ const AddMoney = ({ navigation }) => {
         {/* Wallet card */}
         <View style={styles.card}>
           <View style={styles.innerCard}>
-            <Text style={styles.name}>inki</Text>
-            <Text style={styles.mobile}>9999999999</Text>
-
+            <Text style={styles.name}>{ user?.username ? user.username : "User"}</Text>
+            <Text style={styles.mobile}>{ user?.mobileNumber ? user.mobileNumber : "User"}</Text>
             <View style={styles.balanceStrip}>
               <Text style={styles.balanceLabel}>Available Balance</Text>
-              <Text style={styles.balanceValue}>₹ 0.0</Text>
+              <Text style={styles.balanceValue}>₹ {user?.balance ? user.balance : '0.0'}</Text>
             </View>
           </View>
 
@@ -151,7 +154,7 @@ const AddMoney = ({ navigation }) => {
 
 export default AddMoney;
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F3F3' },
 
   // header
@@ -188,7 +191,7 @@ const styles = StyleSheet.create({
   },
   walletAmt: { 
     color: '#000', 
-    fontSize: 22 
+    fontSize: 26,
   },
 
   // card

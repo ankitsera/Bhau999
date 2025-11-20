@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -11,27 +11,29 @@ import {
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Ionicons";
 import Snackbar from 'react-native-snackbar';
+import { AuthContext } from '../../contexts/AuthContext';
 
 const UserCheck = ({navigation}) => {
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+  const { userCheck } = useContext(AuthContext);
 
   const handleLogin = () => {
     const phoneRegex = /^[0-9]{10}$/;
 
-    if (phoneNumber.trim() === "") {
+    if (mobileNumber.trim() === "") {
       Snackbar.show({
         text: 'Please enter your mobile number',
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: '#d32f2f',
       })
-    } else if (!phoneRegex.test(phoneNumber)) {
+    } else if (!phoneRegex.test(mobileNumber)) {
       Snackbar.show({
         text: 'Please enter a valid 10-digit mobile number',
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: '#d32f2f',
       });
     } else {
-      
+      userCheck(mobileNumber, navigation);
     }
   };
 
@@ -60,11 +62,11 @@ const UserCheck = ({navigation}) => {
             placeholder="Phone Number"
             keyboardType="phone-pad"
             placeholderTextColor="#777"
-            value={phoneNumber}
+            value={mobileNumber}
             onChangeText={(text) => {
               // Allow only numbers and limit to 10 digits
               const sanitized = text.replace(/[^0-9]/g, "").slice(0, 10);
-              setPhoneNumber(sanitized);
+              setMobileNumber(sanitized);
             }}
           />
         </View>

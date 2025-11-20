@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useContext } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer, NavigationContainerRef} from "@react-navigation/native";
 import { HeaderButtonsProvider } from "react-navigation-header-buttons/HeaderButtonsProvider";
 import { useTheme } from '../contexts/ThemeContext';
+import { AuthContext } from '../contexts/AuthContext';
 import { lightTheme, darkTheme } from '../contexts/Themes';
+import { View, ActivityIndicator } from 'react-native';
 import Home from "../screens/Home";
 import UserCheck from "../screens/Auth/UserCheck";
 import Signup from "../screens/Auth/Signup";
@@ -38,12 +40,26 @@ const linking = {
 
 const Navigation = ({ navigationRef }) => {
   const { isDarkMode } = useTheme();
+  const { user, isLoading } = useContext(AuthContext);
   const theme = isDarkMode ? darkTheme : lightTheme;
+  
+  // Wait for user state to be restored before deciding which screen to show
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+        <ActivityIndicator size="large" color="#3FA16C" />
+      </View>
+    );
+  }
+  
+  // Determine initial route based on user presence
+  const initialRouteName = user ? "Home" : "UserCheck";
+  
   return (
     <NavigationContainer ref={navigationRef} linking={linking}>
       <HeaderButtonsProvider stackType={"native"}>
         <Stack.Navigator
-          initialRouteName="Home"
+          initialRouteName={initialRouteName}
             screenOptions={{
               headerStyle: {
                 backgroundColor: theme.container.backgroundColor,

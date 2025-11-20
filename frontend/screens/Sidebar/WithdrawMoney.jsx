@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,12 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { AuthContext } from '../../contexts/AuthContext';
 
 const GREEN = '#3FA16C';
 
 const WithdrawMoney = ({ navigation }) => {
+  const { user } = useContext(AuthContext);
   const insets = useSafeAreaInsets();
   const [amount, setAmount] = useState('');
 
@@ -42,7 +44,9 @@ const WithdrawMoney = ({ navigation }) => {
               size={22}
               color="#000"
             />
-            <Text style={styles.walletAmt}>0.0</Text>
+            <Text style={styles.walletAmt}>
+              {user?.balance ? user.balance : '0.0'}
+            </Text>
           </View>
         </View>
       </View>
@@ -54,12 +58,12 @@ const WithdrawMoney = ({ navigation }) => {
       >
         <View style={styles.card}>
           <View style={styles.innerCard}>
-            <Text style={styles.name}>inki</Text>
-            <Text style={styles.mobile}>9999999999</Text>
+            <Text style={styles.name}>{ user?.username ? user.username : "User"}</Text>
+            <Text style={styles.mobile}>{ user?.mobileNumber ? user.mobileNumber : "User"}</Text>
 
             <View style={styles.balanceStrip}>
               <Text style={styles.balanceLabel}>Available Balance</Text>
-              <Text style={styles.balanceValue}>₹ 0.0</Text>
+              <Text style={styles.balanceValue}>₹ {user?.balance ? user.balance : '0.0'}</Text>
             </View>
           </View>
 

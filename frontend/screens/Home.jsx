@@ -14,8 +14,10 @@ import SideBarNavigation from "../components/SideBarNavigation";
 import Footer from "../components/Footer";
 import TopStrip from "../components/TopStrip";
 import GamesList from "../components/GamesList";
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const Header = ({ navigation }) => {
+  const { user } = useContext(AuthContext);
   const { logout } = useContext(AuthContext);
   const [isSideBarVisible, setIsSideBarVisible] = useState(false);
 
@@ -52,14 +54,26 @@ const Header = ({ navigation }) => {
             onPress={() => setIsSideBarVisible(true)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <MaterialIcons name="menu" size={30} color="black" />
+            <MaterialIcons name="format-align-left" size={28} color="black" />
           </Pressable>
           <Text style={styles.brandText}>AS Online</Text>
         </View>
 
-        <Pressable onPress={logout}>
-          <MaterialIcons name="notifications" size={24} color="black" />
-        </Pressable>
+        <View style = {styles.headerRight}>
+          <View style={styles.walletRight}>
+            <MaterialCommunityIcons
+              name="wallet-outline"
+              size={28}
+              color="#000"
+            />
+            <Text style={styles.walletAmt}>
+              {user?.balance ? user.balance : '0.0'}
+            </Text>
+          </View>
+          <Pressable onPress={logout}>
+            <MaterialIcons name="notifications-active" size={30} color="black" />
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -115,9 +129,34 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
-  logo: { flexDirection: "row", alignItems: "center" },
-  hamburger: { marginHorizontal: 5 },
-  brandText: { fontWeight: "800", color: "#000", fontSize: 20, marginLeft: 6 },
+  logo: { 
+    flexDirection: "row", 
+    alignItems: "center" 
+  },
+  hamburger: { 
+    marginHorizontal: 5 
+  },
+  brandText: { 
+    fontWeight: "800", 
+    color: "#000", 
+    fontSize: 24, 
+    marginLeft: 6 
+  },
+  headerRight: {
+    flexDirection: 'row', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    gap: 10
+  },
+  walletRight: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    gap: 6 
+  },
+  walletAmt: { 
+    color: '#000', 
+    fontSize: 24 
+  },
 
   /* TopStrip */
   topStripContainer: {

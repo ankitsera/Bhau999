@@ -11,9 +11,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import PasswordInput from '../../components/PasswordInput';
+import { AuthContext } from '../../contexts/AuthContext';
 
-const Signup = ({ route }) => {
-  const phoneNumber = route?.params?.phoneNumber || '1234567890';
+const Signup = ({ navigation, route }) => {
+  const { signup } = React.useContext(AuthContext);
+  const routemobileNumber = route?.params?.mobileNumber || '';
+  const isPhoneFromRoute = !!route?.params?.mobileNumber;
+  const [mobileNumber, setMobileNumber] = useState(routemobileNumber);
 
   const [username, setUsername] = useState('');
 
@@ -49,12 +53,7 @@ const Signup = ({ route }) => {
         backgroundColor: '#d32f2f',
       });
     } else {
-      Snackbar.show({
-        text: 'Account created successfully ✅',
-        duration: Snackbar.LENGTH_SHORT,
-        backgroundColor: '#388e3c',
-      });
-      // TODO: call API
+      signup(mobileNumber, username, password, navigation);
     }
   };
 
@@ -74,7 +73,7 @@ const Signup = ({ route }) => {
 
         <Text style={styles.title}>CREATE NEW ACCOUNT</Text>
 
-        {/* Phone (read-only) */}
+        {/* Phone */}
         <View style={styles.inputContainer}>
           <Icon
             name="call-outline"
@@ -84,8 +83,12 @@ const Signup = ({ route }) => {
           />
           <TextInput
             style={[styles.input, { color: '#000' }]}
-            value={phoneNumber}
-            editable={false}
+            value={mobileNumber}
+            editable={!isPhoneFromRoute}
+            placeholder="Phone Number"
+            placeholderTextColor="#777"
+            onChangeText={setMobileNumber}
+            keyboardType="phone-pad"
           />
         </View>
 

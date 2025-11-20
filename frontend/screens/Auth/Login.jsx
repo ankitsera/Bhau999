@@ -1,5 +1,5 @@
 // src/screens/Login.jsx
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { AuthContext } from '../../contexts/AuthContext';
+import Navigation from '../../navigation/Navigation';
 
 const GREEN = '#328555ff';
 const TILE_GREEN = '#41B773';
@@ -19,8 +21,9 @@ const TileIcon = ({ name }) => (
   </View>
 );
 
-const Login = ({ route }) => {
-  const phoneNumber = route?.params?.phoneNumber || '1234567890';
+const Login = ({ navigation, route }) => {
+  const { login } = useContext(AuthContext);
+  const mobileNumber = route?.params?.mobileNumber || '1234567890';
 
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -29,8 +32,7 @@ const Login = ({ route }) => {
   const [passFocused, setPassFocused] = useState(false);
 
   const onLogin = () => {
-    // TODO: auth
-    console.log('login with', phoneNumber, password);
+    login(mobileNumber, password, navigation);
   };
 
   return (
@@ -55,7 +57,7 @@ const Login = ({ route }) => {
           <TileIcon name="phone-portrait-outline" />
           <TextInput
             style={styles.input}
-            value={phoneNumber}
+            value={mobileNumber}
             editable={false}
             onFocus={() => setPhoneFocused(true)}
             onBlur={() => setPhoneFocused(false)}
