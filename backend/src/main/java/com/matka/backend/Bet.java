@@ -1,7 +1,6 @@
 package com.matka.backend;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
 
 @Entity
 @Table(name = "bets")
@@ -16,8 +15,6 @@ public class Bet {
     @Column(name = "game_name", nullable = false)
     private String gameName;
 
-    @Column(name = "bet_date", nullable = false)
-    private LocalDate betDate;
 
     @Column(name = "type", nullable = false)
     private String type;
@@ -46,8 +43,7 @@ public class Bet {
     public String getGameName() { return gameName; }
     public void setGameName(String gameName) { this.gameName = gameName; }
 
-    public LocalDate getBetDate() { return betDate; }
-    public void setBetDate(LocalDate betDate) { this.betDate = betDate; }
+    // betDate removed by request — date is not stored on bets
 
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
