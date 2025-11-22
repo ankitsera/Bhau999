@@ -18,7 +18,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/bet")
+@RequestMapping("/api")
 public class BetController {
     private static final Logger log = LoggerFactory.getLogger(BetController.class);
 
@@ -37,11 +37,12 @@ public class BetController {
     @Autowired
     private TransactionRepository transactionRepository;
 
-    @PostMapping
+    // POST /api/bet  -> create a bet
+    @PostMapping("/bet")
     @Transactional
     public ResponseEntity<?> create(@RequestBody Bet bet) {
         if (bet == null || bet.getMobileNumber() == null || bet.getGameName() == null || bet.getType() == null || bet.getAmount() == null) {
-            return ResponseEntity.badRequest().body("Missing bet payload or required fields (mobileNumber, gameName, type, amount)");
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", "Missing bet payload or required fields (mobileNumber, gameName, type, amount)"));
         }
 
         // normalize game name
@@ -51,27 +52,24 @@ public class BetController {
         // validate user
         var userOpt = userRepository.findByMobileNumber(bet.getMobileNumber());
         if (userOpt.isEmpty()) {
-            return ResponseEntity.status(404).body("User not found for mobile: " + bet.getMobileNumber());
+            return ResponseEntity.status(404).body(java.util.Map.of("message", "User not found for mobile: " + bet.getMobileNumber()));
         }
 
         // validate game
         if (gameRepository.findById(normalizedGame).isEmpty()) {
-            return ResponseEntity.status(404).body("Game not found: " + normalizedGame);
+            return ResponseEntity.status(404).body(java.util.Map.of("message", "Game not found: " + normalizedGame));
         }
 
         // validate rate/type
         if (rateRepository.findById(bet.getType()).isEmpty()) {
-            return ResponseEntity.status(404).body("Rate/type not found: " + bet.getType());
+            return ResponseEntity.status(404).body(java.util.Map.of("message", "Rate/type not found: " + bet.getType()));
         }
-
-        // set bet date if missing
-        if (bet.getBetDate() == null) bet.setBetDate(LocalDate.now());
 
         // deduct amount from user balance
         var user = userOpt.get();
         Integer current = user.getBalance() == null ? 0 : user.getBalance();
         if (current < bet.getAmount()) {
-            return ResponseEntity.status(400).body("Insufficient balance");
+            return ResponseEntity.status(400).body(java.util.Map.of("message", "Insufficient balance"));
         }
         int newBalance = current - bet.getAmount();
         user.setBalance(newBalance);
@@ -87,11 +85,12 @@ public class BetController {
 
         Bet saved = betRepository.save(bet);
         log.info("Saved bet id={} mobile={} game={} type={} amount={} newBalance={}", saved.getId(), saved.getMobileNumber(), saved.getGameName(), saved.getType(), saved.getAmount(), newBalance);
-        return ResponseEntity.ok(saved);
+        return ResponseEntity.ok(java.util.Map.of("message", "Bet created", "bet", saved));
     }
 
     // List all bets
-    @GetMapping
+    // GET /api/bets -> return all bets
+    @GetMapping("/bets")
     public ResponseEntity<java.util.List<Bet>> listAll() {
         java.util.List<Bet> list = betRepository.findAll();
         return ResponseEntity.ok(list);
