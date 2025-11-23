@@ -1,16 +1,18 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import EmptyState from '../../components/EmptyState'
+import GreenHeader from '../../components/GreenHeader'
 
-const Passbook = () => {
+const Notifications = ({navigation}) => {
   return (
     <View style={styles.container}>
+      <GreenHeader navigation={navigation} title="Notifications" />
       <EmptyState message='Notifications Not Found'/>
     </View>
   )
 }
 
-export default Passbook
+export default Notifications
 
 const styles = StyleSheet.create({
     container:{
