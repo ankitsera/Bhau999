@@ -1,4 +1,3 @@
-// src/components/Footer.jsx
 import React from "react";
 import {
   View,
@@ -11,13 +10,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const GREEN = "#3FA16C";
 
-const Footer = ({ navigation, active = "Home" }) => {
+const Footer = ({ navigation, active = "Home", onSupportPress }) => {
   const insets = useSafeAreaInsets();
   const isActive = (tab) => tab === active;
   const GAP = 2;
 
   return (
-    //Need some clarity for padding bottom
     <View style={[styles.footerWrap, { paddingBottom: insets.bottom }]}>
       {/* Footer bar background */}
       <View style={[styles.footerBar, { marginBottom: insets.bottom ? GAP : 0 }]}>
@@ -45,7 +43,7 @@ const Footer = ({ navigation, active = "Home" }) => {
           <TabItem
             label="Support"
             icon={<MaterialCommunityIcons name="chat-processing-outline" size={26} color="#333" />}
-            onPress={() => navigation.navigate("Support")}
+            onPress={onSupportPress ? onSupportPress : (() => navigation.navigate("Support"))}
           />
         </View>
       </View>

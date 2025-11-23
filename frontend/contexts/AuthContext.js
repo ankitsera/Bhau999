@@ -1,107 +1,204 @@
-import { createContext, useEffect, useState} from 'react';
-import {login, signup, userCheck, logOut, restoreUserState} from "../utils/AuthService"
-import Snackbar from 'react-native-snackbar';
-export const AuthContext = createContext();
+import React, { createContext, useEffect, useMemo, useReducer } from "react";
+import Snackbar from "react-native-snackbar";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  login as loginAPI,
+  signup as signupAPI,
+  userCheck as userCheckAPI,
+  logOut as logOutAPI,
+  restoreUserState,
+} from "../utils/AuthService";
+
+export const AuthContext = createContext(null);
+
+const initialState = {
+  user: null,
+  isLoading: true,
+  error: null,
+};
+
+const TYPES = {
+  RESTORE_START: "RESTORE_START",
+  RESTORE_SUCCESS: "RESTORE_SUCCESS",
+  RESTORE_FAILURE: "RESTORE_FAILURE",
+
+  LOGIN_START: "LOGIN_START",
+  LOGIN_SUCCESS: "LOGIN_SUCCESS",
+  LOGIN_FAILURE: "LOGIN_FAILURE",
+
+  SIGNUP_START: "SIGNUP_START",
+  SIGNUP_SUCCESS: "SIGNUP_SUCCESS",
+  SIGNUP_FAILURE: "SIGNUP_FAILURE",
+
+  LOGOUT: "LOGOUT",
+
+  UPDATE: "UPDATE", // merge+persist a user patch
+};
+
+function authReducer(state, action) {
+  switch (action.type) {
+    case TYPES.RESTORE_START:
+      return { ...state, isLoading: true, error: null };
+    case TYPES.RESTORE_SUCCESS:
+      return { ...state, user: action.user, isLoading: false, error: null };
+    case TYPES.RESTORE_FAILURE:
+      return { ...state, user: null, isLoading: false, error: action.error || null };
+
+    case TYPES.LOGIN_START:
+    case TYPES.SIGNUP_START:
+      return { ...state, error: null };
+
+    case TYPES.LOGIN_SUCCESS:
+    case TYPES.SIGNUP_SUCCESS:
+      return { ...state, user: action.user, error: null };
+
+    case TYPES.LOGIN_FAILURE:
+    case TYPES.SIGNUP_FAILURE:
+      return { ...state, error: action.error || null };
+
+    case TYPES.LOGOUT:
+      return { ...state, user: null, error: null };
+
+    case TYPES.UPDATE: {
+      const prev = state.user || {};
+      const patch = action.patch || {};
+      // Shallow merge + preserve nested bankDetails unless explicitly set
+      const merged = {
+        ...prev,
+        ...patch,
+        bankDetails: patch.hasOwnProperty("bankDetails")
+          ? patch.bankDetails
+          : prev.bankDetails,
+      };
+      return { ...state, user: merged };
+    }
+
+    default:
+      return state;
+  }
+}
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
-    const [isLoading, setIsLoading] = useState(true); // Track loading state
+  const [state, dispatch] = useReducer(authReducer, initialState);
+  const { user, isLoading } = state;
 
-    // Restore user state on app start
-    useEffect(() => {
-        const initializeUser = async () => {
-        try {
-            const storedState = await restoreUserState();
-            if (storedState) {
-                setUser(storedState.user);
-                // Optionally verify token here if you want to ensure it's still valid
-            }
-        } catch (error) {
-            console.error("Failed to restore user state:", error);
-        } finally {
-            setIsLoading(false);
-        }
-        };
-        initializeUser();
-    }, []);
-
-    const signupHandler = async (mobileNumber, username, password, navigation) => {
-        try {
-            const result = await signup(mobileNumber, username, password);
-
-            const dateSignup = new Date().toISOString();
-            setUser({ mobileNumber, username, dateSignup });
-
-            Snackbar.show({
-                text: result?.message || "Account created successfully ✅",
-                duration: Snackbar.LENGTH_SHORT,
-                backgroundColor: "#388e3c",
-            });
-
-            navigation.navigate("Home");
-        } catch (error) {
-            Snackbar.show({
-                text: error?.message || "Something went wrong!",
-                duration: Snackbar.LENGTH_SHORT,
-                backgroundColor: "#d32f2f",
-            });
-        }
+  // Restore user on app start
+  useEffect(() => {
+    let mounted = true;
+    const init = async () => {
+      dispatch({ type: TYPES.RESTORE_START });
+      try {
+        const saved = await restoreUserState();
+        if (!mounted) return;
+        dispatch({ type: TYPES.RESTORE_SUCCESS, user: saved?.user ?? null });
+      } catch (error) {
+        if (!mounted) return;
+        dispatch({ type: TYPES.RESTORE_FAILURE, error });
+      }
     };
-    
-    const loginHandler = async (mobileNumber, password, navigation) => {
-        try {
-            const user = await login(mobileNumber, password); // returns user object
-            setUser(user);
-            navigation.navigate("Home");
-        } catch (error) {
-            console.error("Login Failed:", error);
-            Snackbar.show({
-            text: error?.message || "Something went wrong!",
-            duration: Snackbar.LENGTH_SHORT,
-            backgroundColor: "#d32f2f",
-            });
+    init();
+    return () => { mounted = false; };
+  }, []);
+
+  // Persist user to AsyncStorage on every change
+  useEffect(() => {
+    (async () => {
+      try {
+        if (user) {
+          await AsyncStorage.setItem("@user", JSON.stringify(user));
+        } else {
+          await AsyncStorage.removeItem("@user");
         }
-    };
+      } catch (e) {
+        console.warn("Failed to persist @user:", e);
+      }
+    })();
+  }, [user]);
 
-    const userCheckHandler = async (mobileNumber, navigation) => {
-        try {
-            const exists = await userCheck(mobileNumber);
+  // Handlers
+  const signup = async (mobileNumber, username, password, navigation) => {
+    try {
+      dispatch({ type: TYPES.SIGNUP_START });
+      const result = await signupAPI(mobileNumber, username, password);
+      const dateSignup = new Date().toISOString();
+      const newUser = { mobileNumber, username, dateSignup };
+      dispatch({ type: TYPES.SIGNUP_SUCCESS, user: newUser });
 
-            if (exists) {
-                navigation.navigate("Login", { mobileNumber });
-            } else {
-                navigation.navigate("Signup", { mobileNumber });
-            }
-        } catch (err) {
-            console.error("User check failed:", err);
-            Snackbar.show({
-                text: err?.message || "Error checking user. Please try again.",
-                duration: Snackbar.LENGTH_SHORT,
-                backgroundColor: "#d32f2f",
-            });
-        }
-    };
+      Snackbar.show({
+        text: result?.message || "Account created successfully ✅",
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: "#388e3c",
+      });
+      navigation.navigate("Home");
+    } catch (error) {
+      dispatch({ type: TYPES.SIGNUP_FAILURE, error });
+      Snackbar.show({
+        text: error?.message || "Something went wrong!",
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: "#d32f2f",
+      });
+    }
+  };
 
-    const logoutHandler = async (navigation) => {
-        try {
-            await logOut();
-            setUser(null);
-            navigation.navigate("UserCheck");
-        } catch (error) {
-            alert("Logout Failed: Something went wrong!");
-        }
-    };
+  const login = async (mobileNumber, password, navigation) => {
+    try {
+      dispatch({ type: TYPES.LOGIN_START });
+      const loggedInUser = await loginAPI(mobileNumber, password);
+      dispatch({ type: TYPES.LOGIN_SUCCESS, user: loggedInUser });
+      navigation.navigate("Home");
+    } catch (error) {
+      dispatch({ type: TYPES.LOGIN_FAILURE, error });
+      Snackbar.show({
+        text: error?.message || "Something went wrong!",
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: "#d32f2f",
+      });
+    }
+  };
 
-    return (
-        <AuthContext.Provider value={{
-            user,
-            isLoading,
-            signup: signupHandler,
-            login: loginHandler,
-            logout: logoutHandler,
-            userCheck: userCheckHandler,
-        }}>
-            {children}
-        </AuthContext.Provider>
-    );
+  const userCheck = async (mobileNumber, navigation) => {
+    try {
+      const exists = await userCheckAPI(mobileNumber);
+      if (exists) navigation.navigate("Login", { mobileNumber });
+      else navigation.navigate("Signup", { mobileNumber });
+    } catch (error) {
+      Snackbar.show({
+        text: error?.message || "Error checking user. Please try again.",
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: "#d32f2f",
+      });
+    }
+  };
+
+  const logout = async (navigation) => {
+    try {
+      await logOutAPI();
+      dispatch({ type: TYPES.LOGOUT });
+      navigation.navigate("UserCheck");
+    } catch {
+      Snackbar.show({
+        text: "Logout Failed: Something went wrong!",
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: "#d32f2f",
+      });
+    }
+  };
+
+  // Expose updateUser so other contexts (Payments) can patch & persist
+  const updateUser = (patch) => dispatch({ type: TYPES.UPDATE, patch });
+
+  const value = useMemo(
+    () => ({
+      user,
+      isLoading,
+      signup,
+      login,
+      logout,
+      userCheck,
+      updateUser,
+    }),
+    [user, isLoading]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

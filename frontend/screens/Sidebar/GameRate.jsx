@@ -11,55 +11,33 @@ import EmptyState from "../../components/EmptyState";
 
 const GREEN = "#3FA16C";
 
-/** Replace with your real API call */
-async function fetchGameRates(type) {
-  // Example shape expected from server:
-  // { title: "Game Win Ratio", sections: [{ header: "Game Win Ratio for All Bids", items: [{label, value}, ...] }, ...] }
-  // Simulated responses:
+// Make a mock API call to fetch game rates
+async function fetchGameRates() {
+  // Simulated API response with fixed game rates
   await new Promise((r) => setTimeout(r, 500));
 
-  if (!type) return { title: "", sections: [] };
-
-  if (type === "matka") {
-    return {
-      title: "Game Win Ratio for All Bids",
-      sections: [
-        {
-          header: "Game Win Ratio for All Bids",
-          items: [
-            { label: "Single Ank", value: "10 Ka 95" },
-            { label: "Jodi", value: "10 Ka 950" },
-            { label: "Single Pana", value: "10 Ka 1500" },
-            { label: "Double Pana", value: "10 Ka 3000" },
-            { label: "Triple Pana", value: "10 Ka 6000" },
-            { label: "Half Sangam", value: "10 Ka 12000" },
-            { label: "Full Sangam", value: "10 Ka 120000" },
-          ],
-        },
-        {
-          header: "Starline Win Ratio for All Bids",
-          items: [
-            { label: "Single Ank", value: "10 Ka 100" },
-            { label: "Single Pana", value: "10 Ka 1500" },
-            { label: "Double Pana", value: "10 Ka 3000" },
-            { label: "Triple Pana", value: "10 Ka 6000" },
-          ],
-        },
-      ],
-    };
-  }
-
-  // starline/jackpot demo
   return {
-    title: `${type[0].toUpperCase() + type.slice(1)} Win Ratio`,
-
+    title: "Game Win Ratio for All Bids",
     sections: [
       {
-        header: `${type[0].toUpperCase() + type.slice(1)} Rates`,
+        header: "Game Win Ratio for All Bids",
         items: [
-          { label: "Single", value: "10 Ka 95" },
-          { label: "Double", value: "10 Ka 300" },
-          { label: "Triple", value: "10 Ka 600" },
+          { label: "Single Ank", value: "10 Ka 95" },
+          { label: "Jodi", value: "10 Ka 950" },
+          { label: "Single Pana", value: "10 Ka 1500" },
+          { label: "Double Pana", value: "10 Ka 3000" },
+          { label: "Triple Pana", value: "10 Ka 6000" },
+          { label: "Half Sangam", value: "10 Ka 12000" },
+          { label: "Full Sangam", value: "10 Ka 120000" },
+        ],
+      },
+      {
+        header: "Starline Win Ratio for All Bids",
+        items: [
+          { label: "Single Ank", value: "10 Ka 100" },
+          { label: "Single Pana", value: "10 Ka 1500" },
+          { label: "Double Pana", value: "10 Ka 3000" },
+          { label: "Triple Pana", value: "10 Ka 6000" },
         ],
       },
     ],
@@ -80,14 +58,13 @@ const RateRow = ({ label, value }) => (
 );
 
 const GameRate = ({ navigation, route }) => {
-  const type = route?.params?.type; // 'matka' | 'starline' | 'jackpot'
   const [loading, setLoading] = useState(true);
   const [sections, setSections] = useState([]);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetchGameRates(type);
+      const res = await fetchGameRates();
       const transformed = (res.sections || []).map((sec) => ({
         title: sec.header,
         data: sec.items || [],
@@ -96,7 +73,7 @@ const GameRate = ({ navigation, route }) => {
     } finally {
       setLoading(false);
     }
-  }, [type]);
+  }, []);
 
   useEffect(() => { load(); }, [load]);
 
@@ -141,13 +118,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 8,
   },
-  sectionTitle: { 
+  sectionTitle: {
     color: "#fff", 
     fontSize: 18, 
     fontWeight: "800" 
   },
 
   rateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
     backgroundColor: "#fff",
     borderRadius: 10,
     paddingVertical: 14,
@@ -166,6 +146,5 @@ const styles = StyleSheet.create({
     fontSize: 18, 
     color: "#111", 
     fontWeight: "800", 
-    marginTop: 4 
   },
 });

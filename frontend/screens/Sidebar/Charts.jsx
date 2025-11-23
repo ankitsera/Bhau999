@@ -51,7 +51,7 @@ const Charts = ({ navigation }) => {
         contentContainerStyle={{ padding: 12, paddingBottom: 24 }}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         renderItem={({ item }) => (
-          <Row item={item} onPress={(type) => navigation.navigate("GameRate", { type })} />
+          <Row item={item} onPress={() => {}} />
         )}
         showsVerticalScrollIndicator={false}
       />

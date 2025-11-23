@@ -18,9 +18,9 @@ const WHATSAPP_NUMBER = "7757033237";
 const MARQUEE_TEXT = "का मौका – सिर्फ AS Online पर!  |  Play Daily – Win Big!";
 
 /** helper functions */
-const openDialer = () => Linking.openURL(`tel:${CONTACT_NUMBER}`);
+const openDialer = () => Linking.openURL(`tel:+91${CONTACT_NUMBER}`);
 const openWhatsApp = () =>
-  Linking.openURL(`whatsapp://send?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent("Hi, I need assistance!")}`);
+  Linking.openURL(`whatsapp://send?phone=+91${WHATSAPP_NUMBER}&text=${encodeURIComponent("Hi, I need assistance!")}`);
 
 const TopStrip = () => {
   // marquee animation

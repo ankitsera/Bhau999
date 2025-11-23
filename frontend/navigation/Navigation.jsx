@@ -13,7 +13,9 @@ import Login from "../screens/Auth/Login";
 import AddMoney from "../screens/Sidebar/AddMoney";
 import WithdrawMoney from "../screens/Sidebar/WithdrawMoney";
 import MyBids from "../screens/Sidebar/MyBids";
+import Passbook from "../screens/Sidebar/Passbook";
 import Funds from "../screens/Sidebar/Funds";
+import Notifications from "../screens/Sidebar/Notifications";
 import BankDetails from "../screens/BankDetails";
 import AddFundHistory from "../screens/AddFundHistory";
 import Charts from "../screens/Sidebar/Charts";
@@ -21,6 +23,7 @@ import GameRate from "../screens/Sidebar/GameRate";
 import TimeTable from "../screens/Sidebar/TimeTable";
 import NoticeBoard from "../screens/Sidebar/NoticeBoard";
 import Settings from "../screens/Sidebar/Settings";
+import HowToPlay from "../screens/Sidebar/HowToPlay";
 
 const Stack = createNativeStackNavigator();
 
@@ -71,17 +74,20 @@ const Navigation = ({ navigationRef }) => {
         <Stack.Screen name="UserCheck" component={UserCheck} options={{ headerShown: false }} /> 
         <Stack.Screen name="Signup" component={Signup} options={{ headerShown: false }} /> 
         <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} /> 
-        <Stack.Screen name="AddMoney" component={AddMoney} options={{ headerShown: false }} /> 
-        <Stack.Screen name="WithdrawMoney" component={WithdrawMoney} options={{ headerShown: false }} /> 
-        <Stack.Screen name="MyBids" component={MyBids} options={{ headerShown: false }} /> 
+        <Stack.Screen name="Add Money" component={AddMoney} options={{ headerShown: false }} /> 
+        <Stack.Screen name="Withdraw Money" component={WithdrawMoney} options={{ headerShown: false }} /> 
+        <Stack.Screen name="My Bids" component={MyBids} options={{ headerShown: false }} /> 
+        <Stack.Screen name="Passbook" component={Passbook} options={{ headerShown: false }} />
         <Stack.Screen name="Funds" component={Funds} options={{ headerShown: false }} /> 
-        <Stack.Screen name="BankDetails" component={BankDetails} options={{ headerShown: false }} />
-        <Stack.Screen name="AddFundHistory" component={AddFundHistory} options={{ headerShown: false }} /> 
+        <Stack.Screen name="Notifications" component={Notifications} options={{ headerShown: false }} /> 
+        <Stack.Screen name="Bank Details" component={BankDetails} options={{ headerShown: false }} />
+        <Stack.Screen name="Add Fund History" component={AddFundHistory} options={{ headerShown: false }} /> 
         <Stack.Screen name="Charts" component={Charts} options={{ headerShown: false }} />
-        <Stack.Screen name="GameRate" component={GameRate} options={{ headerShown: false }} />
-        <Stack.Screen name="TimeTable" component={TimeTable} options={{ headerShown: false }} /> 
-        <Stack.Screen name="NoticeBoard" component={NoticeBoard} options={{ headerShown: false }} />
+        <Stack.Screen name="Game Rate" component={GameRate} options={{ headerShown: false }} />
+        <Stack.Screen name="Time Table" component={TimeTable} options={{ headerShown: false }} /> 
+        <Stack.Screen name="Notice board / Rules" component={NoticeBoard} options={{ headerShown: false }} />
         <Stack.Screen name="Settings" component={Settings} options={{ headerShown: false }} />
+        <Stack.Screen name="How to Play" component={HowToPlay} options={{ headerShown: false }} />
         </Stack.Navigator>
       </HeaderButtonsProvider>
     </NavigationContainer>

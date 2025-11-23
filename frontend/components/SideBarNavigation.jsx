@@ -21,34 +21,23 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
     { name: 'My Bids', icon: 'history' },
     { name: 'Passbook', icon: 'compare-arrows' },
     { name: 'Funds', icon: 'account-balance' },
-    { name: 'Notification', icon: 'notifications' },
+    { name: 'Notifications', icon: 'notifications' },
     { name: 'Charts', icon: 'bar-chart' },
     { name: 'Game Rate', icon: 'attach-money' },
     { name: 'Time Table', icon: 'access-time' },
     { name: 'Notice board / Rules', icon: 'rule' },
     { name: 'Settings', icon: 'settings' },
+    { name: 'How to Play', icon: 'help-outline' },
+    { name: 'Share App', icon: 'share' },
     { name: 'Logout', icon: 'logout' },
   ];
 
-  // Map menu names to screen names and special handlers
-  const menuNavigationMap = {
-    'Add Money': 'AddMoney',
-    'Withdraw Money': 'WithdrawMoney',
-    'My Bids': 'MyBids',
-    'Game Rate': 'GameRate',
-    'Time Table': 'TimeTable',
-    'Notice board / Rules': 'NoticeBoard',
-    'Logout': () => logout(navigation),
-  };
-
   const handleSidebarClick = menu => {
     closeSidebar();
-    const action = menuNavigationMap[menu];
-    
-    if (typeof action === 'function') {
-      action();
-    } else if (action) {
-      navigation.navigate(action);
+    if(menu === 'Logout'){
+      logout(navigation);
+    } else if(menu === 'Share App'){
+      // Implement share functionality here
     } else {
       navigation.navigate(menu);
     }
@@ -99,13 +88,14 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
         </View>
 
         {/* ---------- MENU SECTION ---------- */}
-        <View>
+        <View style={{ flex: 1 }}>
           <FlatList
             data={menuItems}
             keyExtractor={item => item.name}
             renderItem={renderMenuItem}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.menuList}
+            scrollEnabled={true}
           />
         </View>
       </View>
