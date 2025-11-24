@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Optional;
 import java.util.Map;
 import java.time.LocalDateTime;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
 
 @RestController
 @RequestMapping("/api")
@@ -67,6 +69,7 @@ public class UserController {
                     u.getUsername(),
                     u.getDateSignup(),
                     u.getBalance(),
+                    u.getAccountHolderName(),
                     u.getAccountNumber(),
                     u.getIfscCode(),
                     u.getUpiId()
@@ -165,15 +168,17 @@ public class UserController {
         private String username;
         private LocalDateTime dateSignup;
         private Integer balance;
+        private String accountHolderName;
         private String accountNumber;
         private String ifscCode;
         private String upiId;
 
-        public UserResponse(String mobileNumber, String username, LocalDateTime dateSignup, Integer balance, String accountNumber, String ifscCode, String upiId) {
+        public UserResponse(String mobileNumber, String username, LocalDateTime dateSignup, Integer balance, String accountHolderName, String accountNumber, String ifscCode, String upiId) {
             this.mobileNumber = mobileNumber;
             this.username = username;
             this.dateSignup = dateSignup;
             this.balance = balance;
+            this.accountHolderName = accountHolderName;
             this.accountNumber = accountNumber;
             this.ifscCode = ifscCode;
             this.upiId = upiId;
@@ -183,8 +188,78 @@ public class UserController {
         public String getUsername() { return username; }
         public LocalDateTime getDateSignup() { return dateSignup; }
         public Integer getBalance() { return balance; }
+        public String getAccountHolderName() { return accountHolderName; }
         public String getAccountNumber() { return accountNumber; }
         public String getIfscCode() { return ifscCode; }
         public String getUpiId() { return upiId; }
+    }
+
+    // API to update bank details (partial update: only non-null fields are updated)
+    @PostMapping("/users/bank")
+    public ResponseEntity<?> setBankDetails(@RequestBody BankDetailsRequest req) {
+        if (req == null || req.getMobileNumber() == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "mobileNumber is required"));
+        }
+        var userOpt = userRepository.findByMobileNumber(req.getMobileNumber());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("message", "User not found: " + req.getMobileNumber()));
+        }
+        var user = userOpt.get();
+        boolean changed = false;
+        if (req.getAccountHolderName() != null) { user.setAccountHolderName(req.getAccountHolderName()); changed = true; }
+        if (req.getAccountNumber() != null) { user.setAccountNumber(req.getAccountNumber()); changed = true; }
+        if (req.getIfscCode() != null) { user.setIfscCode(req.getIfscCode()); changed = true; }
+        if (req.getUpiId() != null) { user.setUpiId(req.getUpiId()); changed = true; }
+        if (changed) {
+            userRepository.save(user);
+            return ResponseEntity.ok(Map.of("message", "Bank details updated", "user", user));
+        }
+        return ResponseEntity.badRequest().body(Map.of("message", "No updatable fields provided"));
+    }
+
+    public static class BankDetailsRequest {
+        private String mobileNumber;
+        private String accountHolderName;
+        private String accountNumber;
+        private String ifscCode;
+        private String upiId;
+
+        public String getMobileNumber() { return mobileNumber; }
+        public void setMobileNumber(String mobileNumber) { this.mobileNumber = mobileNumber; }
+        public String getAccountHolderName() { return accountHolderName; }
+        public void setAccountHolderName(String accountHolderName) { this.accountHolderName = accountHolderName; }
+        public String getAccountNumber() { return accountNumber; }
+        public void setAccountNumber(String accountNumber) { this.accountNumber = accountNumber; }
+        public String getIfscCode() { return ifscCode; }
+        public void setIfscCode(String ifscCode) { this.ifscCode = ifscCode; }
+        public String getUpiId() { return upiId; }
+        public void setUpiId(String upiId) { this.upiId = upiId; }
+    }
+
+    // Lookup IFSC via Razorpay public IFSC API: https://ifsc.razorpay.com/{IFSC}
+    // Example: POST /api/ifsc with JSON { "ifsc": "ABHY0065001" }
+    @PostMapping("/ifsc")
+    public ResponseEntity<?> lookupIfsc(@RequestBody java.util.Map<String, String> body) {
+        if (body == null || body.get("ifsc") == null || body.get("ifsc").trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "IFSC is required"));
+        }
+        String code = body.get("ifsc").trim().toUpperCase();
+        String url = "https://ifsc.razorpay.com/" + code;
+        RestTemplate rt = new RestTemplate();
+        try {
+            @SuppressWarnings("unchecked")
+            java.util.Map<String, Object> resp = rt.getForObject(url, java.util.Map.class);
+            if (resp == null || resp.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of("message", "IFSC not found"));
+            }
+            return ResponseEntity.ok(Map.of("message", "IFSC valid", "details", resp));
+        } catch (HttpClientErrorException.NotFound nf) {
+            return ResponseEntity.status(404).body(Map.of("message", "IFSC not found"));
+        } catch (HttpClientErrorException he) {
+            // other 4xx/5xx from remote
+            return ResponseEntity.status(502).body(Map.of("message", "IFSC service error", "status", he.getStatusCode().value()));
+        } catch (Exception ex) {
+            return ResponseEntity.status(500).body(Map.of("message", "IFSC lookup failed", "error", ex.getMessage()));
+        }
     }
 }

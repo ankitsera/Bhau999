@@ -25,6 +25,9 @@ public class User {
     @Column(name = "account_number")
     private String accountNumber;
 
+    @Column(name = "account_holder_name")
+    private String accountHolderName;
+
     @Column(name = "ifsc_code")
     private String ifscCode;
 
@@ -48,6 +51,9 @@ public class User {
 
     public String getAccountNumber() { return accountNumber; }
     public void setAccountNumber(String accountNumber) { this.accountNumber = accountNumber; }
+
+    public String getAccountHolderName() { return accountHolderName; }
+    public void setAccountHolderName(String accountHolderName) { this.accountHolderName = accountHolderName; }
 
     public String getIfscCode() { return ifscCode; }
     public void setIfscCode(String ifscCode) { this.ifscCode = ifscCode; }
