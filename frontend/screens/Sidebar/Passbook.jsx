@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import EmptyState from '../../components/EmptyState'
+import GreenHeader from '../../components/GreenHeader'
 
 const Passbook = ({navigation}) => {
   return (

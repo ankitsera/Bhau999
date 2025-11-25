@@ -14,9 +14,9 @@ function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <PaymentsProvider>
-        <ThemeProvider>
-          <Navigation navigationRef={navigationRef} />
-        </ThemeProvider>
+          <ThemeProvider>
+            <Navigation navigationRef={navigationRef} />
+          </ThemeProvider>
         </PaymentsProvider>
       </AuthProvider>
     </SafeAreaProvider>

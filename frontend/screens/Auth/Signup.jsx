@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import Snackbar from 'react-native-snackbar';
 import {
   View,
@@ -14,7 +14,7 @@ import PasswordInput from '../../components/PasswordInput';
 import { AuthContext } from '../../contexts/AuthContext';
 
 const Signup = ({ navigation, route }) => {
-  const { signup } = React.useContext(AuthContext);
+  const { signup } = useContext(AuthContext);
   const routemobileNumber = route?.params?.mobileNumber || '';
   const isPhoneFromRoute = !!route?.params?.mobileNumber;
   const [mobileNumber, setMobileNumber] = useState(routemobileNumber);
