@@ -6,7 +6,7 @@ import GreenHeader from '../../components/GreenHeader'
 const Notifications = ({navigation}) => {
   return (
     <View style={styles.container}>
-      <GreenHeader navigation={navigation} title="Notifications" />
+      <GreenHeader title="Notifications" />
       <EmptyState message='Notifications Not Found'/>
     </View>
   )

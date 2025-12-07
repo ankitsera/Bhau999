@@ -79,7 +79,7 @@ const TimeTable = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <GreenHeader navigation={navigation} title="Time Table" />
+      <GreenHeader title="Time Table" />
 
       {loading ? (
         <View style={styles.center}>

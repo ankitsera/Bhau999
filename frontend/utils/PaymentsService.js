@@ -12,19 +12,32 @@ function fail(res, body, fallback) {
 }
 
 /**
- * Server IFSC lookup (public Razorpay endpoint; swap to your backend later)
+ *
+ * Backend response (200):
+ *   { message: "IFSC valid", details: { BANK, BRANCH, ... } }
+ *
+ * We normalize to:
+ *   { bank, branch, raw }
  */
 export const lookupIFSC = async (ifsc) => {
-  const url = `https://ifsc.razorpay.com/${encodeURIComponent(ifsc)}`;
-  const res = await fetch(url);
-  if (!res.ok) fail(res, await readBody(res), "IFSC lookup failed");
-  const data = await readBody(res);
+  const res = await fetch(`${API_URL}/ifsc`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ifsc }),
+  });
+
+  const body = await readBody(res);
+  if (!res.ok) fail(res, body, "IFSC lookup failed");
+
+  // backend wraps Razorpay response in details
+  const data = body?.details || body || {};
+
   return {
-    bank: data?.BANK || data?.bank,
-    branch: data?.BRANCH || data?.branch,
+    bank: data?.BANK || data?.bank || null,
+    branch: data?.BRANCH || data?.branch || null,
     raw: data,
   };
-}
+};
 
 /**
  * Unified payout save: POST /users/bank

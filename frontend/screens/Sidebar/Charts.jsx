@@ -44,7 +44,7 @@ const Row = ({ item, onPress }) => (
 const Charts = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <GreenHeader navigation={navigation} title="Game Chart" />
+      <GreenHeader title="Game Chart" />
       <FlatList
         data={ROWS}
         keyExtractor={(it) => it.id}

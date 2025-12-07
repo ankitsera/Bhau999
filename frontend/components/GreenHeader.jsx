@@ -2,11 +2,13 @@ import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { useNavigation } from "@react-navigation/native";
 
 const GREEN = "#3FA16C";
 
-const GreenHeader = ({ navigation, title = "" }) => {
+const GreenHeader = ({ title = "" }) => {
   const { top } = useSafeAreaInsets();
+  const navigation = useNavigation();
 
   return (
     <View style={[styles.root, { paddingTop: top }]}>

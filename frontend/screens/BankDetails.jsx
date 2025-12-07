@@ -166,7 +166,7 @@ const BankDetails = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <GreenHeader navigation={navigation} title="Update Bank Details" />
+      <GreenHeader title="Update Bank Details" />
 
       <View style={styles.form}>
         {/* Holder Name */}

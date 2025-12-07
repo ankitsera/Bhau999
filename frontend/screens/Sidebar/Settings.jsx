@@ -31,7 +31,7 @@ const Settings = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <GreenHeader navigation={navigation} title="Setting" />
+      <GreenHeader title="Setting" />
       <View style={styles.card}>
         <View style={styles.banner}><Text style={styles.bannerText}>Notification Setting</Text></View>
 

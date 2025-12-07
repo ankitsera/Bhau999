@@ -64,7 +64,7 @@ const NoticeBoard = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <GreenHeader navigation={navigation} title="Notice Board" />
+      <GreenHeader title="Notice Board" />
 
       {loading ? (
         <View style={styles.center}>

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Linking,
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Ionicons";
@@ -16,6 +17,14 @@ import { AuthContext } from '../../contexts/AuthContext';
 const UserCheck = ({navigation}) => {
   const [mobileNumber, setMobileNumber] = useState("");
   const { userCheck } = useContext(AuthContext);
+
+  const MOBILE_NUMBER = '+917757033237';
+  const WHATSAPP_NUMBER = '917757033237';
+
+  const openDialer = () =>
+    Linking.openURL(`tel:${MOBILE_NUMBER}).catch(() => {}`);
+  const openWhatsapp = () =>
+    Linking.openURL(`https://wa.me/${WHATSAPP_NUMBER}).catch(() => {}`);
 
   const handleLogin = () => {
     const phoneRegex = /^[0-9]{10}$/;
@@ -80,10 +89,14 @@ const UserCheck = ({navigation}) => {
         <View style={styles.bottomContainer}>
           <View style={styles.separator} />
           <View style={styles.iconRow}>
-            <TouchableOpacity style={styles.circleButton}>
+            <TouchableOpacity style={styles.circleButton}
+              onPress={openDialer}
+            >
               <Icon name="call-outline" size={22} color="#000" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.circleButton}>
+            <TouchableOpacity style={styles.circleButton}
+              onPress={openWhatsapp}
+            >
               <Icon name="logo-whatsapp" size={22} color="#000" />
             </TouchableOpacity>
           </View>

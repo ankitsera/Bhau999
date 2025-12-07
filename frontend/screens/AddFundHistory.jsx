@@ -32,7 +32,7 @@ const AddFundHistory = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <GreenHeader navigation={navigation} title="Add Fund History" />
+      <GreenHeader title="Add Fund History" />
 
       {showEmpty ? (
         <EmptyState message="NO FUND HISTORY FOUND" />

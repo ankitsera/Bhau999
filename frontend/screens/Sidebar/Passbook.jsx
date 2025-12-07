@@ -6,7 +6,7 @@ import GreenHeader from '../../components/GreenHeader'
 const Passbook = ({navigation}) => {
   return (
     <View style={styles.container}>
-      <GreenHeader navigation={navigation} title="Passbook" />
+      <GreenHeader title="Passbook" />
       <EmptyState message='Transaction Not Found'/>
     </View>
   )

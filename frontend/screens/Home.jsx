@@ -17,7 +17,7 @@ import { AuthContext } from '../contexts/AuthContext';
 import SideBarNavigation from '../components/SideBarNavigation';
 import Footer from '../components/Footer';
 import TopStrip from '../components/TopStrip';
-import GamesList from '../components/GamesList';
+import GamesList from '../components/games/GamesList';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const GREEN = '#3FA16C';
@@ -27,7 +27,6 @@ const TELEGRAM_URL = 'https://t.me/asonline_support';
 
 const Header = ({ navigation }) => {
   const { user } = useContext(AuthContext);
-  const { logout } = useContext(AuthContext);
   const [isSideBarVisible, setIsSideBarVisible] = useState(false);
 
   return (
@@ -116,7 +115,7 @@ const Home = ({ navigation }) => {
   );
 
   const openDialer = () =>
-    Linking.openURL(`tel:${SUPPORT_PHONE}).catch(() => {}`);
+    Linking.openURL(`tel:${SUPPORT_PHONE}`).catch(() => {});
   const openWhatsapp = () =>
     Linking.openURL(`https://wa.me/${WHATSAPP_PHONE}).catch(() => {}`);
   const openTelegram = () => Linking.openURL(TELEGRAM_URL).catch(() => {});
@@ -133,7 +132,7 @@ const Home = ({ navigation }) => {
 
       {/* only GamesList scrolls */}
       <View style={styles.gamesListContainer}>
-        <GamesList />
+        <GamesList navigation={navigation} />
       </View>
 
       {/* fixed footer */}

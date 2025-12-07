@@ -6,7 +6,7 @@ import GreenHeader from '../../components/GreenHeader'
 const HowToPlay = ({navigation}) => {
   return (
     <View style={styles.container}>
-      <GreenHeader navigation={navigation} title="How to Play" />
+      <GreenHeader title="How to Play" />
       <EmptyState message='How to Play video coming soon...'/>
     </View>
   )

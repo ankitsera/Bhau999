@@ -25,6 +25,14 @@ import NoticeBoard from "../screens/Sidebar/NoticeBoard";
 import Settings from "../screens/Sidebar/Settings";
 import HowToPlay from "../screens/Sidebar/HowToPlay";
 
+import GamesSubTypes from "../screens/GamesSubTypes";
+
+//Games Screens
+import SingleDigit from "../screens/SubGames/SingleDigit";
+import SingleDigitBulk from "../screens/SubGames/SingleDigitBulk";
+import Jodi from "../screens/SubGames/Jodi";
+import JodiBulk from "../screens/SubGames/JodiBulk";
+
 const Stack = createNativeStackNavigator();
 
 //It will allow native stack to behave as web stack so that we could see the url and navigate using browser buttons
@@ -88,6 +96,13 @@ const Navigation = ({ navigationRef }) => {
         <Stack.Screen name="Notice board / Rules" component={NoticeBoard} options={{ headerShown: false }} />
         <Stack.Screen name="Settings" component={Settings} options={{ headerShown: false }} />
         <Stack.Screen name="How to Play" component={HowToPlay} options={{ headerShown: false }} />
+        <Stack.Screen name="Games Sub Types" component={GamesSubTypes} options={{ headerShown: false }} />
+        
+        {/* Sub-Games */}
+        <Stack.Screen name="SingleDigit" component={SingleDigit} options={{ headerShown: false }} />
+        <Stack.Screen name="SingleDigitBulk" component={SingleDigitBulk} options={{ headerShown: false }} />
+        <Stack.Screen name="Jodi" component={Jodi} options={{ headerShown: false }} />
+        <Stack.Screen name="JodiBulk" component={JodiBulk} options={{ headerShown: false }} />
         </Stack.Navigator>
       </HeaderButtonsProvider>
     </NavigationContainer>

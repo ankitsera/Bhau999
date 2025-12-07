@@ -1,13 +1,17 @@
 import React from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import gamesData from "../data/games.json"; // <-- static local JSON
+import gamesData from "../../data/games.json"; // <-- static local JSON
 
 const GREEN = "#3FA16C";
 const RED = "#EF4B3E";
 
-const GameCard = ({ item }) => (
-  <View style={styles.card}>
+const GameCard = ({ item, navigation }) => (
+  <TouchableOpacity style={styles.card}
+    onPress={() => {
+      navigation.navigate("Games Sub Types", { game: item })
+    }}
+  >
     <View style={styles.cardTop}>
       <Text style={styles.title}>{item.name}</Text>
       <Text style={styles.closedText}>Closed for today</Text>
@@ -32,15 +36,15 @@ const GameCard = ({ item }) => (
         <MaterialCommunityIcons name="close" size={28} color="#fff" />
       </View>
     </View>
-  </View>
+  </TouchableOpacity>
 );
 
-const GamesList = () => {
+const GamesList = ({navigation}) => {
   return (
     <FlatList
       data={gamesData}
       keyExtractor={(item, index) => `${item.id}-${index}`}
-      renderItem={({ item }) => <GameCard item={item} />}
+      renderItem={({ item }) => <GameCard item={item} navigation={navigation} />}
       contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
     />

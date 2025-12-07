@@ -89,7 +89,7 @@ const Item = ({ item, navigation }) => (
 const MyBids = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <GreenHeader navigation={navigation} title="My Bids" />
+      <GreenHeader title="My Bids" />
 
       <FlatList
         data={ITEMS}

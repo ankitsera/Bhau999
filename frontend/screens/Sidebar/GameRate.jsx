@@ -79,7 +79,7 @@ const GameRate = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      <GreenHeader navigation={navigation} title="Game Rate" />
+      <GreenHeader title="Game Rate" />
 
       {loading ? (
         <View style={styles.center}><ActivityIndicator size="large" color={GREEN} /></View>

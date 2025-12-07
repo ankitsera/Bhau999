@@ -17,8 +17,8 @@ import { AuthContext } from '../../contexts/AuthContext';
 const GREEN = '#3FA16C';
 
 // Window: 11:00 AM – 10:00 PM (local time)
-const WITHDRAW_OPEN = { hour: 15, minute: 0 };
-const WITHDRAW_CLOSE = { hour: 22, minute: 0 };
+const WITHDRAW_OPEN = { hour: 10, minute: 0 };
+const WITHDRAW_CLOSE = { hour: 23, minute: 0 };
 
 function isWithinWithdrawalWindow(now = new Date()) {
   const start = new Date(now);
