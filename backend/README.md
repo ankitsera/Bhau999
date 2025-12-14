@@ -46,7 +46,7 @@ Open PowerShell in the `backend` folder and run:
 
 ```powershell
 # Using the included Maven wrapper (Windows)
-.\mvnw.cmd clean package
+.\mvnw.cmd -DskipTests package
 
 # Or if you have Maven installed globally
 mvn clean package

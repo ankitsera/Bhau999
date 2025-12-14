@@ -25,6 +25,12 @@ public class BetHistory {
     @Column(name = "amount", nullable = false)
     private Integer amount;
 
+    @Column(name = "bet_value")
+    private Integer betValue;
+
+    @Column(name = "open_close")
+    private String openClose; // "Open", "Close", or null
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mobile_number", referencedColumnName = "mobile_number", insertable = false, updatable = false)
     private User user;
@@ -54,6 +60,12 @@ public class BetHistory {
 
     public Integer getAmount() { return amount; }
     public void setAmount(Integer amount) { this.amount = amount; }
+
+    public Integer getBetValue() { return betValue; }
+    public void setBetValue(Integer betValue) { this.betValue = betValue; }
+
+    public String getOpenClose() { return openClose; }
+    public void setOpenClose(String openClose) { this.openClose = openClose; }
 
     public User getUser() { return user; }
     public Game getGame() { return game; }

@@ -103,6 +103,8 @@ public class DailyRollupService {
                     bh.setBetDate(yesterday);
                     bh.setType(b.getType());
                     bh.setAmount(b.getAmount());
+                    bh.setBetValue(b.getBetValue());
+                    bh.setOpenClose(b.getOpenClose());
                     bhList.add(bh);
                 }
                 betHistoryRepository.saveAll(bhList);
