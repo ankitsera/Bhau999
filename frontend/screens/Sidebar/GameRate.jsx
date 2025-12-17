@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from "react";
+// screens/GameRate/GameRate.jsx
+import React, { useContext, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,41 +9,13 @@ import {
 } from "react-native";
 import GreenHeader from "../../components/GreenHeader";
 import EmptyState from "../../components/EmptyState";
+import { GameContext } from "../../contexts/GameContext";
+import { AppConfigContext } from "../../contexts/AppConfigContext";
 
 const GREEN = "#3FA16C";
 
-// Make a mock API call to fetch game rates
-async function fetchGameRates() {
-  // Simulated API response with fixed game rates
-  await new Promise((r) => setTimeout(r, 500));
-
-  return {
-    title: "Game Win Ratio for All Bids",
-    sections: [
-      {
-        header: "Game Win Ratio for All Bids",
-        items: [
-          { label: "Single Ank", value: "10 Ka 95" },
-          { label: "Jodi", value: "10 Ka 950" },
-          { label: "Single Pana", value: "10 Ka 1500" },
-          { label: "Double Pana", value: "10 Ka 3000" },
-          { label: "Triple Pana", value: "10 Ka 6000" },
-          { label: "Half Sangam", value: "10 Ka 12000" },
-          { label: "Full Sangam", value: "10 Ka 120000" },
-        ],
-      },
-      {
-        header: "Starline Win Ratio for All Bids",
-        items: [
-          { label: "Single Ank", value: "10 Ka 100" },
-          { label: "Single Pana", value: "10 Ka 1500" },
-          { label: "Double Pana", value: "10 Ka 3000" },
-          { label: "Triple Pana", value: "10 Ka 6000" },
-        ],
-      },
-    ],
-  };
-}
+// key for min bid amount in config API
+const MIN_BID_KEY = "MIN_BID_AMOUNT";
 
 const SectionHeader = ({ title }) => (
   <View style={styles.sectionHeader}>
@@ -57,40 +30,83 @@ const RateRow = ({ label, value }) => (
   </View>
 );
 
-const GameRate = ({ navigation, route }) => {
-  const [loading, setLoading] = useState(true);
-  const [sections, setSections] = useState([]);
+const GameRate = () => {
+  const { rates, isLoadingRates, loadGameRates } = useContext(GameContext);
+  const {
+    values,
+    isLoading: isConfigLoading,
+    loadConfigValue,
+  } = useContext(AppConfigContext);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetchGameRates();
-      const transformed = (res.sections || []).map((sec) => ({
-        title: sec.header,
-        data: sec.items || [],
-      }));
-      setSections(transformed);
-    } finally {
-      setLoading(false);
-    }
+  // run once on mount → avoids infinite loop
+  useEffect(() => {
+    if (loadGameRates) loadGameRates();
+    if (loadConfigValue) loadConfigValue(MIN_BID_KEY);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  // derive min bid as number
+  const minBidAmount = useMemo(() => {
+    const raw =
+      values?.[MIN_BID_KEY] ??
+      values?.minBidAmount ??
+      values?.MIN_BID_AMOUNT ??
+      null;
+    const asNumber = Number(raw);
+    return Number.isFinite(asNumber) && asNumber > 0 ? asNumber : null;
+  }, [values]);
+
+  const sections = useMemo(() => {
+    if (!rates || rates.length === 0) return [];
+
+    return [
+      {
+        title: "Game Win Ratio for All Bids",
+        data: rates.map((r) => {
+          const gameName = r.type ?? "Unknown";
+          const baseRateNum = Number(r.rate);
+          const safeBaseRate = Number.isFinite(baseRateNum) ? baseRateNum : 0;
+
+          let displayValue;
+          if (minBidAmount != null) {
+            const total = minBidAmount * safeBaseRate;
+            displayValue = `${minBidAmount} Ka ${total}`;
+          } else {
+            // fallback if config not loaded / invalid
+            displayValue = `Base rate: ${safeBaseRate}`;
+          }
+
+          return {
+            label: gameName,
+            value: displayValue,
+          };
+        }),
+      },
+    ];
+  }, [rates, minBidAmount]);
+
+  const isLoading = isLoadingRates || isConfigLoading;
 
   return (
     <View style={styles.container}>
       <GreenHeader title="Game Rate" />
 
-      {loading ? (
-        <View style={styles.center}><ActivityIndicator size="large" color={GREEN} /></View>
+      {isLoading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={GREEN} />
+        </View>
       ) : sections.length === 0 ? (
         <EmptyState icon="chart-line-variant" message="NO RATE DATA FOUND" />
       ) : (
         <SectionList
           sections={sections}
-          keyExtractor={(item, index) => item.label + index}
-          renderSectionHeader={({ section }) => <SectionHeader title={section.title} />}
-          renderItem={({ item }) => <RateRow label={item.label} value={item.value} />}
+          keyExtractor={(item, index) => (item.label || "rate") + index}
+          renderSectionHeader={({ section }) => (
+            <SectionHeader title={section.title} />
+          )}
+          renderItem={({ item }) => (
+            <RateRow label={item.label} value={item.value} />
+          )}
           contentContainerStyle={{ padding: 12, paddingBottom: 24 }}
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
           SectionSeparatorComponent={() => <View style={{ height: 12 }} />}
@@ -105,10 +121,10 @@ export default GameRate;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F3F3F3" },
-  center: { 
-    flex: 1, 
-    alignItems: "center", 
-    justifyContent: "center" 
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   sectionHeader: {
@@ -119,9 +135,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionTitle: {
-    color: "#fff", 
-    fontSize: 18, 
-    fontWeight: "800" 
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "800",
   },
 
   rateRow: {
@@ -138,13 +154,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 5,
   },
-  rateLabel: { 
-    fontSize: 18, 
-    color: "#111" 
+  rateLabel: {
+    fontSize: 18,
+    color: "#111",
   },
-  rateValue: { 
-    fontSize: 18, 
-    color: "#111", 
-    fontWeight: "800", 
+  rateValue: {
+    fontSize: 18,
+    color: "#111",
+    fontWeight: "800",
   },
 });

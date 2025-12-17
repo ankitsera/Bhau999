@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+// screens/SubGames/Jodi.jsx
+import React, { useMemo, useState } from 'react';
 import {
   View,
   ScrollView,
@@ -6,78 +7,75 @@ import {
   Text,
   Alert,
   TouchableOpacity,
-} from "react-native";
+  TextInput,
+  Keyboard,
+} from 'react-native';
 
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import DynamicHeader from "../../components/DynamicHeader";
-import BottomBetBar from "../../components/games/BottomBetBar";
-import GameTypePicker from "../../components/games/GameTypePicker";
-import GameDateTypeRow from "../../components/games/GameDateTypeRow";
+import DynamicHeader from '../../components/DynamicHeader';
+import BottomBetBar from '../../components/games/BottomBetBar';
+import GameTypePicker from '../../components/games/GameTypePicker';
+import GameDateTypeRow from '../../components/games/GameDateTypeRow';
 
-import JodiEasyForm from "../../components/games/jodi/JodiEasyForm";
-import EasyModeTable from "../../components/games/EasyModeTable";
-import SpecialModeGrid from "../../components/games/SpecialModeGrid";
+import EasyModeTable from '../../components/games/EasyModeTable';
+import SpecialModeGrid from '../../components/games/SpecialModeGrid';
 
-// TODO: later hook contexts
-// import { useGameContext } from "../../contexts/GameContext";
-// import { useWalletContext } from "../../contexts/WalletContext";
-// import { GameService } from "../../services/GameService";
-
-const GREEN = "#3FA16C";
-const BLACK = "#000";
+const GREEN = '#3FA16C';
+const BLACK = '#000';
 
 // 00..99 once
 const JODI_NUMBERS = Array.from({ length: 100 }, (_, i) =>
-  i.toString().padStart(2, "0")
+  i.toString().padStart(2, '0'),
 );
+
+// firstDigit -> ["d0","d1"...]
+const FIRST_DIGIT_MAP = Array.from({ length: 10 }, (_, d) => {
+  const key = String(d);
+  const values = Array.from({ length: 10 }, (_, i) => `${d}${i}`);
+  return [key, values];
+}).reduce((acc, [k, v]) => {
+  acc[k] = v;
+  return acc;
+}, {});
 
 const Jodi = ({ route }) => {
   const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || "GAME";
+  const gameName = route?.params?.gameName || 'GAME';
 
-  // const { getGameState } = useGameContext();
-  // const { balance } = useWalletContext();
-  // const gameState = getGameState(gameId);
-  // const allowedTypes = gameState.allowedTypes;
-  // const balance = balanceFromContext;
+  const allowedTypes = ['OPEN', 'CLOSE']; // temp (later from timing logic)
+  const balance = 0; // temp (later from wallet)
 
-  const allowedTypes = ["OPEN", "CLOSE"]; // temp
-  const balance = 0; // temp
-
-  const [mode, setMode] = useState("EASY"); // EASY | SPECIAL
-  const [selectedType, setSelectedType] = useState(
-    allowedTypes[0] || "OPEN"
-  );
-
-  // easy mode state
-  const [jodiDigit, setJodiDigit] = useState("");
-  const [easyPoints, setEasyPoints] = useState("");
-  const [easyBets, setEasyBets] = useState([]); // {id, digit, points, type}
-
-  // special mode state
-  const [specialPointsByJodi, setSpecialPointsByJodi] = useState(() =>
-    JODI_NUMBERS.reduce((acc, n) => {
-      acc[n] = "";
-      return acc;
-    }, {})
-  );
-
-  // today label for special mode
   const todayLabel = (() => {
     const d = new Date();
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
     const yyyy = d.getFullYear();
     return `${dd}-${mm}-${yyyy}`;
   })();
+
+  const [mode, setMode] = useState('EASY'); // EASY | SPECIAL
+  const [selectedType, setSelectedType] = useState(allowedTypes[0] || 'OPEN');
+
+  // easy mode
+  const [jodiDigit, setJodiDigit] = useState('');
+  const [easyPoints, setEasyPoints] = useState('');
+  const [easyBets, setEasyBets] = useState([]); // {id, digit, points, type}
+
+  // special mode
+  const [specialPointsByJodi, setSpecialPointsByJodi] = useState(() =>
+    JODI_NUMBERS.reduce((acc, n) => {
+      acc[n] = '';
+      return acc;
+    }, {}),
+  );
 
   // totals
   const easyTotals = useMemo(() => {
     const bids = easyBets.length;
     const points = easyBets.reduce(
       (sum, b) => sum + (Number(b.points) || 0),
-      0
+      0,
     );
     return { bids, points };
   }, [easyBets]);
@@ -85,7 +83,7 @@ const Jodi = ({ route }) => {
   const specialTotals = useMemo(() => {
     let bids = 0;
     let points = 0;
-    JODI_NUMBERS.forEach((n) => {
+    JODI_NUMBERS.forEach(n => {
       const p = Number(specialPointsByJodi[n] || 0);
       if (p > 0) {
         bids += 1;
@@ -95,40 +93,41 @@ const Jodi = ({ route }) => {
     return { bids, points };
   }, [specialPointsByJodi]);
 
-  const activeTotals = mode === "EASY" ? easyTotals : specialTotals;
+  const activeTotals = mode === 'EASY' ? easyTotals : specialTotals;
 
   // handlers
-
   const handleAddEasyBet = () => {
-    if (!jodiDigit || jodiDigit.length !== 2) {
-      Alert.alert("Validation", "Please enter a valid 2-digit Jodi.");
+    const clean = String(jodiDigit || '').replace(/[^0-9]/g, '');
+
+    if (!/^\d{2}$/.test(clean)) {
+      Alert.alert('Validation', 'Please enter a valid 2-digit Jodi.');
       return;
     }
 
     const pts = Number(easyPoints);
     if (!pts || pts <= 0) {
-      Alert.alert("Validation", "Please enter a valid point amount.");
+      Alert.alert('Validation', 'Please enter a valid point amount.');
       return;
     }
 
     const newBet = {
       id: Date.now().toString(),
-      digit: jodiDigit,
+      digit: clean,
       points: pts,
-      type: selectedType.toLowerCase(),
+      type: selectedType.toLowerCase(), // open/close
     };
 
-    setEasyBets((prev) => [...prev, newBet]);
-    setJodiDigit("");
-    setEasyPoints("");
+    setEasyBets(prev => [...prev, newBet]);
+    setJodiDigit('');
+    setEasyPoints('');
   };
 
-  const handleDeleteEasyBet = (id) => {
-    setEasyBets((prev) => prev.filter((b) => b.id !== id));
+  const handleDeleteEasyBet = id => {
+    setEasyBets(prev => prev.filter(b => b.id !== id));
   };
 
   const handleChangeSpecialPoint = (jodi, value) => {
-    setSpecialPointsByJodi((prev) => ({
+    setSpecialPointsByJodi(prev => ({
       ...prev,
       [jodi]: value,
     }));
@@ -138,24 +137,24 @@ const Jodi = ({ route }) => {
     const { bids, points } = activeTotals;
 
     if (bids === 0) {
-      Alert.alert("No bets", "Please add at least one bet.");
+      Alert.alert('No bets', 'Please add at least one bet.');
       return;
     }
 
     if (points > balance) {
-      Alert.alert("Insufficient balance", "Your wallet balance is too low.");
+      Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
       return;
     }
 
     let payload;
 
-    if (mode === "EASY") {
+    if (mode === 'EASY') {
       payload = {
         gameId,
-        subGame: "SINGLE_PANA",
-        mode: "EASY",
+        subGame: 'JODI',
+        mode: 'EASY',
         type: selectedType,
-        bets: easyBets.map((b) => ({
+        bets: easyBets.map(b => ({
           jodi: b.digit,
           points: b.points,
           type: b.type,
@@ -163,7 +162,7 @@ const Jodi = ({ route }) => {
       };
     } else {
       const bets = [];
-      JODI_NUMBERS.forEach((n) => {
+      JODI_NUMBERS.forEach(n => {
         const p = Number(specialPointsByJodi[n] || 0);
         if (p > 0) {
           bets.push({
@@ -176,25 +175,24 @@ const Jodi = ({ route }) => {
 
       payload = {
         gameId,
-        subGame: "SINGLE_PANA",
-        mode: "SPECIAL",
+        subGame: 'JODI',
+        mode: 'SPECIAL',
         type: selectedType,
         bets,
       };
     }
 
     try {
-      // await GameService.submitSinglePana(payload);
-      console.log("Submitting Single Pana payload:", payload);
-      Alert.alert("Success", "Bets submitted (mock).");
+      console.log('Submitting Jodi payload:', payload);
+      Alert.alert('Success', 'Bets submitted (mock).');
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", "Failed to submit bets.");
+      Alert.alert('Error', 'Failed to submit bets.');
     }
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={["bottom"]}>
+    <SafeAreaView style={styles.safe} edges={['bottom']}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - JODI`} />
 
@@ -202,23 +200,23 @@ const Jodi = ({ route }) => {
           <ScrollView
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
+            keyboardShouldPersistTaps="always"
           >
             {/* mode toggle */}
             <View style={styles.modeRow}>
               <ModeButton
                 label="EASY MODE"
-                active={mode === "EASY"}
-                onPress={() => setMode("EASY")}
+                active={mode === 'EASY'}
+                onPress={() => setMode('EASY')}
               />
               <ModeButton
                 label="SPECIAL MODE"
-                active={mode === "SPECIAL"}
-                onPress={() => setMode("SPECIAL")}
+                active={mode === 'SPECIAL'}
+                onPress={() => setMode('SPECIAL')}
               />
             </View>
 
-            {mode === "EASY" && (
+            {mode === 'EASY' && (
               <>
                 <GameTypePicker
                   label="Select Game Type:"
@@ -228,12 +226,15 @@ const Jodi = ({ route }) => {
                   containerStyle={{ marginBottom: 12 }}
                 />
 
-                <JodiEasyForm
+                <JodiEasyFormInline
                   jodi={jodiDigit}
                   onChangeJodi={setJodiDigit}
                   points={easyPoints}
                   onChangePoints={setEasyPoints}
-                  onPressAdd={handleAddEasyBet}
+                  onPressAdd={() => {
+                    Keyboard.dismiss(); // fixes “tap twice to Add”
+                    handleAddEasyBet();
+                  }}
                 />
 
                 <EasyModeTable
@@ -244,7 +245,7 @@ const Jodi = ({ route }) => {
               </>
             )}
 
-            {mode === "SPECIAL" && (
+            {mode === 'SPECIAL' && (
               <>
                 <GameDateTypeRow
                   dateLabel={todayLabel}
@@ -264,14 +265,13 @@ const Jodi = ({ route }) => {
         </View>
 
         {/* bottom bar only in easy mode */}
-        {mode === "EASY" ? (
+        {mode === 'EASY' ? (
           <BottomBetBar
             bids={activeTotals.bids}
             points={activeTotals.points}
             onSubmit={handleSubmit}
           />
         ) : (
-          // special mode: full-width submit button like screenshot 3
           <View style={styles.specialBottom}>
             <TouchableOpacity
               style={styles.specialSubmitButton}
@@ -289,12 +289,86 @@ const Jodi = ({ route }) => {
 
 export default Jodi;
 
+/* ----------------- inline easy form ----------------- */
+
+const JodiEasyFormInline = ({
+  jodi,
+  onChangeJodi,
+  points,
+  onChangePoints,
+  onPressAdd,
+}) => {
+  const suggestions = useMemo(() => {
+    const clean = String(jodi || '').replace(/[^0-9]/g, '');
+    if (clean.length !== 1) return [];
+    return FIRST_DIGIT_MAP[clean] || [];
+  }, [jodi]);
+
+  return (
+    <View style={formStyles.container}>
+      <View style={formStyles.pointInputRow}>
+        <Text style={formStyles.label}>Enter Jodi Digit:</Text>
+
+        <View style={formStyles.inputWrapper}>
+          <TextInput
+            style={formStyles.input}
+            keyboardType="number-pad"
+            maxLength={2}
+            value={jodi}
+            onChangeText={onChangeJodi}
+            placeholder="Jodi"
+          />
+
+          {suggestions.length > 0 && (
+            <View style={formStyles.suggestionBox}>
+              <ScrollView
+                keyboardShouldPersistTaps="always"
+                nestedScrollEnabled
+                showsVerticalScrollIndicator
+              >
+                {suggestions.map(item => (
+                  <TouchableOpacity
+                    key={item}
+                    style={formStyles.suggestionItem}
+                    onPress={() => onChangeJodi(item)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={formStyles.suggestionText}>{item}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+        </View>
+      </View>
+
+      <View style={formStyles.pointInputRow}>
+        <Text style={formStyles.label}>Enter Points:</Text>
+        <TextInput
+          style={formStyles.input}
+          keyboardType="number-pad"
+          value={points}
+          onChangeText={onChangePoints}
+          placeholder="Point"
+        />
+      </View>
+
+      <TouchableOpacity
+        style={formStyles.addButton}
+        onPress={onPressAdd}
+        activeOpacity={0.85}
+      >
+        <Text style={formStyles.addText}>Add</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+/* ----------------- mode button ----------------- */
+
 const ModeButton = ({ label, active, onPress }) => (
   <TouchableOpacity
-    style={[
-      modeStyles.button,
-      { backgroundColor: active ? BLACK : GREEN },
-    ]}
+    style={[modeStyles.button, { backgroundColor: active ? BLACK : GREEN }]}
     activeOpacity={0.85}
     onPress={onPress}
   >
@@ -307,25 +381,27 @@ const modeStyles = StyleSheet.create({
     flex: 1,
     height: 46,
     borderRadius: 4,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginHorizontal: 4,
   },
   text: {
-    color: "#FFFFFF",
+    color: '#FFFFFF',
     fontSize: 15,
-    fontWeight: "700",
+    fontWeight: '700',
   },
 });
+
+/* ----------------- screen styles ----------------- */
 
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
+    backgroundColor: '#F3F3F3',
   },
   screen: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
+    backgroundColor: '#F3F3F3',
   },
   content: {
     flex: 1,
@@ -336,28 +412,103 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   modeRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: 16,
   },
+
   specialBottom: {
     height: 64,
     borderTopWidth: 1,
-    borderTopColor: "#D9D9D9",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F9F9F9",
+    borderTopColor: '#D9D9D9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F9F9F9',
     paddingHorizontal: 16,
   },
   specialSubmitButton: {
     backgroundColor: GREEN,
     borderRadius: 6,
     paddingVertical: 12,
-    alignItems: "center",
-    alignSelf: "stretch",
+    alignItems: 'center',
+    alignSelf: 'stretch',
   },
   specialSubmitText: {
-    color: "#FFFFFF",
+    color: '#FFFFFF',
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: '700',
+  },
+});
+
+/* ----------------- form styles (matches your SingleDigit EasyModeForm) ----------------- */
+
+const formStyles = StyleSheet.create({
+  container: {
+    marginTop: 12,
+  },
+  pointInputRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  label: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+
+  inputWrapper: {
+    width: 180,
+    position: 'relative',
+  },
+
+  input: {
+    height: 44,
+    width: 180,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#DDD',
+    fontSize: 16,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+
+  suggestionBox: {
+    position: 'absolute',
+    top: 44 + 4,
+    left: 0,
+    right: 0,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#DDD',
+    maxHeight: 160,
+    zIndex: 50,
+    elevation: 8,
+    overflow: 'hidden',
+  },
+
+  suggestionItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  suggestionText: {
+    fontSize: 14,
+    color: '#333',
+  },
+
+  addButton: {
+    marginTop: 12,
+    height: 44,
+    borderRadius: 6,
+    backgroundColor: GREEN,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

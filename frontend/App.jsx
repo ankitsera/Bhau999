@@ -6,6 +6,8 @@ import { AuthProvider } from './contexts/AuthContext';
 import { PaymentsProvider } from "./contexts/PaymentsContext";
 import { ThemeProvider } from '@react-navigation/native';
 import { useRef } from 'react';
+import { GameProvider } from './contexts/GameContext';
+import { AppConfigProvider } from './contexts/AppConfigContext';
 
 function App() {
   const navigationRef = useRef(null);
@@ -14,9 +16,13 @@ function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <PaymentsProvider>
-          <ThemeProvider>
-            <Navigation navigationRef={navigationRef} />
-          </ThemeProvider>
+          <GameProvider>
+            <AppConfigProvider>
+              <ThemeProvider>
+                <Navigation navigationRef={navigationRef} />
+              </ThemeProvider>
+            </AppConfigProvider>
+          </GameProvider>
         </PaymentsProvider>
       </AuthProvider>
     </SafeAreaProvider>

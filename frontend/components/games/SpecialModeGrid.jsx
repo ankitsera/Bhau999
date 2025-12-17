@@ -47,6 +47,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     marginBottom: 10,
+    marginRight: 10,
   },
   digitBox: {
     width: 60,

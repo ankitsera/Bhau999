@@ -32,6 +32,11 @@ import SingleDigit from "../screens/SubGames/SingleDigit";
 import SingleDigitBulk from "../screens/SubGames/SingleDigitBulk";
 import Jodi from "../screens/SubGames/Jodi";
 import JodiBulk from "../screens/SubGames/JodiBulk";
+import SinglePana from "../screens/SubGames/SinglePana";
+import SinglePanaBulk from "../screens/SubGames/SinglePanaBulk";
+import DoublePana from "../screens/SubGames/DoublePana";
+import DoublePanaBulk from "../screens/SubGames/DoublePanaBulk";
+import TriplePana from "../screens/SubGames/TriplePana";
 
 const Stack = createNativeStackNavigator();
 
@@ -103,6 +108,11 @@ const Navigation = ({ navigationRef }) => {
         <Stack.Screen name="SingleDigitBulk" component={SingleDigitBulk} options={{ headerShown: false }} />
         <Stack.Screen name="Jodi" component={Jodi} options={{ headerShown: false }} />
         <Stack.Screen name="JodiBulk" component={JodiBulk} options={{ headerShown: false }} />
+        <Stack.Screen name="SinglePana" component={SinglePana} options={{ headerShown: false }} />
+        <Stack.Screen name="SinglePanaBulk" component={SinglePanaBulk} options={{ headerShown: false }} />
+        <Stack.Screen name="DoublePana" component={DoublePana} options={{ headerShown: false }} />
+        <Stack.Screen name="DoublePanaBulk" component={DoublePanaBulk} options={{ headerShown: false }} />
+        <Stack.Screen name="TriplePana" component={TriplePana} options={{ headerShown: false }} />
         </Stack.Navigator>
       </HeaderButtonsProvider>
     </NavigationContainer>

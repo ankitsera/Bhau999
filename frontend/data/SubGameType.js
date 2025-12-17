@@ -31,8 +31,8 @@ export const SUB_GAME_TYPES = [
     key: "singlePana",
     label: "Single Pana",
     icon: "cellphone-plus",
-    routeName: "SinglePanaScreen",
-    modes: ["normal"],
+    routeName: "SinglePana",
+    modes: ["normal", "special"],
   },
   {
     key: "singlePanaBulk",
@@ -46,7 +46,7 @@ export const SUB_GAME_TYPES = [
     label: "Double Pana",
     icon: "cards-outline",
     routeName: "DoublePana",
-    modes: ["normal"],
+    modes: ["normal", "special"],
   },
   {
     key: "doublePanaBulk",
