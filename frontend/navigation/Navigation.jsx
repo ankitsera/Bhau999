@@ -37,6 +37,11 @@ import SinglePanaBulk from "../screens/SubGames/SinglePanaBulk";
 import DoublePana from "../screens/SubGames/DoublePana";
 import DoublePanaBulk from "../screens/SubGames/DoublePanaBulk";
 import TriplePana from "../screens/SubGames/TriplePana";
+import FullSangam from "../screens/SubGames/FullSangam";
+import HalfSangamA from "../screens/SubGames/HalfSangamA";
+import HalfSangamB from "../screens/SubGames/HalfSangamB";
+// import RedJodi from "../screens/SubGames/RedJodi";
+// import OddEven from "../screens/SubGames/OddEven";
 
 const Stack = createNativeStackNavigator();
 
@@ -113,6 +118,11 @@ const Navigation = ({ navigationRef }) => {
         <Stack.Screen name="DoublePana" component={DoublePana} options={{ headerShown: false }} />
         <Stack.Screen name="DoublePanaBulk" component={DoublePanaBulk} options={{ headerShown: false }} />
         <Stack.Screen name="TriplePana" component={TriplePana} options={{ headerShown: false }} />
+        <Stack.Screen name="FullSangam" component={FullSangam} options={{ headerShown: false }} />
+        <Stack.Screen name="HalfSangamA" component={HalfSangamA} options={{ headerShown: false }} />
+        <Stack.Screen name="HalfSangamB" component={HalfSangamB} options={{ headerShown: false }} />
+        {/* <Stack.Screen name="RedJodi" component={RedJodi} options={{ headerShown: false }} /> */}
+        {/* <Stack.Screen name="OddEven" component={OddEven} options={{ headerShown: false }} /> */}
         </Stack.Navigator>
       </HeaderButtonsProvider>
     </NavigationContainer>

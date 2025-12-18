@@ -226,7 +226,7 @@ const Jodi = ({ route }) => {
                   containerStyle={{ marginBottom: 12 }}
                 />
 
-                <JodiEasyFormInline
+                <JodiEasyForm
                   jodi={jodiDigit}
                   onChangeJodi={setJodiDigit}
                   points={easyPoints}
@@ -291,7 +291,7 @@ export default Jodi;
 
 /* ----------------- inline easy form ----------------- */
 
-const JodiEasyFormInline = ({
+const JodiEasyForm = ({
   jodi,
   onChangeJodi,
   points,
