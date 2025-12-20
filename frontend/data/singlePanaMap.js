@@ -42,3 +42,68 @@ export function getSinglePanaSuggestions(input) {
   // 2–3 digits: progressively filter by prefix
   return baseList.filter(pana => pana.startsWith(cleaned));
 }
+
+/**
+ * Motor helper: sanitize input to UNIQUE digits (no duplicates), maxLen up to 6.
+ * - Blocks duplicate digits while typing/pasting
+ * - Keeps order of first occurrence
+ */
+export function sanitizeMotorDigits(input, maxLen = 6) {
+  const clean = String(input || "").replace(/[^0-9]/g, "");
+  let uniq = "";
+
+  for (let i = 0; i < clean.length; i++) {
+    const ch = clean[i];
+    if (!uniq.includes(ch)) uniq += ch;
+    if (uniq.length === maxLen) break;
+  }
+
+  return uniq;
+}
+
+/**
+ * Motor helper: returns all SINGLE PANAs that can be formed using ONLY digits in `digitsStr`
+ * - digitsStr must be 4..6 unique digits (but function works for any length >= 1)
+ * - Example: "258469" -> all panas whose 3 digits are in that set
+ */
+export function getSinglePanaMotorPanas(digitsStr) {
+  const digits = String(digitsStr || "").replace(/[^0-9]/g, "");
+  const set = new Set(digits.split(""));
+
+  const matches = ALL_SINGLE_PANA.filter((p) => set.has(p[0]) && set.has(p[1]) && set.has(p[2]));
+
+  return Array.from(new Set(matches)).sort((a, b) => Number(a) - Number(b));
+}
+
+/* -------------------- ✅ SP COMMON HELPER (NEW) -------------------- */
+/**
+ * Precompute: digit -> all SINGLE PANAS that contain that digit anywhere.
+ * Used by SpCommon screen.
+ */
+const SINGLE_PANA_BY_ANY_DIGIT = (() => {
+  const acc = { "0": [], "1": [], "2": [], "3": [], "4": [], "5": [], "6": [], "7": [], "8": [], "9": [] };
+
+  ALL_SINGLE_PANA.forEach((p) => {
+    // single pana digits are unique, so no need for Set, but safe anyway
+    const uniq = new Set(p.split(""));
+    uniq.forEach((d) => {
+      if (acc[d]) acc[d].push(p);
+    });
+  });
+
+  // sort for stable UI
+  Object.keys(acc).forEach((k) => {
+    acc[k].sort((a, b) => Number(a) - Number(b));
+  });
+
+  return acc;
+})();
+
+/**
+ * Return all single panas where `digit` exists in the pana.
+ */
+export function getSinglePanaCommonDigitPanas(digit) {
+  const d = String(digit ?? "").replace(/[^0-9]/g, "");
+  if (d.length !== 1) return [];
+  return SINGLE_PANA_BY_ANY_DIGIT[d] || [];
+}

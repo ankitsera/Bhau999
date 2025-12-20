@@ -40,8 +40,14 @@ import TriplePana from "../screens/SubGames/TriplePana";
 import FullSangam from "../screens/SubGames/FullSangam";
 import HalfSangamA from "../screens/SubGames/HalfSangamA";
 import HalfSangamB from "../screens/SubGames/HalfSangamB";
-// import RedJodi from "../screens/SubGames/RedJodi";
-// import OddEven from "../screens/SubGames/OddEven";
+import SpDpTp from "../screens/SubGames/SpDpTp";
+import TwoDigitPana from "../screens/SubGames/TwoDigitPana";
+import RedJodi from "../screens/SubGames/RedJodi";
+import OddEven from "../screens/SubGames/OddEven";
+import SpMotor from "../screens/SubGames/SpMotor";
+import DpMotor from "../screens/SubGames/DpMotor";
+import SpCommon from "../screens/SubGames/SpCommon";
+import DpCommon from "../screens/SubGames/DpCommon";
 
 const Stack = createNativeStackNavigator();
 
@@ -121,8 +127,14 @@ const Navigation = ({ navigationRef }) => {
         <Stack.Screen name="FullSangam" component={FullSangam} options={{ headerShown: false }} />
         <Stack.Screen name="HalfSangamA" component={HalfSangamA} options={{ headerShown: false }} />
         <Stack.Screen name="HalfSangamB" component={HalfSangamB} options={{ headerShown: false }} />
-        {/* <Stack.Screen name="RedJodi" component={RedJodi} options={{ headerShown: false }} /> */}
-        {/* <Stack.Screen name="OddEven" component={OddEven} options={{ headerShown: false }} /> */}
+        <Stack.Screen name="SpDpTp" component={SpDpTp} options={{ headerShown: false }} />
+        <Stack.Screen name="TwoDigitPana" component={TwoDigitPana} options={{ headerShown: false }} />
+        <Stack.Screen name="RedJodi" component={RedJodi} options={{ headerShown: false }} />
+        <Stack.Screen name="OddEven" component={OddEven} options={{ headerShown: false }} />
+        <Stack.Screen name="SpMotor" component={SpMotor} options={{ headerShown: false }} />
+        <Stack.Screen name="DpMotor" component={DpMotor} options={{ headerShown: false }} />
+        <Stack.Screen name="SpCommon" component={SpCommon} options={{ headerShown: false }} />
+        <Stack.Screen name="DpCommon" component={DpCommon} options={{ headerShown: false }} />
         </Stack.Navigator>
       </HeaderButtonsProvider>
     </NavigationContainer>
