@@ -7,11 +7,13 @@ import {
   Pressable,
   TextInput,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AuthContext } from '../../contexts/AuthContext';
+import { Link } from '@react-navigation/native';
 
 const GREEN = '#3FA16C';
 
@@ -19,6 +21,13 @@ const AddMoney = ({ navigation }) => {
   const { user } = useContext(AuthContext);
   const insets = useSafeAreaInsets();
   const [amount, setAmount] = useState('');
+  const SUPPORT_PHONE = '+917757033237';
+  const WHATSAPP_PHONE = '917757033237';
+
+  const openDialer = () =>
+    Linking.openURL(`tel:${SUPPORT_PHONE}`).catch(() => {});
+  const openWhatsapp = () =>
+    Linking.openURL(`https://wa.me/${WHATSAPP_PHONE}`).catch(() => {});
 
   const handleAdd = () => {
     // TODO: payment gateway flow
@@ -76,11 +85,11 @@ const AddMoney = ({ navigation }) => {
           </Text>
 
           <View style={styles.helpBtns}>
-            <TouchableOpacity style={styles.helpBtn}>
+            <TouchableOpacity style={styles.helpBtn} onPress={openDialer}>
               <MaterialIcons name="call" size={20} color="#000" />
               <Text style={styles.helpText}>Call</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.helpBtn}>
+            <TouchableOpacity style={styles.helpBtn} onPress={openWhatsapp}>
               <MaterialCommunityIcons name="whatsapp" size={20} color={GREEN} />
               <Text style={styles.helpText}>Whatsapp</Text>
             </TouchableOpacity>
@@ -166,7 +175,7 @@ export const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 110,
+    height: 90,
     backgroundColor: GREEN,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,

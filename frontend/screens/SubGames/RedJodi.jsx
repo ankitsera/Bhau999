@@ -30,8 +30,8 @@ const RED_JODI_NUMBERS = [
 ];
 
 const RedJodi = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || "GAME";
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   const allowedTypes = ["OPEN", "CLOSE"]; // TODO: from backend/game timings
   const balance = Number.MAX_SAFE_INTEGER; // TODO: from wallet context

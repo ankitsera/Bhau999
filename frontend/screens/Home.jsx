@@ -117,7 +117,7 @@ const Home = ({ navigation }) => {
   const openDialer = () =>
     Linking.openURL(`tel:${SUPPORT_PHONE}`).catch(() => {});
   const openWhatsapp = () =>
-    Linking.openURL(`https://wa.me/${WHATSAPP_PHONE}).catch(() => {}`);
+    Linking.openURL(`https://wa.me/${WHATSAPP_PHONE}`).catch(() => {});
   const openTelegram = () => Linking.openURL(TELEGRAM_URL).catch(() => {});
 
   return (

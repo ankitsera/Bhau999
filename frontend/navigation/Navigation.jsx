@@ -48,6 +48,7 @@ import SpMotor from "../screens/SubGames/SpMotor";
 import DpMotor from "../screens/SubGames/DpMotor";
 import SpCommon from "../screens/SubGames/SpCommon";
 import DpCommon from "../screens/SubGames/DpCommon";
+import DigitBasedJodi from "../screens/SubGames/DigitBasedJodi";
 
 const Stack = createNativeStackNavigator();
 
@@ -135,6 +136,7 @@ const Navigation = ({ navigationRef }) => {
         <Stack.Screen name="DpMotor" component={DpMotor} options={{ headerShown: false }} />
         <Stack.Screen name="SpCommon" component={SpCommon} options={{ headerShown: false }} />
         <Stack.Screen name="DpCommon" component={DpCommon} options={{ headerShown: false }} />
+        <Stack.Screen name="DigitBasedJodi" component={DigitBasedJodi} options={{ headerShown: false }} />
         </Stack.Navigator>
       </HeaderButtonsProvider>
     </NavigationContainer>

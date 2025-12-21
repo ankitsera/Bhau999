@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -34,8 +36,8 @@ const GROUP_KEYS = Object.keys(DOUBLE_PANA_BY_RESULT_DIGIT).sort(
 );
 
 const DoublePana = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || 'GAME';
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // replace later
   const balance = 0; // replace later
@@ -191,12 +193,12 @@ const DoublePana = ({ route }) => {
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - DOUBLE PANA`} />
 
-        <View style={styles.content}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
+        <KeyboardAvoidingView
+          style={styles.content}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          {/* FIXED TOP CONTROLS */}
+          <View style={styles.topArea}>
             {/* Mode toggle */}
             <View style={styles.modeRow}>
               <ModeButton
@@ -232,30 +234,38 @@ const DoublePana = ({ route }) => {
               />
             )}
 
-            {mode === 'EASY' ? (
-              <>
-                <DoublePanaEasyForm
-                  pana={easyPana}
-                  onChangePana={setEasyPana}
-                  points={easyPoints}
-                  onChangePoints={setEasyPoints}
-                  onPressAdd={handleAddEasyBet}
-                />
+            {/* EASY: easy form (fixed) */}
+            {mode === 'EASY' && (
+              <DoublePanaEasyForm
+                pana={easyPana}
+                onChangePana={setEasyPana}
+                points={easyPoints}
+                onChangePoints={setEasyPoints}
+                onPressAdd={handleAddEasyBet}
+              />
+            )}
+          </View>
 
-                <EasyModeTable
-                  bets={easyBets.map(b => ({
-                    id: b.id,
-                    digit: b.pana,
-                    points: b.points,
-                    type: b.type,
-                  }))}
-                  onDelete={handleDeleteEasyBet}
-                  digitHeaderLabel="Pana"
-                />
-              </>
+          {/* FLEX:1 AREA */}
+          <View style={styles.mainArea}>
+            {mode === 'EASY' ? (
+              <EasyModeTable
+                bets={easyBets.map(b => ({
+                  id: b.id,
+                  digit: b.pana,
+                  points: b.points,
+                  type: b.type,
+                }))}
+                onDelete={handleDeleteEasyBet}
+                digitHeaderLabel="Pana"
+              />
             ) : (
-              <>
-                {/* grouped list like screenshot */}
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                nestedScrollEnabled
+                contentContainerStyle={styles.specialScrollContent}
+              >
                 <View style={styles.groupsWrapper}>
                   {GROUP_KEYS.map(key => {
                     const panas = DOUBLE_PANA_BY_RESULT_DIGIT[key] || [];
@@ -274,28 +284,28 @@ const DoublePana = ({ route }) => {
                     );
                   })}
                 </View>
-
-                <View style={styles.specialSubmitWrapper}>
-                  <TouchableOpacity
-                    style={styles.specialSubmitButton}
-                    onPress={handleSubmit}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={styles.specialSubmitText}>Submit</Text>
-                  </TouchableOpacity>
-                </View>
-              </>
+              </ScrollView>
             )}
-          </ScrollView>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
 
-        {/* Bottom bar only for EASY */}
-        {mode === 'EASY' && (
+        {/* FIXED BOTTOM */}
+        {mode === 'EASY' ? (
           <BottomBetBar
             bids={activeTotals.bids}
             points={activeTotals.points}
             onSubmit={handleSubmit}
           />
+        ) : (
+          <View style={styles.specialBottomBar}>
+            <TouchableOpacity
+              style={styles.specialSubmitButton}
+              onPress={handleSubmit}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.specialSubmitText}>Submit</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
     </SafeAreaView>
@@ -327,6 +337,7 @@ const DoublePanaEasyForm = ({
             value={pana}
             onChangeText={onChangePana}
             placeholder="Pana"
+            placeholderTextColor="#999"
           />
 
           {suggestions.length > 0 && pana.length > 0 && pana.length < 3 && (
@@ -355,6 +366,7 @@ const DoublePanaEasyForm = ({
           value={points}
           onChangeText={onChangePoints}
           placeholder="Point"
+          placeholderTextColor="#999"
         />
       </View>
 
@@ -408,16 +420,23 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  scrollContent: {
+  topArea: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
+  },
+  mainArea: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
   },
   modeRow: {
     flexDirection: 'row',
     marginBottom: 16,
   },
-
+  // SPECIAL UI
+  specialScrollContent: {
+    paddingBottom: 12,
+  },
   groupsWrapper: {
     marginTop: 12,
     marginBottom: 8,
@@ -443,10 +462,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
-
-  specialSubmitWrapper: {
-    marginTop: 8,
-    marginBottom: 8,
+  // fixed submit for SPECIAL
+  specialBottomBar: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 10,
+    backgroundColor: '#F3F3F3',
   },
   specialSubmitButton: {
     backgroundColor: GREEN,
@@ -521,6 +542,8 @@ const formStyles = StyleSheet.create({
     backgroundColor: GREEN,
     justifyContent: 'center',
     alignItems: 'center',
+    width: 180,
+    alignSelf: 'flex-end',
   },
   addText: {
     color: '#FFF',

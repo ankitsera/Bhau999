@@ -27,8 +27,8 @@ const BLACK = '#000';
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 const SingleDigit = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || 'GAME';
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // temp
   const balance = 0; // temp
@@ -190,81 +190,86 @@ const SingleDigit = ({ route }) => {
         <DynamicHeader title={`${gameName} - SINGLE DIGIT`} />
 
         <View style={styles.content}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="always"
-          >
-            {/* Mode toggle */}
-            <View style={styles.modeRow}>
-              <ModeButton
-                label="EASY MODE"
-                active={mode === 'EASY'}
-                onPress={() => setMode('EASY')}
-              />
-              <ModeButton
-                label="SPECIAL MODE"
-                active={mode === 'SPECIAL'}
-                onPress={() => setMode('SPECIAL')}
-              />
-            </View>
+          {/* Mode toggle */}
+          <View style={styles.modeRow}>
+            <ModeButton
+              label="EASY MODE"
+              active={mode === 'EASY'}
+              onPress={() => setMode('EASY')}
+            />
+            <ModeButton
+              label="SPECIAL MODE"
+              active={mode === 'SPECIAL'}
+              onPress={() => setMode('SPECIAL')}
+            />
+          </View>
 
-            {/* EASY MODE: label + dropdown */}
-            {mode === 'EASY' && (
-              <GameTypePicker
-                label="Select Game Type:"
-                value={selectedType}
-                options={allowedTypes}
-                onChange={setSelectedType}
-                containerStyle={{ marginBottom: 12 }}
+          {/* EASY MODE: label + dropdown */}
+          {mode === 'EASY' && (
+            <GameTypePicker
+              label="Select Game Type:"
+              value={selectedType}
+              options={allowedTypes}
+              onChange={setSelectedType}
+              containerStyle={{ marginBottom: 12 }}
+            />
+          )}
+
+          {/* SPECIAL MODE: date + dropdown row */}
+          {mode === 'SPECIAL' && (
+            <GameDateTypeRow
+              dateLabel={todayLabel}
+              gameTypeValue={selectedType}
+              gameTypeOptions={allowedTypes}
+              onChangeGameType={setSelectedType}
+            />
+          )}
+
+          {mode === 'EASY' ? (
+            <>
+              <SingleDigitEasyForm
+                digit={easyDigit}
+                onChangeDigit={setEasyDigit}
+                points={easyPoints}
+                onChangePoints={setEasyPoints}
+                onPressAdd={() => {
+                  Keyboard.dismiss(); // fixes “need to tap twice” vibe
+                  handleAddEasyBet();
+                }}
               />
-            )}
 
-            {/* SPECIAL MODE: date + dropdown row */}
-            {mode === 'SPECIAL' && (
-              <GameDateTypeRow
-                dateLabel={todayLabel}
-                gameTypeValue={selectedType}
-                gameTypeOptions={allowedTypes}
-                onChangeGameType={setSelectedType}
-              />
-            )}
-
-            {mode === 'EASY' ? (
-              <>
-                <SingleDigitEasyForm
-                  digit={easyDigit}
-                  onChangeDigit={setEasyDigit}
-                  points={easyPoints}
-                  onChangePoints={setEasyPoints}
-                  onPressAdd={() => {
-                    Keyboard.dismiss(); // fixes “need to tap twice” vibe
-                    handleAddEasyBet();
-                  }}
-                />
-
+              <View style={styles.tableArea}>
                 <EasyModeTable bets={easyBets} onDelete={handleDeleteEasyBet} />
-              </>
-            ) : (
-              <>
-                <SpecialModeGrid
-                  digits={DIGITS}
-                  pointsByDigit={specialPointsByDigit}
-                  onChangePoint={handleChangeSpecialPoint}
-                />
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={styles.specialArea}>
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="always"
+                  nestedScrollEnabled
+                  contentContainerStyle={styles.specialScrollContent}
+                >
+                  <SpecialModeGrid
+                    digits={DIGITS}
+                    pointsByDigit={specialPointsByDigit}
+                    onChangePoint={handleChangeSpecialPoint}
+                  />
+                </ScrollView>
+              </View>
 
-                <View style={styles.specialSubmitWrapper}>
-                  <TouchableOpacity
-                    style={styles.specialSubmitButton}
-                    onPress={handleSubmit}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={styles.specialSubmitText}>Submit</Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
-          </ScrollView>
+              <View style={styles.specialSubmitWrapper}>
+                <TouchableOpacity
+                  style={styles.specialSubmitButton}
+                  onPress={handleSubmit}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.specialSubmitText}>Submit</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Bottom bar ONLY for Easy mode */}
@@ -301,6 +306,7 @@ const SingleDigitEasyForm = ({
           value={digit}
           onChangeText={onChangeDigit}
           placeholder="Ank"
+          placeholderTextColor="#999"
         />
       </View>
 
@@ -312,6 +318,7 @@ const SingleDigitEasyForm = ({
           value={points}
           onChangeText={onChangePoints}
           placeholder="Point"
+          placeholderTextColor="#999"
         />
       </View>
 
@@ -365,16 +372,27 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
   },
   modeRow: {
     flexDirection: 'row',
     marginBottom: 16,
   },
+
+  tableArea: {
+    flex: 1,
+    paddingBottom: 10,
+  },
+
+  specialArea: {
+    flex: 1,
+    paddingBottom: 10,
+  },
+  specialScrollContent: {
+    paddingBottom: 12,
+  },
+
   specialSubmitWrapper: {
     marginTop: 24,
     marginBottom: 8,
@@ -425,6 +443,8 @@ const formStyles = StyleSheet.create({
     backgroundColor: GREEN,
     justifyContent: 'center',
     alignItems: 'center',
+    width: 180,
+    alignSelf: 'flex-end',
   },
   addText: {
     color: '#FFF',

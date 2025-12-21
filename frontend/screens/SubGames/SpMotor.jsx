@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
   View,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -24,8 +23,8 @@ import {
 const GREEN = '#3FA16C';
 
 const SpMotor = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || 'GAME';
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // later from game config
   const balance = 0; // later from wallet context
@@ -138,57 +137,55 @@ const SpMotor = ({ route }) => {
         <DynamicHeader title={`${gameName} - SP MOTOR`} />
 
         <View style={styles.content}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <GameDateTypeRow
-              dateLabel={todayLabel}
-              gameTypeValue={selectedType}
-              gameTypeOptions={allowedTypes}
-              onChangeGameType={setSelectedType}
-            />
+          <GameDateTypeRow
+            dateLabel={todayLabel}
+            gameTypeValue={selectedType}
+            gameTypeOptions={allowedTypes}
+            onChangeGameType={setSelectedType}
+          />
 
-            <View style={styles.form}>
-              <View style={styles.pointInputRow}>
-                <Text style={styles.label}>Enter Digit:</Text>
-                <TextInput
-                  style={styles.input}
-                  keyboardType="number-pad"
-                  value={digits}
-                  onChangeText={handleChangeDigits}
-                  placeholder="Number"
-                  maxLength={6}
-                />
-              </View>
-
-              <View style={styles.pointInputRow}>
-                <Text style={styles.label}>Enter Points:</Text>
-                <TextInput
-                  style={styles.input}
-                  keyboardType="number-pad"
-                  value={points}
-                  onChangeText={setPoints}
-                  placeholder="Point"
-                />
-              </View>
-
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={handleAdd}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.addText}>Add</Text>
-              </TouchableOpacity>
+          <View style={styles.form}>
+            <View style={styles.pointInputRow}>
+              <Text style={styles.label}>Enter Digit:</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="number-pad"
+                value={digits}
+                onChangeText={handleChangeDigits}
+                placeholder="Number"
+                maxLength={6}
+                placeholderTextColor="#999"
+              />
             </View>
 
+            <View style={styles.pointInputRow}>
+              <Text style={styles.label}>Enter Points:</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="number-pad"
+                value={points}
+                onChangeText={setPoints}
+                placeholder="Point"
+                placeholderTextColor="#999"
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={handleAdd}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.addText}>Add</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.tableArea}>
             <EasyModeTable
               bets={bets}
               onDelete={handleDelete}
               digitHeaderLabel="Pana"
             />
-          </ScrollView>
+          </View>
         </View>
 
         <BottomBetBar
@@ -212,13 +209,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F3F3F3',
   },
+
   content: {
     flex: 1,
-  },
-  scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
   },
 
   form: {
@@ -259,5 +254,10 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 16,
     fontWeight: '700',
+  },
+
+  tableArea: {
+    flex: 1,
+    paddingBottom: 10,
   },
 });

@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   Modal,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -47,6 +48,14 @@ const WithdrawMoney = ({ navigation }) => {
   // Modals
   const [showClosedModal, setShowClosedModal] = useState(false);
   const [showTncModal, setShowTncModal] = useState(false);
+
+  const SUPPORT_PHONE = '+917757033237';
+  const WHATSAPP_PHONE = '917757033237';
+
+  const openDialer = () =>
+    Linking.openURL(`tel:${SUPPORT_PHONE}`).catch(() => {});
+  const openWhatsapp = () =>
+    Linking.openURL(`https://wa.me/${WHATSAPP_PHONE}`).catch(() => {});
 
   useEffect(() => {
     const within = isWithinWithdrawalWindow();
@@ -116,11 +125,11 @@ const WithdrawMoney = ({ navigation }) => {
           </Text>
 
           <View style={styles.helpBtns}>
-            <TouchableOpacity style={styles.helpBtn}>
+            <TouchableOpacity style={styles.helpBtn} onPress={openDialer}>
               <MaterialIcons name="call" size={20} color="#000" />
               <Text style={styles.helpText}>Call</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.helpBtn}>
+            <TouchableOpacity style={styles.helpBtn} onPress={openWhatsapp}>
               <MaterialCommunityIcons name="whatsapp" size={20} color={GREEN} />
               <Text style={styles.helpText}>Whatsapp</Text>
             </TouchableOpacity>
@@ -261,7 +270,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 110,
+    height: 90,
     backgroundColor: GREEN,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,

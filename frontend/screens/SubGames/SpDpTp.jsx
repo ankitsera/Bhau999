@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
   View,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -25,8 +24,8 @@ import { TRIPLE_PANA_BY_RESULT_DIGIT } from "../../data/triplePanaMap";
 const GREEN = "#3FA16C";
 
 const SpDpTp = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || "GAME";
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   const allowedTypes = ["OPEN", "CLOSE"]; // later from backend
   const balance = 0; // later from wallet
@@ -126,7 +125,7 @@ const SpDpTp = ({ route }) => {
       panas.forEach((pana) => {
         map.set(pana, {
           id: `${pana}-${Date.now()}`,
-          digit: pana, // ✅ EasyModeTable expects "digit"
+          digit: pana,
           points: pts,
           type: selectedType.toLowerCase(),
         });
@@ -162,7 +161,6 @@ const SpDpTp = ({ route }) => {
     };
 
     try {
-      // await GameService.submitSpDpTp(payload);
       console.log("Submitting SP/DP/TP payload:", payload);
       Alert.alert("Success", "Bets submitted (mock).");
     } catch (e) {
@@ -177,81 +175,78 @@ const SpDpTp = ({ route }) => {
         <DynamicHeader title={`${gameName} - SP DP TP`} />
 
         <View style={styles.content}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <GameDateTypeRow
-              dateLabel={todayLabel}
-              gameTypeValue={selectedType}
-              gameTypeOptions={allowedTypes}
-              onChangeGameType={setSelectedType}
+          <GameDateTypeRow
+            dateLabel={todayLabel}
+            gameTypeValue={selectedType}
+            gameTypeOptions={allowedTypes}
+            onChangeGameType={setSelectedType}
+          />
+
+          {/* SP/DP/TP row */}
+          <View style={styles.checkRow}>
+            <CheckItem
+              label="SP"
+              checked={spChecked}
+              onToggle={() => setSpChecked((p) => !p)}
             />
+            <CheckItem
+              label="DP"
+              checked={dpChecked}
+              onToggle={() => setDpChecked((p) => !p)}
+            />
+            <CheckItem
+              label="TP"
+              checked={tpChecked}
+              onToggle={() => setTpChecked((p) => !p)}
+            />
+          </View>
 
-            {/* SP/DP/TP row */}
-            <View style={styles.checkRow}>
-              <CheckItem
-                label="SP"
-                checked={spChecked}
-                onToggle={() => setSpChecked((p) => !p)}
-              />
-              <CheckItem
-                label="DP"
-                checked={dpChecked}
-                onToggle={() => setDpChecked((p) => !p)}
-              />
-              <CheckItem
-                label="TP"
-                checked={tpChecked}
-                onToggle={() => setTpChecked((p) => !p)}
-              />
-            </View>
+          {/* Digit */}
+          <View style={styles.pointInputRow}>
+            <Text style={styles.label}>Enter Digit:</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="number-pad"
+              maxLength={1}
+              value={digit}
+              onChangeText={setDigit}
+              placeholder="Digit"
+              placeholderTextColor="#999"
+            />
+          </View>
 
-            {/* Digit */}
-            <View style={styles.pointInputRow}>
-              <Text style={styles.label}>Enter Digit:</Text>
-              <TextInput
-                style={styles.input}
-                keyboardType="number-pad"
-                maxLength={1}
-                value={digit}
-                onChangeText={setDigit}
-                placeholder="Digit"
-              />
-            </View>
+          {/* Points */}
+          <View style={styles.pointInputRow}>
+            <Text style={styles.label}>Enter Points:</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="number-pad"
+              value={points}
+              onChangeText={setPoints}
+              placeholder="Point"
+              placeholderTextColor="#999"
+            />
+          </View>
 
-            {/* Points */}
-            <View style={styles.pointInputRow}>
-              <Text style={styles.label}>Enter Points:</Text>
-              <TextInput
-                style={styles.input}
-                keyboardType="number-pad"
-                value={points}
-                onChangeText={setPoints}
-                placeholder="Point"
-              />
-            </View>
+          {/* Generate */}
+          <View style={styles.generateWrap}>
+            <TouchableOpacity
+              style={styles.generateBtn}
+              onPress={handleGenerate}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.generateText}>Genrate</Text>
+            </TouchableOpacity>
+          </View>
 
-            {/* Generate */}
-            <View style={styles.generateWrap}>
-              <TouchableOpacity
-                style={styles.generateBtn}
-                onPress={handleGenerate}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.generateText}>Genrate</Text>
-              </TouchableOpacity>
-            </View>
-
+          {/* Table area (scrolls internally) */}
+          <View style={styles.tableArea}>
             <EasyModeTable
               bets={bets}
               onDelete={handleDelete}
               digitHeaderLabel="Pana"
             />
-
-            <View style={{ height: 16 }} />
-          </ScrollView>
+          </View>
         </View>
 
         <BottomBetBar
@@ -286,11 +281,11 @@ const CheckItem = ({ label, checked, onToggle }) => {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#F3F3F3" },
   screen: { flex: 1, backgroundColor: "#F3F3F3" },
-  content: { flex: 1 },
-  scrollContent: {
+
+  content: {
+    flex: 1,
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
   },
 
   checkRow: {
@@ -343,7 +338,9 @@ const styles = StyleSheet.create({
     borderColor: "#DDD",
     fontSize: 16,
     marginBottom: 12,
-    textAlign: "center",
+    textAlign: "center", // This centers the text and cursor
+    color: "#000",       // Ensures entered text is visible
+    paddingHorizontal: 0, // Removes internal padding that might push the cursor
   },
 
   generateWrap: {
@@ -363,5 +360,10 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontSize: 16,
     fontWeight: "700",
+  },
+
+  tableArea: {
+    flex: 1,
+    paddingBottom: 10,
   },
 });

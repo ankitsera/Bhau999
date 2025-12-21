@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
   View,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -19,8 +18,8 @@ import EasyModeTable from "../../components/games/EasyModeTable";
 const GREEN = "#3FA16C";
 
 const JodiBulk = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || "GAME";
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   const balance = 0; // temp
   const allowedTypes = ["OPEN", "CLOSE"]; // or from backend
@@ -139,66 +138,64 @@ const JodiBulk = ({ route }) => {
         <DynamicHeader title={`${gameName} - JODI BULK`} />
 
         <View style={styles.content}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Game type selector like other screens */}
-            <GameTypePicker
-              label="Select Game Type:"
-              value={selectedType}
-              options={allowedTypes}
-              onChange={setSelectedType}
-              containerStyle={{ marginBottom: 12 }}
+          {/* Game type selector like other screens */}
+          <GameTypePicker
+            label="Select Game Type:"
+            value={selectedType}
+            options={allowedTypes}
+            onChange={setSelectedType}
+            containerStyle={{ marginBottom: 12 }}
+          />
+
+          {/* Points row */}
+          <View style={styles.pointInputRow}>
+            <Text style={styles.label}>Enter Points:</Text>
+            <TextInput
+              style={[
+                styles.input,
+                pointsError && styles.errorInput,
+              ]}
+              keyboardType="number-pad"
+              value={points}
+              onChangeText={handlePointsChange}
+              placeholder="Point"
+              placeholderTextColor="#999"
             />
+          </View>
 
-            {/* Points row */}
-            <View style={styles.pointInputRow}>
-              <Text style={styles.label}>Enter Points:</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  pointsError && styles.errorInput,
-                ]}
-                keyboardType="number-pad"
-                value={points}
-                onChangeText={handlePointsChange}
-                placeholder="Point"
-              />
-            </View>
+          {/* Jodi row */}
+          <View style={styles.pointInputRow}>
+            <Text style={styles.label}>Enter Jodi Digit:</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="number-pad"
+              value={jodiDigit}
+              onChangeText={handleDigitChange}
+              placeholder="Jodi"
+              maxLength={2}
+              placeholderTextColor="#999"
+            />
+          </View>
 
-            {/* Jodi row */}
-            <View style={styles.pointInputRow}>
-              <Text style={styles.label}>Enter Jodi Digit:</Text>
-              <TextInput
-                style={styles.input}
-                keyboardType="number-pad"
-                value={jodiDigit}
-                onChangeText={handleDigitChange}
-                placeholder="Jodi"
-                maxLength={2}
-              />
-            </View>
+          {/* Add button aligned right */}
+          <View style={styles.addButtonWrapper}>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={handleAddPress}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.addText}>Add</Text>
+            </TouchableOpacity>
+          </View>
 
-            {/* Add button aligned right */}
-            <View style={styles.addButtonWrapper}>
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={handleAddPress}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.addText}>Add</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Table */}
+          {/* Table */}
+          <View style={styles.tableArea}>
             <EasyModeTable
               bets={bets}
               onDelete={handleDeleteBet}
               digitHeaderLabel="Jodi"
             />
-          </ScrollView>
+          </View>
         </View>
 
         {/* Bottom summary bar */}
@@ -225,11 +222,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
   },
   pointInputRow: {
     flexDirection: "row",
@@ -267,10 +261,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 32,
     borderRadius: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 180,
+    alignSelf: 'flex-end',
   },
   addText: {
     color: "#FFF",
     fontSize: 16,
     fontWeight: "700",
+  },
+  tableArea: {
+    flex: 1,
+    paddingBottom: 10,
   },
 });

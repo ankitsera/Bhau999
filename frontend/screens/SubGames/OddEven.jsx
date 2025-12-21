@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
   View,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -23,8 +22,8 @@ const ODD_DIGITS = ["1", "3", "5", "7", "9"];
 const EVEN_DIGITS = ["0", "2", "4", "6", "8"];
 
 const OddEven = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || "GAME";
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   const allowedTypes = ["OPEN", "CLOSE"]; // temp
   const balance = 0; // temp
@@ -125,62 +124,57 @@ const OddEven = ({ route }) => {
         <DynamicHeader title={`${gameName} - ODD EVEN`} />
 
         <View style={styles.content}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <GameDateTypeRow
-              dateLabel={todayLabel}
-              gameTypeValue={selectedType}
-              gameTypeOptions={allowedTypes}
-              onChangeGameType={setSelectedType}
+          <GameDateTypeRow
+            dateLabel={todayLabel}
+            gameTypeValue={selectedType}
+            gameTypeOptions={allowedTypes}
+            onChangeGameType={setSelectedType}
+          />
+
+          {/* Odd/Even picker */}
+          <View style={styles.radioRow}>
+            <RadioOption
+              label="Odd Digit"
+              active={pick === "ODD"}
+              onPress={() => setPick("ODD")}
             />
+            <RadioOption
+              label="Even Digit"
+              active={pick === "EVEN"}
+              onPress={() => setPick("EVEN")}
+            />
+          </View>
 
-            {/* Odd/Even picker */}
-            <View style={styles.radioRow}>
-              <RadioOption
-                label="Odd Digit"
-                active={pick === "ODD"}
-                onPress={() => setPick("ODD")}
-              />
-              <RadioOption
-                label="Even Digit"
-                active={pick === "EVEN"}
-                onPress={() => setPick("EVEN")}
-              />
-            </View>
+          {/* Points */}
+          <View style={styles.pointInputRow}>
+            <Text style={styles.label}>Enter Points:</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="number-pad"
+              value={points}
+              onChangeText={(t) => setPoints(String(t).replace(/[^0-9]/g, ""))}
+              placeholder="Point"
+              placeholderTextColor="#999"
+            />
+          </View>
 
-            {/* Points */}
-            <View style={styles.pointInputRow}>
-              <Text style={styles.label}>Enter Points:</Text>
-              <TextInput
-                style={styles.input}
-                keyboardType="number-pad"
-                value={points}
-                onChangeText={(t) => setPoints(String(t).replace(/[^0-9]/g, ""))}
-                placeholder="Point"
-              />
-            </View>
+          {/* Add */}
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={handleAdd}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.addText}>Add</Text>
+          </TouchableOpacity>
 
-            {/* Add */}
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={handleAdd}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.addText}>Add</Text>
-            </TouchableOpacity>
-
-            {/* Table */}
+          {/* Table */}
+          <View style={styles.tableArea}>
             <EasyModeTable
               bets={bets}
               onDelete={handleDelete}
               digitHeaderLabel="Ank"
             />
-
-            <View style={{ height: 90 }} />
-          </ScrollView>
+          </View>
         </View>
 
         <BottomBetBar
@@ -225,11 +219,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
   },
 
   radioRow: {
@@ -300,10 +291,17 @@ const styles = StyleSheet.create({
     backgroundColor: GREEN,
     justifyContent: "center",
     alignItems: "center",
+    width: 180,
+    alignSelf: 'flex-end',
   },
   addText: {
     color: "#FFF",
     fontSize: 16,
     fontWeight: "700",
+  },
+
+  tableArea: {
+    flex: 1,
+    paddingBottom: 10,
   },
 });

@@ -2,7 +2,6 @@
 import React, { useMemo, useState } from 'react';
 import {
   View,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -24,8 +23,8 @@ const ROW1 = ['1', '2', '3', '4', '5'];
 const ROW2 = ['6', '7', '8', '9', '0'];
 
 const DpCommon = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || 'GAME';
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // later from context
   const balance = 0; // later from wallet
@@ -114,66 +113,63 @@ const DpCommon = ({ route }) => {
         <DynamicHeader title={`${gameName} - DP COMMON`} />
 
         <View style={styles.content}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <GameTypePicker
-              label="Select Game Type:"
-              value={selectedType}
-              options={allowedTypes}
-              onChange={setSelectedType}
-              containerStyle={{ marginBottom: 12 }}
+          <GameTypePicker
+            label="Select Game Type:"
+            value={selectedType}
+            options={allowedTypes}
+            onChange={setSelectedType}
+            containerStyle={{ marginBottom: 12 }}
+          />
+
+          <View style={styles.row}>
+            <Text style={styles.label}>Enter Points:</Text>
+            <TextInput
+              style={[
+                styles.input,
+                pointsError
+                  ? { borderColor: '#E53935', borderWidth: 2 }
+                  : null,
+              ]}
+              keyboardType="number-pad"
+              value={points}
+              onChangeText={v => {
+                setPoints(v);
+                if (pointsError) setPointsError(false);
+              }}
+              placeholder="Point"
+              placeholderTextColor="#999"
             />
+          </View>
 
-            <View style={styles.row}>
-              <Text style={styles.label}>Enter Points:</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  pointsError
-                    ? { borderColor: '#E53935', borderWidth: 2 }
-                    : null,
-                ]}
-                keyboardType="number-pad"
-                value={points}
-                onChangeText={v => {
-                  setPoints(v);
-                  if (pointsError) setPointsError(false);
-                }}
-                placeholder="Point"
-                placeholderTextColor="#999"
-              />
+          <View style={styles.pad}>
+            <View style={styles.padRow}>
+              {ROW1.map(d => (
+                <DigitBtn
+                  key={d}
+                  digit={d}
+                  onPress={() => addCommonForDigit(d)}
+                />
+              ))}
             </View>
-
-            <View style={styles.pad}>
-              <View style={styles.padRow}>
-                {ROW1.map(d => (
-                  <DigitBtn
-                    key={d}
-                    digit={d}
-                    onPress={() => addCommonForDigit(d)}
-                  />
-                ))}
-              </View>
-              <View style={styles.padRow}>
-                {ROW2.map(d => (
-                  <DigitBtn
-                    key={d}
-                    digit={d}
-                    onPress={() => addCommonForDigit(d)}
-                  />
-                ))}
-              </View>
+            <View style={styles.padRow}>
+              {ROW2.map(d => (
+                <DigitBtn
+                  key={d}
+                  digit={d}
+                  onPress={() => addCommonForDigit(d)}
+                />
+              ))}
             </View>
+          </View>
 
+          {/* Table area (flex:1 so EasyModeTable can scroll internally) */}
+          <View style={styles.tableArea}>
             <EasyModeTable
               bets={bets}
               onDelete={handleDelete}
               digitHeaderLabel="Pana"
             />
-          </ScrollView>
+          </View>
         </View>
 
         <BottomBetBar
@@ -209,11 +205,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
   },
 
   row: {
@@ -260,5 +253,10 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 18,
     fontWeight: '800',
+  },
+
+  tableArea: {
+    flex: 1,
+    paddingBottom: 10,
   },
 });

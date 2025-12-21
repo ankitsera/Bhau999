@@ -25,8 +25,8 @@ const normalizePana = (v) =>
 const isValidPana = (p) => /^\d{3}$/.test(p);
 
 const FullSangam = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || "GAME";
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   const [openPana, setOpenPana] = useState("");
   const [closePana, setClosePana] = useState("");
@@ -150,6 +150,7 @@ const FullSangam = ({ route }) => {
                   value={openPana}
                   onChangeText={(t) => setOpenPana(normalizePana(t))}
                   placeholder="Pana"
+                  placeholderTextColor="#999"
                   onFocus={() => setFocusedField("OPEN")}
                   onBlur={() => setTimeout(() => setFocusedField(null), 120)}
                 />
@@ -175,6 +176,7 @@ const FullSangam = ({ route }) => {
                   value={closePana}
                   onChangeText={(t) => setClosePana(normalizePana(t))}
                   placeholder="Pana"
+                  placeholderTextColor="#999"
                   onFocus={() => setFocusedField("CLOSE")}
                   onBlur={() => setTimeout(() => setFocusedField(null), 120)}
                 />
@@ -199,6 +201,7 @@ const FullSangam = ({ route }) => {
                   setPoints(String(t).replace(/[^0-9]/g, ""))
                 }
                 placeholder="Point"
+                placeholderTextColor="#999"
               />
             </View>
 
@@ -362,8 +365,14 @@ const styles = StyleSheet.create({
     backgroundColor: GREEN,
     justifyContent: "center",
     alignItems: "center",
+    width: 180,
+    alignSelf: 'flex-end',
   },
-  addText: { color: "#FFF", fontSize: 16, fontWeight: "700" },
+  addText: { 
+    color: "#FFF", 
+    fontSize: 16, 
+    fontWeight: "700" 
+  },
 
   tableHeader: {
     marginTop: 16,

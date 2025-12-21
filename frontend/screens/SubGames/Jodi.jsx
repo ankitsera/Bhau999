@@ -40,8 +40,8 @@ const FIRST_DIGIT_MAP = Array.from({ length: 10 }, (_, d) => {
 }, {});
 
 const Jodi = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || 'GAME';
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // temp (later from timing logic)
   const balance = 0; // temp (later from wallet)
@@ -197,71 +197,76 @@ const Jodi = ({ route }) => {
         <DynamicHeader title={`${gameName} - JODI`} />
 
         <View style={styles.content}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="always"
-          >
-            {/* mode toggle */}
-            <View style={styles.modeRow}>
-              <ModeButton
-                label="EASY MODE"
-                active={mode === 'EASY'}
-                onPress={() => setMode('EASY')}
+          {/* mode toggle */}
+          <View style={styles.modeRow}>
+            <ModeButton
+              label="EASY MODE"
+              active={mode === 'EASY'}
+              onPress={() => setMode('EASY')}
+            />
+            <ModeButton
+              label="SPECIAL MODE"
+              active={mode === 'SPECIAL'}
+              onPress={() => setMode('SPECIAL')}
+            />
+          </View>
+
+          {mode === 'EASY' && (
+            <>
+              <GameTypePicker
+                label="Select Game Type:"
+                value={selectedType}
+                options={allowedTypes}
+                onChange={setSelectedType}
+                containerStyle={{ marginBottom: 12 }}
               />
-              <ModeButton
-                label="SPECIAL MODE"
-                active={mode === 'SPECIAL'}
-                onPress={() => setMode('SPECIAL')}
+
+              <JodiEasyForm
+                jodi={jodiDigit}
+                onChangeJodi={setJodiDigit}
+                points={easyPoints}
+                onChangePoints={setEasyPoints}
+                onPressAdd={() => {
+                  Keyboard.dismiss(); // fixes “tap twice to Add”
+                  handleAddEasyBet();
+                }}
               />
-            </View>
 
-            {mode === 'EASY' && (
-              <>
-                <GameTypePicker
-                  label="Select Game Type:"
-                  value={selectedType}
-                  options={allowedTypes}
-                  onChange={setSelectedType}
-                  containerStyle={{ marginBottom: 12 }}
-                />
-
-                <JodiEasyForm
-                  jodi={jodiDigit}
-                  onChangeJodi={setJodiDigit}
-                  points={easyPoints}
-                  onChangePoints={setEasyPoints}
-                  onPressAdd={() => {
-                    Keyboard.dismiss(); // fixes “tap twice to Add”
-                    handleAddEasyBet();
-                  }}
-                />
-
+              <View style={styles.tableArea}>
                 <EasyModeTable
                   bets={easyBets}
                   onDelete={handleDeleteEasyBet}
                   digitHeaderLabel="Jodi"
                 />
-              </>
-            )}
+              </View>
+            </>
+          )}
 
-            {mode === 'SPECIAL' && (
-              <>
-                <GameDateTypeRow
-                  dateLabel={todayLabel}
-                  gameTypeValue={selectedType}
-                  gameTypeOptions={allowedTypes}
-                  onChangeGameType={setSelectedType}
-                />
+          {mode === 'SPECIAL' && (
+            <>
+              <GameDateTypeRow
+                dateLabel={todayLabel}
+                gameTypeValue={selectedType}
+                gameTypeOptions={allowedTypes}
+                onChangeGameType={setSelectedType}
+              />
 
-                <SpecialModeGrid
-                  digits={JODI_NUMBERS}
-                  pointsByDigit={specialPointsByJodi}
-                  onChangePoint={handleChangeSpecialPoint}
-                />
-              </>
-            )}
-          </ScrollView>
+              <View style={styles.specialArea}>
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="always"
+                  nestedScrollEnabled
+                  contentContainerStyle={styles.specialScrollContent}
+                >
+                  <SpecialModeGrid
+                    digits={JODI_NUMBERS}
+                    pointsByDigit={specialPointsByJodi}
+                    onChangePoint={handleChangeSpecialPoint}
+                  />
+                </ScrollView>
+              </View>
+            </>
+          )}
         </View>
 
         {/* bottom bar only in easy mode */}
@@ -317,6 +322,7 @@ const JodiEasyForm = ({
             value={jodi}
             onChangeText={onChangeJodi}
             placeholder="Jodi"
+            placeholderTextColor="#999"
           />
 
           {suggestions.length > 0 && (
@@ -350,6 +356,7 @@ const JodiEasyForm = ({
           value={points}
           onChangeText={onChangePoints}
           placeholder="Point"
+          placeholderTextColor="#999"
         />
       </View>
 
@@ -405,15 +412,24 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
   },
   modeRow: {
     flexDirection: 'row',
     marginBottom: 16,
+  },
+  tableArea: {
+    flex: 1,
+    paddingBottom: 10,
+  },
+
+  specialArea: {
+    flex: 1,
+    paddingBottom: 10,
+  },
+  specialScrollContent: {
+    paddingBottom: 12,
   },
 
   specialBottom: {
@@ -505,6 +521,8 @@ const formStyles = StyleSheet.create({
     backgroundColor: GREEN,
     justifyContent: 'center',
     alignItems: 'center',
+    width: 180,
+    alignSelf: 'flex-end',
   },
   addText: {
     color: '#FFF',

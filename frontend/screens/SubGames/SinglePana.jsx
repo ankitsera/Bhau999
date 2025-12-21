@@ -36,8 +36,8 @@ const BLACK = "#000";
 const GROUP_KEYS = Object.keys(SINGLE_PANA_BY_RESULT_DIGIT); // "0".."9"
 
 const SinglePana = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || "GAME";
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   const allowedTypes = ["OPEN", "CLOSE"]; // temp
   const balance = 0; // temp
@@ -205,100 +205,106 @@ const SinglePana = ({ route }) => {
 
         {/* MAIN CONTENT */}
         <View style={styles.content}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Mode toggle */}
-            <View style={styles.modeRow}>
-              <ModeButton
-                label="EASY MODE"
-                active={mode === "EASY"}
-                onPress={() => setMode("EASY")}
-              />
-              <ModeButton
-                label="SPECIAL MODE"
-                active={mode === "SPECIAL"}
-                onPress={() => setMode("SPECIAL")}
-              />
-            </View>
+          {/* Mode toggle */}
+          <View style={styles.modeRow}>
+            <ModeButton
+              label="EASY MODE"
+              active={mode === "EASY"}
+              onPress={() => setMode("EASY")}
+            />
+            <ModeButton
+              label="SPECIAL MODE"
+              active={mode === "SPECIAL"}
+              onPress={() => setMode("SPECIAL")}
+            />
+          </View>
 
-            {/* EASY MODE: label + dropdown */}
-            {mode === "EASY" && (
-              <GameTypePicker
-                label="Select Game Type:"
-                value={selectedType}
-                options={allowedTypes}
-                onChange={setSelectedType}
-                containerStyle={{ marginBottom: 12 }}
-              />
-            )}
+          {/* EASY MODE: label + dropdown */}
+          {mode === "EASY" && (
+            <GameTypePicker
+              label="Select Game Type:"
+              value={selectedType}
+              options={allowedTypes}
+              onChange={setSelectedType}
+              containerStyle={{ marginBottom: 12 }}
+            />
+          )}
 
-            {/* SPECIAL MODE: date + dropdown row */}
-            {mode === "SPECIAL" && (
-              <GameDateTypeRow
-                dateLabel={todayLabel}
-                gameTypeValue={selectedType}
-                gameTypeOptions={allowedTypes}
-                onChangeGameType={setSelectedType}
-              />
-            )}
+          {/* SPECIAL MODE: date + dropdown row */}
+          {mode === "SPECIAL" && (
+            <GameDateTypeRow
+              dateLabel={todayLabel}
+              gameTypeValue={selectedType}
+              gameTypeOptions={allowedTypes}
+              onChangeGameType={setSelectedType}
+            />
+          )}
 
-            {mode === "EASY" ? (
-              <>
-                <SinglePanaEasyForm
-                  pana={easyPana}
-                  onChangePana={setEasyPana}
-                  points={easyPoints}
-                  onChangePoints={setEasyPoints}
-                  onPressAdd={handleAddEasyBet}
-                />
+          {mode === "EASY" ? (
+            <>
+              <SinglePanaEasyForm
+                pana={easyPana}
+                onChangePana={setEasyPana}
+                points={easyPoints}
+                onChangePoints={setEasyPoints}
+                onPressAdd={handleAddEasyBet}
+              />
+
+              <View style={styles.tableArea}>
                 <EasyModeTable
                   bets={easyBets.map((b) => ({
                     id: b.id,
-                    digit: b.pana, // table expects digit
+                    digit: b.pana,
                     points: b.points,
                     type: b.type,
                   }))}
                   onDelete={handleDeleteEasyBet}
                   digitHeaderLabel="Pana"
                 />
-              </>
-            ) : (
-              <>
-                {/* GROUPED SPECIAL MODE GRID */}
-                <View style={styles.groupsWrapper}>
-                  {GROUP_KEYS.map((key) => {
-                    const panas = SINGLE_PANA_BY_RESULT_DIGIT[key];
-                    return (
-                      <View key={key} style={styles.groupSection}>
-                        <View style={styles.groupHeaderPill}>
-                          <Text style={styles.groupHeaderText}>{key}</Text>
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={styles.specialArea}>
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                  nestedScrollEnabled
+                  contentContainerStyle={styles.specialScrollContent}
+                >
+                  {/* GROUPED SPECIAL MODE GRID */}
+                  <View style={styles.groupsWrapper}>
+                    {GROUP_KEYS.map((key) => {
+                      const panas = SINGLE_PANA_BY_RESULT_DIGIT[key];
+                      return (
+                        <View key={key} style={styles.groupSection}>
+                          <View style={styles.groupHeaderPill}>
+                            <Text style={styles.groupHeaderText}>{key}</Text>
+                          </View>
+
+                          <SpecialModeGrid
+                            digits={panas}
+                            pointsByDigit={specialPointsByPana}
+                            onChangePoint={handleChangeSpecialPoint}
+                          />
                         </View>
+                      );
+                    })}
+                  </View>
 
-                        <SpecialModeGrid
-                          digits={panas}
-                          pointsByDigit={specialPointsByPana}
-                          onChangePoint={handleChangeSpecialPoint}
-                        />
-                      </View>
-                    );
-                  })}
-                </View>
-
-                <View style={styles.specialSubmitWrapper}>
-                  <TouchableOpacity
-                    style={styles.specialSubmitButton}
-                    onPress={handleSubmit}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={styles.specialSubmitText}>Submit</Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
-          </ScrollView>
+                  <View style={styles.specialSubmitWrapper}>
+                    <TouchableOpacity
+                      style={styles.specialSubmitButton}
+                      onPress={handleSubmit}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={styles.specialSubmitText}>Submit</Text>
+                    </TouchableOpacity>
+                  </View>
+                </ScrollView>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Bottom bar ONLY for Easy mode */}
@@ -344,6 +350,7 @@ const SinglePanaEasyForm = ({
             value={pana}
             onChangeText={onChangePana}
             placeholder="Pana"
+            placeholderTextColor="#999"
           />
 
           {suggestions.length > 0 && pana.length > 0 && pana.length < 3 && (
@@ -373,6 +380,7 @@ const SinglePanaEasyForm = ({
           value={points}
           onChangeText={onChangePoints}
           placeholder="Point"
+          placeholderTextColor="#999"
         />
       </View>
 
@@ -431,16 +439,27 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
   },
+
   modeRow: {
     flexDirection: "row",
     marginBottom: 16,
   },
+
+  tableArea: {
+    flex: 1,
+    paddingBottom: 10,
+  },
+
+  specialArea: {
+    flex: 1,
+  },
+  specialScrollContent: {
+    paddingBottom: 12,
+  },
+
   groupsWrapper: {
     marginTop: 12,
     marginBottom: 8,
@@ -512,8 +531,11 @@ const formStyles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 12,
     textAlign: "center",
-    writingDirection: "ltr",
-    paddingHorizontal: 8,
+    writingDirection: 'ltr',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+    paddingHorizontal: 0,
+    paddingVertical: 0,
   },
   dropdown: {
     position: "absolute",
@@ -544,6 +566,8 @@ const formStyles = StyleSheet.create({
     backgroundColor: GREEN,
     justifyContent: "center",
     alignItems: "center",
+    width: 180,
+    alignSelf: 'flex-end',
   },
   addText: {
     color: "#FFF",

@@ -26,8 +26,8 @@ const DIGITS = ["1","2","3","4","5","6","7","8","9","0"];
 const GREEN = "#3FA16C";
 
 const SingleDigitBulk = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || "GAME";
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   // const { getGameState } = useGameContext();
   // const { balance } = useWalletContext();
@@ -150,6 +150,7 @@ const SingleDigitBulk = ({ route }) => {
                 value={pointInput}
                 onChangeText={setPointInput}
                 placeholder="Point"
+                placeholderTextColor="#999"
                 />
             </View>
 

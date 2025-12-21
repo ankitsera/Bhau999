@@ -2,7 +2,6 @@
 import React, { useMemo, useState } from 'react';
 import {
   View,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -22,8 +21,8 @@ const GREEN = '#3FA16C';
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']; // increasing order
 
 const DoublePanaBulk = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || 'GAME';
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // replace later
   const balance = 0; // replace later
@@ -115,43 +114,41 @@ const DoublePanaBulk = ({ route }) => {
         <DynamicHeader title={`${gameName} - DOUBLE PANA BULK`} />
 
         <View style={styles.content}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <GameTypePicker
-              label="Select Game Type:"
-              value={selectedType}
-              options={allowedTypes}
-              onChange={setSelectedType}
-              containerStyle={{ marginBottom: 12 }}
+          <GameTypePicker
+            label="Select Game Type:"
+            value={selectedType}
+            options={allowedTypes}
+            onChange={setSelectedType}
+            containerStyle={{ marginBottom: 12 }}
+          />
+
+          <View style={styles.pointInputRow}>
+            <Text style={styles.label}>Enter Points:</Text>
+            <TextInput
+              style={[styles.input, pointsError && styles.errorInput]}
+              keyboardType="number-pad"
+              value={points}
+              onChangeText={handlePointsChange}
+              placeholder="Point"
+              placeholderTextColor="#999"
             />
+          </View>
 
-            <View style={styles.pointInputRow}>
-              <Text style={styles.label}>Enter Points:</Text>
-              <TextInput
-                style={[styles.input, pointsError && styles.errorInput]}
-                keyboardType="number-pad"
-                value={points}
-                onChangeText={handlePointsChange}
-                placeholder="Point"
-              />
-            </View>
+          <View style={styles.grid}>
+            {DIGITS.map(d => (
+              <TouchableOpacity
+                key={d}
+                style={styles.digitTile}
+                activeOpacity={0.85}
+                onPress={() => addBetsForDigit(d)}
+              >
+                <Text style={styles.digitText}>{d}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-            <View style={styles.grid}>
-              {DIGITS.map(d => (
-                <TouchableOpacity
-                  key={d}
-                  style={styles.digitTile}
-                  activeOpacity={0.85}
-                  onPress={() => addBetsForDigit(d)}
-                >
-                  <Text style={styles.digitText}>{d}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
+          {/* Table area (flex:1 so EasyModeTable can scroll internally) */}
+          <View style={styles.tableArea}>
             <EasyModeTable
               bets={bets.map(b => ({
                 id: b.id,
@@ -162,7 +159,7 @@ const DoublePanaBulk = ({ route }) => {
               onDelete={handleDeleteBet}
               digitHeaderLabel="Pana"
             />
-          </ScrollView>
+          </View>
         </View>
 
         <BottomBetBar
@@ -188,11 +185,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
   },
   pointInputRow: {
     flexDirection: 'row',
@@ -239,5 +233,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '700',
+  },
+  tableArea: {
+    flex: 1,
+    paddingBottom: 10,
   },
 });

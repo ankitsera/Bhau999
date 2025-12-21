@@ -36,12 +36,12 @@ export default GreenHeader;
 
 const styles = StyleSheet.create({
   root: { 
-    width: "100%" 
+    width: "100%",
   },
   bg: {
     position: "absolute",
     top: 0, left: 0, right: 0,
-    height: 110,
+    height: 90,
     backgroundColor: GREEN,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,

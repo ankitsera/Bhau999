@@ -2,7 +2,6 @@
 import React, { useMemo, useState } from "react";
 import {
   View,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -22,8 +21,8 @@ const GREEN = "#3FA16C";
 const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
 const SinglePanaBulk = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || "GAME";
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   const allowedTypes = ["OPEN", "CLOSE"]; // replace with backend data later
   const balance = 0; // hook into wallet later
@@ -124,50 +123,47 @@ const SinglePanaBulk = ({ route }) => {
         <DynamicHeader title={`${gameName} - SINGLE PANA BULK`} />
 
         <View style={styles.content}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* Game type dropdown */}
-            <GameTypePicker
-              label="Select Game Type:"
-              value={selectedType}
-              options={allowedTypes}
-              onChange={setSelectedType}
-              containerStyle={{ marginBottom: 12 }}
+          {/* Game type dropdown */}
+          <GameTypePicker
+            label="Select Game Type:"
+            value={selectedType}
+            options={allowedTypes}
+            onChange={setSelectedType}
+            containerStyle={{ marginBottom: 12 }}
+          />
+
+          {/* Points row */}
+          <View style={styles.pointInputRow}>
+            <Text style={styles.label}>Enter Points:</Text>
+            <TextInput
+              style={[
+                styles.input,
+                pointsError && styles.errorInput,
+              ]}
+              keyboardType="number-pad"
+              value={points}
+              onChangeText={handlePointsChange}
+              placeholder="Point"
+              placeholderTextColor="#999"
             />
+          </View>
 
-            {/* Points row */}
-            <View style={styles.pointInputRow}>
-              <Text style={styles.label}>Enter Points:</Text>
-              <TextInput
-                style={[
-                  styles.input,
-                  pointsError && styles.errorInput,
-                ]}
-                keyboardType="number-pad"
-                value={points}
-                onChangeText={handlePointsChange}
-                placeholder="Point"
-              />
-            </View>
+          {/* Digit grid */}
+          <View style={styles.grid}>
+            {DIGITS.map((d) => (
+              <TouchableOpacity
+                key={d}
+                style={styles.digitTile}
+                activeOpacity={0.85}
+                onPress={() => handleDigitPress(d)}
+              >
+                <Text style={styles.digitText}>{d}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-            {/* Digit grid */}
-            <View style={styles.grid}>
-              {DIGITS.map((d) => (
-                <TouchableOpacity
-                  key={d}
-                  style={styles.digitTile}
-                  activeOpacity={0.85}
-                  onPress={() => handleDigitPress(d)}
-                >
-                  <Text style={styles.digitText}>{d}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Table of generated panas */}
+          {/* Table of generated panas (scrolls internally) */}
+          <View style={styles.tableArea}>
             <EasyModeTable
               bets={bets.map((b) => ({
                 id: b.id,
@@ -178,7 +174,7 @@ const SinglePanaBulk = ({ route }) => {
               onDelete={handleDeleteBet}
               digitHeaderLabel="Pana"
             />
-          </ScrollView>
+          </View>
         </View>
 
         <BottomBetBar
@@ -204,12 +200,10 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-  scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
   },
+
   pointInputRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -236,6 +230,7 @@ const styles = StyleSheet.create({
   errorInput: {
     borderColor: "#FF4D4F",
   },
+
   grid: {
     marginTop: 12,
     flexDirection: "row",
@@ -255,5 +250,10 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "700",
+  },
+
+  tableArea: {
+    flex: 1,
+    paddingBottom: 10,
   },
 });

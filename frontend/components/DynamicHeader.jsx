@@ -8,35 +8,26 @@ import { AuthContext } from "../contexts/AuthContext";
 
 const GREEN = "#3FA16C";
 
-/**
- * Props:
- *  - title: string
- *  - speed?: number  // px per second (default 60)
- *  - gap?: number    // space between the two title copies (default 40)
- */
 const DynamicHeader = ({ title = "", speed = 60, gap = 80 }) => {
   const navigation = useNavigation();
   const { top } = useSafeAreaInsets();
   const { user } = useContext(AuthContext);
 
   const balance = typeof user?.balance === "number" ? user.balance : 0;
-
-  // width of a single title copy
   const [textW, setTextW] = useState(0);
-
-  // animation value
   const animX = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (!textW) return; // wait until we know width once
+    if (!textW) return;
 
-    const distance = textW + gap; // slide by one full copy + gap
+    const distance = textW + gap;
     const duration = (distance / speed) * 1000;
 
     const loop = () => {
-      animX.setValue(0);
+      // Start with a small initial offset (e.g., 10px) so letters aren't cut off immediately
+      animX.setValue(20); 
       Animated.timing(animX, {
-        toValue: -distance,
+        toValue: -distance + 10,
         duration,
         easing: Easing.linear,
         useNativeDriver: true,
@@ -49,11 +40,9 @@ const DynamicHeader = ({ title = "", speed = 60, gap = 80 }) => {
 
   return (
     <View style={[styles.root, { paddingTop: top }]}>
-      {/* curved green background */}
       <View style={styles.bg} />
 
       <View style={styles.row}>
-        {/* back button */}
         <Pressable
           onPress={() => navigation.goBack()}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -62,32 +51,34 @@ const DynamicHeader = ({ title = "", speed = 60, gap = 80 }) => {
           <MaterialIcons name="arrow-back" size={26} color="#000" />
         </Pressable>
 
-        {/* marquee title (always moving) */}
         <View style={styles.center}>
           <Animated.View
             style={{
               flexDirection: "row",
               alignItems: "center",
               transform: [{ translateX: animX }],
+              width: textW ? (textW + gap) * 2 + 20 : '1000%',
             }}
           >
-            {/* First copy – measured */}
+            {/* Initial Spacer to prevent clipping on start */}
+            <View style={{ width: 10 }} />
+
             <Text
+              numberOfLines={1}
               style={styles.title}
               onLayout={(e) => setTextW(e.nativeEvent.layout.width)}
             >
               {title}
             </Text>
 
-            {/* Gap */}
             <View style={{ width: gap }} />
 
-            {/* Second copy – for seamless loop */}
-            <Text style={styles.title}>{title}</Text>
+            <Text numberOfLines={1} style={styles.title}>
+              {title}
+            </Text>
           </Animated.View>
         </View>
 
-        {/* wallet + balance */}
         <View style={styles.wallet}>
           <MaterialCommunityIcons name="wallet-outline" size={22} color="#000" />
           <Text style={styles.walletText}>{balance.toFixed(1)}</Text>
@@ -108,7 +99,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 110,
+    height: 90,
     backgroundColor: GREEN,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,
@@ -119,8 +110,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
   },
-  left: {
-    paddingRight: 8,
+  left: { 
+    paddingRight: 8, 
+    zIndex: 10 
   },
   center: {
     flex: 1,
@@ -131,11 +123,13 @@ const styles = StyleSheet.create({
     color: "#000",
     fontSize: 24,
     fontWeight: "600",
+    flexWrap: 'nowrap',
   },
   wallet: {
     flexDirection: "row",
     alignItems: "center",
     marginLeft: 10,
+    zIndex: 10,
   },
   walletText: {
     color: "#000",

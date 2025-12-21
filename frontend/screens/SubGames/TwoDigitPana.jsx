@@ -2,7 +2,6 @@
 import React, { useMemo, useState } from "react";
 import {
   View,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -55,25 +54,17 @@ function satisfiesCounts(pana, requiredCounts) {
   return true;
 }
 
-/**
- * Given a 2-digit string like "38", return all valid pana (SP/DP/TP)
- * that contain those digits with correct multiplicity.
- * - "38" => needs at least one '3' and one '8'
- * - "33" => needs at least two '3'
- */
 function getPanasForTwoDigit(twoDigit) {
   const clean = String(twoDigit || "").replace(/[^0-9]/g, "");
   if (clean.length !== 2) return [];
 
   const req = buildDigitCount(clean);
-
-  // Filter from a small list (~220) => super fast
   return ALL_PANA.filter((p) => satisfiesCounts(p, req));
 }
 
 const TwoDigitPana = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || "GAME";
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   const allowedTypes = ["OPEN", "CLOSE"]; // later from game state/timing
   const balance = 0; // later from wallet context
@@ -133,7 +124,6 @@ const TwoDigitPana = ({ route }) => {
 
       panas.forEach((p) => {
         const id = `${p}-${typeLower}`;
-        // If already exists, update points (nicer UX than duplicating)
         map.set(id, {
           id,
           digit: p,
@@ -142,11 +132,9 @@ const TwoDigitPana = ({ route }) => {
         });
       });
 
-      // keep list sorted like screenshot vibes
       return Array.from(map.values()).sort((a, b) => Number(a.digit) - Number(b.digit));
     });
 
-    // reset digit, keep points (so user can spam-generate fast)
     setDigit("");
   };
 
@@ -191,75 +179,74 @@ const TwoDigitPana = ({ route }) => {
         <DynamicHeader title={`${gameName} - TWO DIGIT`} />
 
         <View style={styles.content}>
-          <ScrollView
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            <GameDateTypeRow
-              dateLabel={todayLabel}
-              gameTypeValue={selectedType}
-              gameTypeOptions={allowedTypes}
-              onChangeGameType={setSelectedType}
-            />
+          <GameDateTypeRow
+            dateLabel={todayLabel}
+            gameTypeValue={selectedType}
+            gameTypeOptions={allowedTypes}
+            onChangeGameType={setSelectedType}
+          />
 
-            {/* Digit row (with dropdown suggestions) */}
-            <View style={styles.pointInputRow}>
-              <Text style={styles.label}>Enter Digit:</Text>
+          {/* Digit row (with dropdown suggestions) */}
+          <View style={styles.pointInputRow}>
+            <Text style={styles.label}>Enter Digit:</Text>
 
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  keyboardType="number-pad"
-                  maxLength={2}
-                  value={digit}
-                  onChangeText={setDigit}
-                  placeholder="Digit"
-                />
-
-                {suggestions.length > 0 && (
-                  <View style={styles.suggestionBox}>
-                    <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled>
-                      {suggestions.map((item) => (
-                        <TouchableOpacity
-                          key={item}
-                          style={styles.suggestionItem}
-                          onPress={() => setDigit(item)}
-                          activeOpacity={0.8}
-                        >
-                          <Text style={styles.suggestionText}>{item}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
-                )}
-              </View>
-            </View>
-
-            {/* Points row */}
-            <View style={styles.pointInputRow}>
-              <Text style={styles.label}>Enter Points:</Text>
+            <View style={styles.inputWrapper}>
               <TextInput
                 style={styles.input}
                 keyboardType="number-pad"
-                value={points}
-                onChangeText={setPoints}
-                placeholder="Point"
+                maxLength={2}
+                value={digit}
+                onChangeText={setDigit}
+                placeholder="Digit"
+                placeholderTextColor="#999"
               />
+
+              {suggestions.length > 0 && (
+                <View style={styles.suggestionBox}>
+                  {/* Keep this scroll; it's not a VirtualizedList, so it's fine */}
+                  <View>
+                    {suggestions.map((item) => (
+                      <TouchableOpacity
+                        key={item}
+                        style={styles.suggestionItem}
+                        onPress={() => setDigit(item)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={styles.suggestionText}>{item}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              )}
             </View>
+          </View>
 
-            {/* Add button */}
-            <TouchableOpacity style={styles.addButton} onPress={handleAdd} activeOpacity={0.85}>
-              <Text style={styles.addText}>Add</Text>
-            </TouchableOpacity>
+          {/* Points row */}
+          <View style={styles.pointInputRow}>
+            <Text style={styles.label}>Enter Points:</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="number-pad"
+              value={points}
+              onChangeText={setPoints}
+              placeholder="Point"
+              placeholderTextColor="#999"
+            />
+          </View>
 
-            {/* Table */}
+          {/* Add button */}
+          <TouchableOpacity style={styles.addButton} onPress={handleAdd} activeOpacity={0.85}>
+            <Text style={styles.addText}>Add</Text>
+          </TouchableOpacity>
+
+          {/* Table area (scrolls internally) */}
+          <View style={styles.tableArea}>
             <EasyModeTable
               bets={bets}
               onDelete={handleDelete}
               digitHeaderLabel="Pana"
             />
-          </ScrollView>
+          </View>
         </View>
 
         <BottomBetBar bids={totals.bids} points={totals.points} onSubmit={handleSubmit} />
@@ -279,16 +266,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F3F3F3",
   },
+
   content: {
     flex: 1,
-  },
-  scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 16,
   },
 
-  // match your preferred row styling
   pointInputRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -354,5 +338,10 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontSize: 16,
     fontWeight: "700",
+  },
+
+  tableArea: {
+    flex: 1,
+    paddingBottom: 10,
   },
 });

@@ -18,8 +18,8 @@ import { ALL_TRIPLE_PANA } from "../../data/triplePanaMap";
 const GREEN = "#3FA16C";
 
 const TriplePana = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || "GAME";
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   const allowedTypes = ["OPEN", "CLOSE"]; // later from game timings
   const balance = 0; // later from wallet context

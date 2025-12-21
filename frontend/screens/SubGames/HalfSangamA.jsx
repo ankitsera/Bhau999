@@ -18,8 +18,8 @@ import { getSinglePanaSuggestions } from '../../data/singlePanaMap';
 const GREEN = '#3FA16C';
 
 const HalfSangamA = ({ route }) => {
-  const gameId = route?.params?.gameId;
-  const gameName = route?.params?.gameName || 'GAME';
+  const gameId = route?.params?.game?.id;
+  const gameName = route?.params?.game?.name || 'GAME';
 
   // TODO: replace with WalletContext later
   const balance = 999999999;
@@ -140,6 +140,7 @@ const HalfSangamA = ({ route }) => {
                   value={openPana}
                   onChangeText={t => setOpenPana(sanitizeDigits(t).slice(0, 3))}
                   placeholder="Pana"
+                  placeholderTextColor="#999"
                   maxLength={3}
                   onFocus={() => setShowOpenSug(true)}
                   onBlur={() => setShowOpenSug(false)}
@@ -179,6 +180,7 @@ const HalfSangamA = ({ route }) => {
                 value={closeAnk}
                 onChangeText={t => setCloseAnk(sanitizeDigits(t).slice(0, 1))}
                 placeholder="Ank"
+                placeholderTextColor="#999"
                 maxLength={1}
               />
             </View>
@@ -192,6 +194,7 @@ const HalfSangamA = ({ route }) => {
                 value={points}
                 onChangeText={t => setPoints(sanitizeDigits(t))}
                 placeholder="Point"
+                placeholderTextColor="#999"
               />
             </View>
 

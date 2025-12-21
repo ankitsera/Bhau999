@@ -1,73 +1,109 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
 const GREEN = "#3FA16C";
+const DELETE_COL_W = 44; // keep header + rows aligned
 
 const EasyModeTable = ({ bets, onDelete, digitHeaderLabel = "Ank" }) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <HeaderCell label={digitHeaderLabel} />
-        <HeaderCell label="Point" />
-        <HeaderCell label="Type" />
-        <HeaderCell label="Delete" />
+        <View style={styles.headerCell}>
+          <Text style={styles.headerText}>{digitHeaderLabel}</Text>
+        </View>
+        <View style={styles.headerCell}>
+          <Text style={styles.headerText}>Point</Text>
+        </View>
+        <View style={styles.headerCell}>
+          <Text style={styles.headerText}>Type</Text>
+        </View>
+
+        {/* Fixed-width delete header cell (matches rows) */}
+        <View style={styles.deleteCol}>
+          <Text style={styles.headerText}>Delete</Text>
+        </View>
       </View>
 
-      {bets.map((item) => (
-        <View key={item.id} style={styles.row}>
-          <CellText>{item.digit}</CellText>
-          <CellText>{item.points}</CellText>
-          <CellText>{item.type}</CellText>
-          <TouchableOpacity
-            style={styles.deleteBtn}
-            onPress={() => onDelete(item.id)}
-            activeOpacity={0.8}
-          >
-            <MaterialCommunityIcons
-              name="trash-can-outline"
-              size={22}
-              color="#FFF"
-            />
-          </TouchableOpacity>
-        </View>
-      ))}
+      {/* scrollable body */}
+      <View style={styles.body}>
+        <ScrollView
+          nestedScrollEnabled
+          showsVerticalScrollIndicator
+          keyboardShouldPersistTaps="handled"
+        >
+          {!bets || bets.length === 0 ? (
+            <Text style={styles.emptyText}>No entries</Text>
+          ) : (
+            bets.map((item) => (
+              <View key={String(item.id)} style={styles.row}>
+                <CellText>{item.digit}</CellText>
+                <CellText>{item.points}</CellText>
+                <CellText>{item.type}</CellText>
+
+                {/* Fixed-width delete column (matches header) */}
+                <View style={styles.deleteCol}>
+                  <TouchableOpacity
+                    style={styles.deleteBtn}
+                    onPress={() => onDelete(item.id)}
+                    activeOpacity={0.8}
+                  >
+                    <MaterialCommunityIcons
+                      name="trash-can-outline"
+                      size={22}
+                      color="#FFF"
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          )}
+        </ScrollView>
+      </View>
     </View>
   );
 };
 
-export default EasyModeTable;
-
-const HeaderCell = ({ label }) => (
-  <View style={styles.headerCell}>
-    <Text style={styles.headerText}>{label}</Text>
-  </View>
-);
-
-const CellText = ({ children }) => (
-  <Text style={styles.cellText}>{children}</Text>
-);
+const CellText = ({ children }) => <Text style={styles.cellText}>{children}</Text>;
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     marginTop: 16,
   },
   headerRow: {
     flexDirection: "row",
     backgroundColor: GREEN,
     paddingVertical: 8,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     borderRadius: 6,
     marginHorizontal: 4,
+    alignItems: "center",
   },
   headerCell: {
     flex: 1,
     alignItems: "center",
   },
+  deleteCol: {
+    width: DELETE_COL_W,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   headerText: {
-    color: "#FFF",
+    color: "#000",
     fontWeight: "700",
     fontSize: 14,
+    textAlign: "center",
+  },
+  body: {
+    flex: 1,
+    marginTop: 8,
+    marginHorizontal: 4,
+  },
+  emptyText: {
+    textAlign: "center",
+    color: "#666",
+    paddingVertical: 16,
   },
   row: {
     flexDirection: "row",
@@ -77,7 +113,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 20,
     alignItems: "center",
-    marginHorizontal: 4,
   },
   cellText: {
     flex: 1,
@@ -94,3 +129,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
+
+export default EasyModeTable;
