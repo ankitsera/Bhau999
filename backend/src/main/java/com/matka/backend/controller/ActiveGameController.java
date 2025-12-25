@@ -26,9 +26,47 @@ public class ActiveGameController {
     private GameRepository gameRepository;
 
     @GetMapping
-    public ResponseEntity<List<ActiveGame>> listAll() {
+    public ResponseEntity<List<ActiveGameWithAllowedTypes>> listAll() {
         List<ActiveGame> list = activeGameRepository.findAll();
-        return ResponseEntity.ok(list);
+
+        java.time.LocalTime now = java.time.LocalTime.now();
+
+        List<ActiveGameWithAllowedTypes> out = new java.util.ArrayList<>();
+        for (ActiveGame active : list) {
+            // try to fetch game times; fallback to null if not present
+            java.time.LocalTime openTime = null;
+            java.time.LocalTime closeTime = null;
+            try {
+                java.util.Optional<Game> gopt = gameRepository.findById(active.getGameName());
+                if (gopt.isPresent()) {
+                    Game g = gopt.get();
+                    openTime = g.getOpenTime();
+                    closeTime = g.getCloseTime();
+                }
+            } catch (Exception e) {
+                // ignore and treat times as null
+            }
+
+            String allowed;
+            if (openTime != null && now.isBefore(openTime)) {
+                allowed = "Open, Close";
+            } else if (closeTime != null && now.isAfter(closeTime)) {
+                allowed = null;
+            } else {
+                allowed = "Close";
+            }
+
+            ActiveGameWithAllowedTypes dto = new ActiveGameWithAllowedTypes();
+            dto.setGameName(active.getGameName());
+            dto.setOpen(active.getOpen());
+            dto.setClose(active.getClose());
+            dto.setOpenTime(openTime);
+            dto.setCloseTime(closeTime);
+            dto.setAllowed_types(allowed);
+            out.add(dto);
+        }
+
+        return ResponseEntity.ok(out);
     }
 
     /**
@@ -86,6 +124,36 @@ public class ActiveGameController {
         } else {
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid 'when' value; expected 'open' or 'close'"));
         }
+    }
+
+    /**
+     * DTO returned by GET /api/active-games with an additional allowed_types field
+     */
+    public static class ActiveGameWithAllowedTypes {
+        private String gameName;
+        private Integer open;
+        private Integer close;
+        private java.time.LocalTime openTime;
+        private java.time.LocalTime closeTime;
+        private String allowed_types;
+
+        public String getGameName() { return gameName; }
+        public void setGameName(String gameName) { this.gameName = gameName; }
+
+        public Integer getOpen() { return open; }
+        public void setOpen(Integer open) { this.open = open; }
+
+        public Integer getClose() { return close; }
+        public void setClose(Integer close) { this.close = close; }
+
+        public java.time.LocalTime getOpenTime() { return openTime; }
+        public void setOpenTime(java.time.LocalTime openTime) { this.openTime = openTime; }
+
+        public java.time.LocalTime getCloseTime() { return closeTime; }
+        public void setCloseTime(java.time.LocalTime closeTime) { this.closeTime = closeTime; }
+
+        public String getAllowed_types() { return allowed_types; }
+        public void setAllowed_types(String allowed_types) { this.allowed_types = allowed_types; }
     }
 
     public static class DeclareResultRequest {
