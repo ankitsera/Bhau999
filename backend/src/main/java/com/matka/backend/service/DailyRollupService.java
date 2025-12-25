@@ -63,8 +63,8 @@ public class DailyRollupService {
                     GameHistory gh = new GameHistory();
                     gh.setGameName(ag.getGameName());
                     gh.setHistDate(yesterday);
-                    gh.setOpen(ag.getOpen());
-                    gh.setClose(ag.getClose());
+                    gh.setOpenPana(ag.getOpenPana());
+                    gh.setClosePana(ag.getClosePana());
                     ghList.add(gh);
                 }
                 gameHistoryRepository.saveAll(ghList);
@@ -80,8 +80,8 @@ public class DailyRollupService {
             for (Game g : games) {
                 ActiveGame ag = new ActiveGame();
                 ag.setGameName(g.getName());
-                ag.setOpen(null);
-                ag.setClose(null);
+                ag.setOpenPana(null);
+                ag.setClosePana(null);
                 newActive.add(ag);
             }
             if (!newActive.isEmpty()) {

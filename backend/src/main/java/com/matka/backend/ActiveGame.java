@@ -10,10 +10,10 @@ public class ActiveGame {
     private String gameName;
 
     @Column(name = "open")
-    private Integer open;
+    private Integer openPana;
 
     @Column(name = "close")
-    private Integer close;
+    private Integer closePana;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "game_name", referencedColumnName = "name", insertable = false, updatable = false)
@@ -22,11 +22,11 @@ public class ActiveGame {
     public String getGameName() { return gameName; }
     public void setGameName(String gameName) { this.gameName = gameName; }
 
-    public Integer getOpen() { return open; }
-    public void setOpen(Integer open) { this.open = open; }
+    public Integer getOpenPana() { return openPana; }
+    public void setOpenPana(Integer openPana) { this.openPana = openPana; }
 
-    public Integer getClose() { return close; }
-    public void setClose(Integer close) { this.close = close; }
+    public Integer getClosePana() { return closePana; }
+    public void setClosePana(Integer closePana) { this.closePana = closePana; }
 
     public Game getGame() { return game; }
 }
