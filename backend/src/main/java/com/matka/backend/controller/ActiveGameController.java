@@ -7,6 +7,7 @@ import com.matka.backend.repository.GameRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Optional;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,19 +48,19 @@ public class ActiveGameController {
                 // ignore and treat times as null
             }
 
-            String allowed;
+            java.util.List<String> allowed;
             if (openTime != null && now.isBefore(openTime)) {
-                allowed = "Open, Close";
+                allowed = java.util.List.of("Open", "Close");
             } else if (closeTime != null && now.isAfter(closeTime)) {
-                allowed = null;
+                allowed = java.util.Collections.emptyList();
             } else {
-                allowed = "Close";
+                allowed = java.util.List.of("Close");
             }
 
             ActiveGameWithAllowedTypes dto = new ActiveGameWithAllowedTypes();
             dto.setGameName(active.getGameName());
-            dto.setOpen(active.getOpen());
-            dto.setClose(active.getClose());
+            dto.setOpenPana(active.getOpenPana());
+            dto.setClosePana(active.getClosePana());
             dto.setOpenTime(openTime);
             dto.setCloseTime(closeTime);
             dto.setAllowed_types(allowed);
@@ -101,14 +102,14 @@ public class ActiveGameController {
 
         LocalTime now = LocalTime.now();
 
-        if (when.equals("open")) {
+            if (when.equals("open")) {
             if (game.getOpenTime() == null) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Game open time not configured for: " + gameName));
             }
             if (now.isBefore(game.getOpenTime())) {
                 return ResponseEntity.status(400).body(Map.of("message", "Too early to declare open result. Current time: " + now + ", openTime: " + game.getOpenTime()));
             }
-            active.setOpen(result);
+            active.setOpenPana(result);
             activeGameRepository.save(active);
             return ResponseEntity.ok(Map.of("message", "Open result declared", "activeGame", active));
         } else if (when.equals("close")) {
@@ -118,7 +119,7 @@ public class ActiveGameController {
             if (now.isBefore(game.getCloseTime())) {
                 return ResponseEntity.status(400).body(Map.of("message", "Too early to declare close result. Current time: " + now + ", closeTime: " + game.getCloseTime()));
             }
-            active.setClose(result);
+            active.setClosePana(result);
             activeGameRepository.save(active);
             return ResponseEntity.ok(Map.of("message", "Close result declared", "activeGame", active));
         } else {
@@ -131,20 +132,22 @@ public class ActiveGameController {
      */
     public static class ActiveGameWithAllowedTypes {
         private String gameName;
-        private Integer open;
-        private Integer close;
-        private java.time.LocalTime openTime;
-        private java.time.LocalTime closeTime;
-        private String allowed_types;
+        private Integer openPana;
+        private Integer closePana;
+    private java.time.LocalTime openTime;
+    private java.time.LocalTime closeTime;
+    private java.util.List<String> allowed_types;
 
         public String getGameName() { return gameName; }
         public void setGameName(String gameName) { this.gameName = gameName; }
 
-        public Integer getOpen() { return open; }
-        public void setOpen(Integer open) { this.open = open; }
+    @JsonProperty("open_pana")
+    public Integer getOpenPana() { return openPana; }
+    public void setOpenPana(Integer openPana) { this.openPana = openPana; }
 
-        public Integer getClose() { return close; }
-        public void setClose(Integer close) { this.close = close; }
+    @JsonProperty("close_pana")
+    public Integer getClosePana() { return closePana; }
+    public void setClosePana(Integer closePana) { this.closePana = closePana; }
 
         public java.time.LocalTime getOpenTime() { return openTime; }
         public void setOpenTime(java.time.LocalTime openTime) { this.openTime = openTime; }
@@ -152,8 +155,8 @@ public class ActiveGameController {
         public java.time.LocalTime getCloseTime() { return closeTime; }
         public void setCloseTime(java.time.LocalTime closeTime) { this.closeTime = closeTime; }
 
-        public String getAllowed_types() { return allowed_types; }
-        public void setAllowed_types(String allowed_types) { this.allowed_types = allowed_types; }
+        public java.util.List<String> getAllowed_types() { return allowed_types; }
+        public void setAllowed_types(java.util.List<String> allowed_types) { this.allowed_types = allowed_types; }
     }
 
     public static class DeclareResultRequest {
