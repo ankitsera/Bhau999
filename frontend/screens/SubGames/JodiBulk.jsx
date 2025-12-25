@@ -19,7 +19,7 @@ const GREEN = "#3FA16C";
 
 const JodiBulk = ({ route }) => {
   const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.name || 'GAME';
+  const gameName = route?.params?.game?.gameName || 'GAME';
 
   const balance = 0; // temp
   const allowedTypes = ["OPEN", "CLOSE"]; // or from backend

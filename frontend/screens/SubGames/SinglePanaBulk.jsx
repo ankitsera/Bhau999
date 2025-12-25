@@ -22,7 +22,7 @@ const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
 const SinglePanaBulk = ({ route }) => {
   const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.name || 'GAME';
+  const gameName = route?.params?.game?.gameName || 'GAME';
 
   const allowedTypes = ["OPEN", "CLOSE"]; // replace with backend data later
   const balance = 0; // hook into wallet later

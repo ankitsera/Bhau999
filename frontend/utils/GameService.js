@@ -33,3 +33,42 @@ export const getGameRates = async () => {
   err.status = res.status;
   throw err;
 };
+
+/**
+ * GET /api/active-games  ->  `${API_URL}/active-games`
+ *
+ * Backend returns a list of ActiveGameWithAllowedTypes:
+ * {
+ *   gameName: string,
+ *   open_pana: integer | null,
+ *   close_pana: integer | null,
+ *   openTime: string | null,   // LocalTime -> "HH:mm:ss"
+ *   closeTime: string | null,  // LocalTime -> "HH:mm:ss"
+ *   allowed_types: string[],   // e.g. ["Open", "Close"] or ["Close"] or []
+ * }
+ */
+export const getActiveGames = async () => {
+  const res = await fetch(`${API_URL}/active-games`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  let body = null;
+  try {
+    body = await res.json();
+  } catch (e) {
+    body = null;
+  }
+
+  if (res.ok) {
+    return Array.isArray(body) ? body : [];
+  }
+
+  const msg =
+    body?.message || `Failed to load active games (status ${res.status})`;
+  const err = new Error(msg);
+  err.status = res.status;
+  throw err;
+};

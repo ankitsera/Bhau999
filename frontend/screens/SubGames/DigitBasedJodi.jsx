@@ -24,7 +24,7 @@ const DIGIT_ROWS = [
 
 const DigitBasedJodi = ({ route }) => {
   const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.name || 'GAME';
+  const gameName = route?.params?.game?.gameName || 'GAME';
 
   const allowedTypes = ["OPEN", "CLOSE"]; // later from context
   const balance = 0; // later from wallet context

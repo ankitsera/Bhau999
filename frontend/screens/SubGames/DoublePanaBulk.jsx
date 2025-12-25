@@ -22,7 +22,7 @@ const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']; // increasing
 
 const DoublePanaBulk = ({ route }) => {
   const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.name || 'GAME';
+  const gameName = route?.params?.game?.gameName || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // replace later
   const balance = 0; // replace later

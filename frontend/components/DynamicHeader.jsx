@@ -112,7 +112,8 @@ const styles = StyleSheet.create({
   },
   left: { 
     paddingRight: 8, 
-    zIndex: 10 
+    zIndex: 10,
+    marginBottom: 15,
   },
   center: {
     flex: 1,
@@ -124,12 +125,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "600",
     flexWrap: 'nowrap',
+    marginBottom: 15,
   },
   wallet: {
     flexDirection: "row",
     alignItems: "center",
     marginLeft: 10,
     zIndex: 10,
+    marginBottom: 15,
   },
   walletText: {
     color: "#000",

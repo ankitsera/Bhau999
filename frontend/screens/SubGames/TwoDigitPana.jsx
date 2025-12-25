@@ -64,7 +64,7 @@ function getPanasForTwoDigit(twoDigit) {
 
 const TwoDigitPana = ({ route }) => {
   const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.name || 'GAME';
+  const gameName = route?.params?.game?.gameName || 'GAME';
 
   const allowedTypes = ["OPEN", "CLOSE"]; // later from game state/timing
   const balance = 0; // later from wallet context

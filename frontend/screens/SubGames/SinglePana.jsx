@@ -37,7 +37,7 @@ const GROUP_KEYS = Object.keys(SINGLE_PANA_BY_RESULT_DIGIT); // "0".."9"
 
 const SinglePana = ({ route }) => {
   const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.name || 'GAME';
+  const gameName = route?.params?.game?.gameName || 'GAME';
 
   const allowedTypes = ["OPEN", "CLOSE"]; // temp
   const balance = 0; // temp

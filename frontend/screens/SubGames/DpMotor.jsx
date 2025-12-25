@@ -22,7 +22,7 @@ const GREEN = '#3FA16C';
 
 const DpMotor = ({ route }) => {
   const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.name || 'GAME';
+  const gameName = route?.params?.game?.gameName || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE'];
   const balance = 0;

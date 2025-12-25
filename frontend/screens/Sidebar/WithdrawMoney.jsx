@@ -79,7 +79,7 @@ const WithdrawMoney = ({ navigation }) => {
           <Pressable
             onPress={() => navigation.goBack()}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={{ paddingRight: 8 }}
+            style={{ paddingRight: 8, marginBottom: 15, }}
           >
             <MaterialIcons name="arrow-back" size={26} color="#000" />
           </Pressable>
@@ -287,11 +287,13 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     marginLeft: 6,
+    marginBottom: 15,
   },
   walletRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    marginBottom: 15,
   },
   walletAmt: {
     color: '#000',

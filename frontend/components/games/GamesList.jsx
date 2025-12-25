@@ -1,53 +1,140 @@
-import React from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from "react-native";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  Modal,
+  Pressable,
+} from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import gamesData from "../../data/games.json"; // <-- static local JSON
+import EmptyState from "../../components/EmptyState";
+import { GameContext } from "../../contexts/GameContext";
 
 const GREEN = "#3FA16C";
 const RED = "#EF4B3E";
 
-const GameCard = ({ item, navigation }) => (
-  <TouchableOpacity style={styles.card}
-    onPress={() => {
-      navigation.navigate("Games Sub Types", { game: item })
-    }}
-  >
-    <View style={styles.cardTop}>
-      <Text style={styles.title}>{item.name}</Text>
-      <Text style={styles.closedText}>Closed for today</Text>
-    </View>
+const ClosedPopup = ({ visible, onClose }) => {
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalCard}>
+          <Pressable onPress={onClose} hitSlop={10} style={styles.modalCloseBtn}>
+            <MaterialCommunityIcons name="close" size={28} color="#9E9E9E" />
+          </Pressable>
 
-    <View style={styles.cardBody}>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.result}>{item.resultNumber}</Text>
-        <View style={styles.timeRow}>
-          <View>
-            <Text style={styles.timeLabel}>Open Bids</Text>
-            <Text style={styles.timeValue}>{item.openTime}</Text>
+          <View style={styles.modalIconWrap}>
+            <View style={styles.modalIconCircle}>
+              <MaterialCommunityIcons name="close" size={46} color={RED} />
+            </View>
           </View>
-          <View style={{ marginLeft: 18 }}>
-            <Text style={styles.timeLabel}>Close Bids</Text>
-            <Text style={styles.timeValue}>{item.closeTime}</Text>
-          </View>
+
+          <Text style={styles.modalTitle}>Sorry !</Text>
+          <Text style={styles.modalMsg}>
+            Betting is Closed for today.{"\n"}Please come next day to play.
+          </Text>
+
+          <Pressable onPress={onClose} style={styles.modalOkBtn}>
+            <Text style={styles.modalOkText}>OK</Text>
+          </Pressable>
         </View>
       </View>
+    </Modal>
+  );
+};
 
-      <View style={styles.redCircle}>
-        <MaterialCommunityIcons name="close" size={28} color="#fff" />
-      </View>
-    </View>
-  </TouchableOpacity>
-);
+const GameCard = ({ item, navigation, onPressClosed }) => {
+  const handlePress = () => {
+    if (item.isClosed) {
+      onPressClosed?.();
+      return;
+    }
 
-const GamesList = ({navigation}) => {
+    // ✅ better way: pass only gameName
+    navigation.navigate("Games Sub Types", { gameName: item.gameName });
+  };
+
   return (
-    <FlatList
-      data={gamesData}
-      keyExtractor={(item, index) => `${item.id}-${index}`}
-      renderItem={({ item }) => <GameCard item={item} navigation={navigation} />}
-      contentContainerStyle={styles.listContent}
-      showsVerticalScrollIndicator={false}
-    />
+    <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.85}>
+      <View style={styles.cardTop}>
+        <Text style={styles.title}>{item.gameName}</Text>
+        <Text style={[styles.statusText, { color: item.statusColor }]}>
+          {item.statusText}
+        </Text>
+      </View>
+
+      <View style={styles.cardBody}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.result}>{item.resultText}</Text>
+
+          <View style={styles.timeRow}>
+            <View>
+              <Text style={styles.timeLabel}>Open Bids</Text>
+              <Text style={styles.timeValue}>{item.openTimeText}</Text>
+            </View>
+
+            <View style={{ marginLeft: 18 }}>
+              <Text style={styles.timeLabel}>Close Bids</Text>
+              <Text style={styles.timeValue}>{item.closeTimeText}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={[styles.circle, { backgroundColor: item.statusColor }]}>
+          <MaterialCommunityIcons name={item.iconName} size={28} color="#fff" />
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+const GamesList = ({ navigation }) => {
+  const { activeGamesUi, isLoadingActiveGames, loadActiveGames } =
+    useContext(GameContext);
+
+  const [showClosedModal, setShowClosedModal] = useState(false);
+
+  useEffect(() => {
+    // context also polls, but this ensures first paint isn’t empty
+    loadActiveGames?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (isLoadingActiveGames) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={GREEN} />
+      </View>
+    );
+  }
+
+  if (!activeGamesUi || activeGamesUi.length === 0) {
+    return <EmptyState icon="gamepad-variant" message="NO GAMES FOUND" />;
+  }
+
+  return (
+    <View style={{ flex: 1 }}>
+      <ClosedPopup
+        visible={showClosedModal}
+        onClose={() => setShowClosedModal(false)}
+      />
+
+      <FlatList
+        data={activeGamesUi}
+        keyExtractor={(item, index) => `${item.gameName}-${index}`}
+        renderItem={({ item }) => (
+          <GameCard
+            item={item}
+            navigation={navigation}
+            onPressClosed={() => setShowClosedModal(true)}
+          />
+        )}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
   );
 };
 
@@ -59,6 +146,12 @@ const styles = StyleSheet.create({
     paddingBottom: 110,
     paddingTop: 8,
   },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
   card: {
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -79,9 +172,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "900",
     color: "#141414",
+    flex: 1,
+    paddingRight: 10,
   },
-  closedText: {
-    color: RED,
+  statusText: {
     fontSize: 14,
     fontWeight: "800",
   },
@@ -109,13 +203,76 @@ const styles = StyleSheet.create({
     color: "#2f2f2f",
     fontWeight: "600",
   },
-  redCircle: {
+  circle: {
     width: 54,
     height: 54,
     borderRadius: 27,
-    backgroundColor: RED,
     alignItems: "center",
     justifyContent: "center",
     marginLeft: 14,
+  },
+
+  // ===== Modal styles =====
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 18,
+  },
+  modalCard: {
+    width: "100%",
+    maxWidth: 360,
+    backgroundColor: "#fff",
+    borderRadius: 22,
+    paddingHorizontal: 22,
+    paddingTop: 24,
+    paddingBottom: 18,
+    alignItems: "center",
+  },
+  modalCloseBtn: {
+    position: "absolute",
+    top: 14,
+    right: 14,
+    padding: 6,
+  },
+  modalIconWrap: {
+    marginTop: 10,
+    marginBottom: 8,
+  },
+  modalIconCircle: {
+    width: 92,
+    height: 92,
+    borderRadius: 46,
+    backgroundColor: "#FCE6E6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalTitle: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#D32F2F",
+    marginTop: 6,
+  },
+  modalMsg: {
+    marginTop: 10,
+    textAlign: "center",
+    fontSize: 16,
+    lineHeight: 22,
+    color: "#666",
+    fontWeight: "600",
+  },
+  modalOkBtn: {
+    marginTop: 18,
+    width: "75%",
+    backgroundColor: GREEN,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  modalOkText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "800",
   },
 });

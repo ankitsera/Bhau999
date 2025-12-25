@@ -17,7 +17,7 @@ const GreenHeader = ({ title = "" }) => {
         <Pressable
           onPress={() => navigation?.goBack?.()}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          style={{ paddingRight: 8 }}
+          style={{ paddingRight: 8, marginBottom: 15, }}
         >
           <MaterialIcons name="arrow-back" size={26} color="#000" />
         </Pressable>
@@ -57,6 +57,7 @@ const styles = StyleSheet.create({
     color: "#000", 
     fontSize: 26, 
     fontWeight: "700", 
-    marginLeft: 6 
+    marginLeft: 6,
+    marginBottom: 15,
   },
 });

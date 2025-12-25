@@ -8,32 +8,63 @@ import {
   TextInput,
   TouchableOpacity,
   Linking,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AuthContext } from '../../contexts/AuthContext';
+import { PaymentsContext } from '../../contexts/PaymentsContext'; // ✅ NEW
 import { Link } from '@react-navigation/native';
 
 const GREEN = '#3FA16C';
 
 const AddMoney = ({ navigation }) => {
   const { user } = useContext(AuthContext);
+  const { addMoneyViaUpi, loading: payLoading } = useContext(PaymentsContext); // ✅ NEW
+
   const insets = useSafeAreaInsets();
   const [amount, setAmount] = useState('');
   const SUPPORT_PHONE = '+917757033237';
   const WHATSAPP_PHONE = '917757033237';
+
+  // ✅ HARD-CODED (replace later with config API)
+  const PAYEE_VPA = 'heymuskan2301@okaxis';          // <-- change this to your real UPI ID
+  const PAYEE_NAME = 'Muskan Kumari';    // <-- change this to your real name
 
   const openDialer = () =>
     Linking.openURL(`tel:${SUPPORT_PHONE}`).catch(() => {});
   const openWhatsapp = () =>
     Linking.openURL(`https://wa.me/${WHATSAPP_PHONE}`).catch(() => {});
 
-  const handleAdd = () => {
-    // TODO: payment gateway flow
+  const setPreset = v => setAmount(String(v));
+
+  const handleAdd = async () => {
+    try {
+      const amt = Number(String(amount).trim());
+
+      if (!Number.isFinite(amt) || amt <= 0) {
+        Alert.alert('Invalid Amount', 'Please enter a valid amount.');
+        return;
+      }
+
+      // ✅ Kick off UPI intent, then on SUCCESS it will call backend submit API from context
+      await addMoneyViaUpi({
+        amountRupees: amt,
+        payeeVpa: PAYEE_VPA,
+        payeeName: PAYEE_NAME,
+        note: `Add Fund ${user?.mobileNumber || ''}`,
+      });
+
+      // optional: clear input on success
+      setAmount('');
+    } catch (e) {
+      Alert.alert('Payment Failed', e?.message || 'Something went wrong.');
+    }
   };
 
-  const setPreset = v => setAmount(String(v));
+  const isDisabled = !amount || payLoading;
 
   return (
     <View style={styles.container}>
@@ -44,7 +75,7 @@ const AddMoney = ({ navigation }) => {
           <Pressable
             onPress={() => navigation.goBack()}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={{ paddingRight: 8 }}
+            style={{ paddingRight: 8, marginBottom: 15, }}
           >
             <MaterialIcons name="arrow-back" size={26} color="#000" />
           </Pressable>
@@ -112,6 +143,7 @@ const AddMoney = ({ navigation }) => {
               style={styles.amountInput}
               value={amount}
               onChangeText={setAmount}
+              editable={!payLoading}
             />
           </View>
 
@@ -123,12 +155,14 @@ const AddMoney = ({ navigation }) => {
                 <TouchableOpacity
                   key={v}
                   onPress={() => setPreset(v)}
+                  disabled={payLoading}
                   style={[
                     styles.presetBtn,
                     selected && {
                       borderColor: GREEN,
                       backgroundColor: '#e9f8f0',
                     },
+                    payLoading && { opacity: 0.6 },
                   ]}
                 >
                   <Text
@@ -149,12 +183,16 @@ const AddMoney = ({ navigation }) => {
       {/* BOTTOM CTA */}
       <View style={[styles.bottomWrap, { paddingBottom: insets.bottom }]}>
         <TouchableOpacity
-          style={[styles.bottomBtn, !amount && { opacity: 0.6 }]}
+          style={[styles.bottomBtn, isDisabled && { opacity: 0.6 }]}
           onPress={handleAdd}
-          disabled={!amount}
+          disabled={isDisabled}
           activeOpacity={0.85}
         >
-          <Text style={styles.bottomText}>Pay Now</Text>
+          {payLoading ? (
+            <ActivityIndicator />
+          ) : (
+            <Text style={styles.bottomText}>Pay Now</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -167,8 +205,8 @@ export const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F3F3F3' },
 
   // header
-  headerRoot: { 
-    width: '100%' 
+  headerRoot: {
+    width: '100%',
   },
   headerBg: {
     position: 'absolute',
@@ -192,14 +230,16 @@ export const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     marginLeft: 6,
+    marginBottom: 15,
   },
-  walletRight: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    gap: 6 
+  walletRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 15,
   },
-  walletAmt: { 
-    color: '#000', 
+  walletAmt: {
+    color: '#000',
     fontSize: 26,
   },
 
@@ -226,15 +266,15 @@ export const styles = StyleSheet.create({
     shadowRadius: 4,
     marginBottom: 12,
   },
-  name: { 
-    fontSize: 18, 
-    fontWeight: '700', 
-    color: '#000' 
+  name: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000',
   },
-  mobile: { 
-    fontSize: 16, 
-    color: '#000', 
-    marginBottom: 10 
+  mobile: {
+    fontSize: 16,
+    color: '#000',
+    marginBottom: 10,
   },
   balanceStrip: {
     width: '100%',
@@ -243,20 +283,21 @@ export const styles = StyleSheet.create({
     paddingVertical: 10,
     alignItems: 'center',
   },
-  balanceLabel: { 
-    color: '#fff', 
-    fontSize: 15, 
-    marginBottom: 4 
+  balanceLabel: {
+    color: '#fff',
+    fontSize: 15,
+    marginBottom: 4,
   },
-  balanceValue: { 
-    color: '#fff', 
-    fontSize: 18, 
+  balanceValue: {
+    color: '#fff',
+    fontSize: 18,
     fontWeight: '700',
   },
-  divider: { 
-    height: 2, 
-    backgroundColor: '#00000033', 
-    marginVertical: 10 },
+  divider: {
+    height: 2,
+    backgroundColor: '#00000033',
+    marginVertical: 10,
+  },
   helpTitle: {
     textAlign: 'center',
     color: '#000',
@@ -282,11 +323,11 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 4,
   },
-  helpText: { 
-    marginLeft: 6, 
-    fontSize: 15, 
-    fontWeight: '600', 
-    color: '#000' 
+  helpText: {
+    marginLeft: 6,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#000',
   },
 
   amountInputWrap: {
@@ -309,9 +350,10 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 8,
   },
-  amountInput: { flex: 1, 
-    fontSize: 16, 
-    color: '#000' 
+  amountInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#000',
   },
   presets: {
     flexDirection: 'row',
@@ -329,9 +371,9 @@ export const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
   },
-  presetText: { 
-    fontSize: 18, 
-    color: '#000' 
+  presetText: {
+    fontSize: 18,
+    color: '#000',
   },
   bottomWrap: {
     position: 'absolute',
@@ -355,9 +397,9 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
   },
-  bottomText: { 
-    color: '#fff', 
-    fontSize: 18, 
-    fontWeight: '700' 
+  bottomText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
   },
 });

@@ -26,7 +26,7 @@ const isValidPana = (p) => /^\d{3}$/.test(p);
 
 const FullSangam = ({ route }) => {
   const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.name || 'GAME';
+  const gameName = route?.params?.game?.gameName || 'GAME';
 
   const [openPana, setOpenPana] = useState("");
   const [closePana, setClosePana] = useState("");

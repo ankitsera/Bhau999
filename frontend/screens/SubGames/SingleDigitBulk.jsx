@@ -27,7 +27,7 @@ const GREEN = "#3FA16C";
 
 const SingleDigitBulk = ({ route }) => {
   const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.name || 'GAME';
+  const gameName = route?.params?.game?.gameName || 'GAME';
 
   // const { getGameState } = useGameContext();
   // const { balance } = useWalletContext();

@@ -41,7 +41,7 @@ const FIRST_DIGIT_MAP = Array.from({ length: 10 }, (_, d) => {
 
 const Jodi = ({ route }) => {
   const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.name || 'GAME';
+  const gameName = route?.params?.game?.gameName || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // temp (later from timing logic)
   const balance = 0; // temp (later from wallet)

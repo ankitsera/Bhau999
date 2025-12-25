@@ -24,7 +24,7 @@ const ROW2 = ['6', '7', '8', '9', '0'];
 
 const SpCommon = ({ route }) => {
   const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.name || 'GAME';
+  const gameName = route?.params?.game?.gameName || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // later from context
   const balance = 0; // later from wallet
