@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useContext } from 'react';
 import {
   View,
   ScrollView,
@@ -15,14 +15,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import DynamicHeader from '../../components/DynamicHeader';
 import { getSinglePanaSuggestions } from '../../data/singlePanaMap';
 
+import { AuthContext } from '../../contexts/AuthContext';
+import { placeBets, makeBet } from '../../utils/GameService';
+
 const GREEN = '#3FA16C';
 
 const HalfSangamA = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || 'GAME';
 
-  // TODO: replace with WalletContext later
-  const balance = 999999999;
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const [openPana, setOpenPana] = useState('');
   const [closeAnk, setCloseAnk] = useState('');
@@ -60,6 +63,18 @@ const HalfSangamA = ({ route }) => {
       return;
     }
 
+    // keep same style you used in FullSangam: must exist in map list
+    const panaOk = (getSinglePanaSuggestions(panaVal[0]) || []).includes(
+      panaVal,
+    );
+    if (!panaOk) {
+      Alert.alert(
+        'Validation',
+        'Please select a valid Open Pana from suggestions.',
+      );
+      return;
+    }
+
     if (ankVal.length !== 1) {
       Alert.alert('Validation', 'Please enter a valid Close Ank (1 digit).');
       return;
@@ -70,13 +85,19 @@ const HalfSangamA = ({ route }) => {
       return;
     }
 
+    const sangam = `${panaVal}-${ankVal}`;
     const bet = {
-      id: Date.now().toString(),
-      sangam: `${panaVal}-${ankVal}`,
+      id: `${sangam}`, // stable => avoids duplicates
+      sangam,
       points: pts,
     };
 
-    setBets(prev => [...prev, bet]);
+    setBets(prev => {
+      const map = new Map(prev.map(b => [b.id, b]));
+      map.set(bet.id, bet); // overwrite => updates points if exists
+      return Array.from(map.values());
+    });
+
     setOpenPana('');
     setCloseAnk('');
     setPoints('');
@@ -95,26 +116,38 @@ const HalfSangamA = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert(
+        'Login required',
+        'Mobile number missing. Please login again.',
+      );
+      return;
+    }
+
     if (totalPts > balance) {
       Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
       return;
     }
 
-    const payload = {
-      gameId,
-      subGame: 'HALF_SANGAM_A',
-      bets: bets.map(b => ({
-        sangam: b.sangam,
-        points: b.points,
-      })),
-    };
+    const betsToSend = bets.map(b =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: 'HALF_SANGAM_A',
+        openClose: 'CLOSE',
+        amount: Number(b.points) || 0,
+        betValue: b.sangam, // "openPana-closeAnk"
+      }),
+    );
 
     try {
-      console.log('Submitting Half Sangam(A):', payload);
-      Alert.alert('Success', 'Bets submitted (mock).');
+      const res = await placeBets(betsToSend);
+      console.log('Submitting Half Sangam(A):', res);
+      Alert.alert('Success', 'Bets placed successfully!');
+      setBets([]);
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', 'Failed to submit bets.');
+      Alert.alert('Error', e?.message || 'Failed to place bets.');
     }
   };
 
@@ -143,7 +176,7 @@ const HalfSangamA = ({ route }) => {
                   placeholderTextColor="#999"
                   maxLength={3}
                   onFocus={() => setShowOpenSug(true)}
-                  onBlur={() => setShowOpenSug(false)}
+                  onBlur={() => setTimeout(() => setShowOpenSug(false), 120)}
                 />
 
                 {showOpenSug && openSuggestions.length > 0 && (
@@ -160,6 +193,7 @@ const HalfSangamA = ({ route }) => {
                           onPress={() => {
                             setOpenPana(item);
                             setShowOpenSug(false);
+                            Keyboard.dismiss();
                           }}
                         >
                           <Text style={styles.suggestionText}>{item}</Text>

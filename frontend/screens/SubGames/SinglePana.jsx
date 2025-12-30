@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useContext } from "react"; // ✅ CHANGED (added useContext)
 import {
   View,
   ScrollView,
@@ -25,10 +25,8 @@ import {
   getSinglePanaSuggestions,
 } from "../../data/singlePanaMap";
 
-// TODO later:
-// import { useGameContext } from "../../contexts/GameContext";
-// import { useWalletContext } from "../../contexts/WalletContext";
-// import { GameService } from "../../services/GameService";
+import { AuthContext } from "../../contexts/AuthContext";
+import { placeBets, makeBet } from "../../utils/GameService";
 
 const GREEN = "#3FA16C";
 const BLACK = "#000";
@@ -36,11 +34,13 @@ const BLACK = "#000";
 const GROUP_KEYS = Object.keys(SINGLE_PANA_BY_RESULT_DIGIT); // "0".."9"
 
 const SinglePana = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || 'GAME';
+
+  const { user } = useContext(AuthContext);
+  const mobileNumber = user?.mobileNumber; 
 
   const allowedTypes = ["OPEN", "CLOSE"]; // temp
-  const balance = 0; // temp
+  const balance = Number(user?.balance || 0);
 
   // today's date label (static style dd-mm-yyyy)
   const todayLabel = (() => {
@@ -54,9 +54,7 @@ const SinglePana = ({ route }) => {
   // -------- STATE --------
   const [mode, setMode] = useState("EASY"); // "EASY" | "SPECIAL"
 
-  const [selectedType, setSelectedType] = useState(
-    allowedTypes[0] || "OPEN"
-  );
+  const [selectedType, setSelectedType] = useState(allowedTypes[0] || "OPEN");
 
   // Easy mode
   const [easyPana, setEasyPana] = useState("");
@@ -74,10 +72,7 @@ const SinglePana = ({ route }) => {
   // -------- DERIVED TOTALS --------
   const easyTotals = useMemo(() => {
     const bids = easyBets.length;
-    const points = easyBets.reduce(
-      (sum, b) => sum + (Number(b.points) || 0),
-      0
-    );
+    const points = easyBets.reduce((sum, b) => sum + (Number(b.points) || 0), 0);
     return { bids, points };
   }, [easyBets]);
 
@@ -146,54 +141,74 @@ const SinglePana = ({ route }) => {
       return;
     }
 
-    if (points > balance) {
+    // ✅ NEW: basic auth validation
+    if (!mobileNumber) {
+      Alert.alert("Login required", "Mobile number not found. Please login again.");
+      return;
+    }
+
+    // ✅ CHANGED: don’t block when balance is still temp=0
+    if (Number.isFinite(balance) && balance > 0 && points > balance) {
       Alert.alert("Insufficient balance", "Your wallet balance is too low.");
       return;
     }
 
-    let payload;
+    // ✅ NEW: build API payload (array), per backend controller
+    // backend expects: [{ mobileNumber, gameName, type, open_close, amount, betValue }]
+    let betsToSend = [];
 
     if (mode === "EASY") {
-      payload = {
-        gameId,
-        subGame: "SINGLE_PANA",
-        mode: "EASY",
-        type: selectedType,
-        bets: easyBets.map((b) => ({
-          pana: b.pana,
-          points: b.points,
-          type: b.type,
-        })),
-      };
+      betsToSend = easyBets.map((b) =>
+        makeBet({
+          mobileNumber,
+          gameName,
+          type: "SINGLE_PANA", // ✅ CHANGED: type = sub-game
+          openClose: String(b.type || "").toUpperCase(), // ✅ NEW: open_close per row
+          amount: Number(b.points) || 0, // ✅ CHANGED: amount instead of points
+          betValue: b.pana, // ✅ NEW: betValue
+        })
+      );
     } else {
-      const bets = [];
+      const list = [];
       ALL_SINGLE_PANA.forEach((pana) => {
         const p = Number(specialPointsByPana[pana] || 0);
         if (p > 0) {
-          bets.push({
-            pana,
-            points: p,
-            type: selectedType.toLowerCase(),
-          });
+          list.push(
+            makeBet({
+              mobileNumber,
+              gameName,
+              type: "SINGLE_PANA", // ✅ CHANGED
+              openClose: selectedType, // ✅ NEW
+              amount: p, // ✅ CHANGED
+              betValue: pana, // ✅ NEW
+            })
+          );
         }
       });
-
-      payload = {
-        gameId,
-        subGame: "SINGLE_PANA",
-        mode: "SPECIAL",
-        type: selectedType,
-        bets,
-      };
+      betsToSend = list;
     }
 
     try {
-      // await GameService.submitSinglePana(payload);
-      console.log("Submitting Single Pana payload:", payload);
-      Alert.alert("Success", "Bets submitted (mock).");
+      // ✅ CHANGED: real API call
+      console.log("Placing bets:", betsToSend);
+      const res = await placeBets(betsToSend);
+      console.log("Placed bets response:", res);
+
+      Alert.alert("Success", "Bets placed successfully!");
+
+      // optional small reset (kept minimal)
+      if (mode === "EASY") {
+        setEasyBets([]);
+      } else {
+        setSpecialPointsByPana((prev) => {
+          const next = { ...prev };
+          ALL_SINGLE_PANA.forEach((p) => (next[p] = ""));
+          return next;
+        });
+      }
     } catch (err) {
       console.error(err);
-      Alert.alert("Error", "Failed to submit bets.");
+      Alert.alert("Error", err?.message || "Failed to place bets.");
     }
   };
 

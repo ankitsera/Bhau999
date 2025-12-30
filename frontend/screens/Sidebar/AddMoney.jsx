@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,23 +15,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AuthContext } from '../../contexts/AuthContext';
-import { PaymentsContext } from '../../contexts/PaymentsContext'; // ✅ NEW
-import { Link } from '@react-navigation/native';
+import { PaymentsContext } from '../../contexts/PaymentsContext';
 
 const GREEN = '#3FA16C';
 
 const AddMoney = ({ navigation }) => {
   const { user } = useContext(AuthContext);
-  const { addMoneyViaUpi, loading: payLoading } = useContext(PaymentsContext); // ✅ NEW
+  const { addMoneyViaUpi, loading: payLoading } = useContext(PaymentsContext);
 
   const insets = useSafeAreaInsets();
   const [amount, setAmount] = useState('');
+
   const SUPPORT_PHONE = '+917757033237';
   const WHATSAPP_PHONE = '917757033237';
-
-  // ✅ HARD-CODED (replace later with config API)
-  const PAYEE_VPA = 'heymuskan2301@okaxis';          // <-- change this to your real UPI ID
-  const PAYEE_NAME = 'Muskan Kumari';    // <-- change this to your real name
 
   const openDialer = () =>
     Linking.openURL(`tel:${SUPPORT_PHONE}`).catch(() => {});
@@ -40,31 +36,44 @@ const AddMoney = ({ navigation }) => {
 
   const setPreset = v => setAmount(String(v));
 
+  // ✅ For now hardcoded. Later replace this with AppConfigContext values.
+  const getPayeeConfig = () => ({
+    payeeVpa: 'hdml61i85097@hdfcbank',
+    payeeName: 'MUFINPAY',
+  });
+
+// const { getConfigValue } = useContext(AppConfigContext);
+
+// const getPayeeConfig = () => ({
+//   payeeVpa: getConfigValue("UPI_VPA"),
+//   payeeName: getConfigValue("UPI_NAME"),
+// });
+
+  // ✅ tighter disable logic (handles " ", "0", etc.)
+  const amtNum = useMemo(() => Number(String(amount).trim()), [amount]);
+  const isDisabled = !Number.isFinite(amtNum) || amtNum <= 0 || payLoading;
+
   const handleAdd = async () => {
     try {
-      const amt = Number(String(amount).trim());
-
-      if (!Number.isFinite(amt) || amt <= 0) {
+      if (!Number.isFinite(amtNum) || amtNum <= 0) {
         Alert.alert('Invalid Amount', 'Please enter a valid amount.');
         return;
       }
 
-      // ✅ Kick off UPI intent, then on SUCCESS it will call backend submit API from context
+      const { payeeVpa, payeeName } = getPayeeConfig();
+
       await addMoneyViaUpi({
-        amountRupees: amt,
-        payeeVpa: PAYEE_VPA,
-        payeeName: PAYEE_NAME,
-        note: `Add Fund ${user?.mobileNumber || ''}`,
+        amountRupees: amtNum,
+        payeeVpa,
+        payeeName,
+        note: `Payment to ${payeeName}`,
       });
 
-      // optional: clear input on success
       setAmount('');
     } catch (e) {
       Alert.alert('Payment Failed', e?.message || 'Something went wrong.');
     }
   };
-
-  const isDisabled = !amount || payLoading;
 
   return (
     <View style={styles.container}>
@@ -75,7 +84,7 @@ const AddMoney = ({ navigation }) => {
           <Pressable
             onPress={() => navigation.goBack()}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={{ paddingRight: 8, marginBottom: 15, }}
+            style={{ paddingRight: 8, marginBottom: 15 }}
           >
             <MaterialIcons name="arrow-back" size={26} color="#000" />
           </Pressable>
@@ -150,7 +159,7 @@ const AddMoney = ({ navigation }) => {
           {/* presets */}
           <View style={styles.presets}>
             {[500, 1000, 5000, 10000].map(v => {
-              const selected = amount === String(v);
+              const selected = String(amtNum) === String(v);
               return (
                 <TouchableOpacity
                   key={v}

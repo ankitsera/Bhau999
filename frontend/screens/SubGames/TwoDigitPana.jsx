@@ -1,5 +1,5 @@
 // screens/SubGames/TwoDigitPana.jsx
-import React, { useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -21,6 +21,9 @@ import EasyModeTable from "../../components/games/EasyModeTable";
 import { ALL_SINGLE_PANA } from "../../data/singlePanaMap";
 import { ALL_DOUBLE_PANA } from "../../data/doublePanaMap";
 import { ALL_TRIPLE_PANA } from "../../data/triplePanaMap";
+
+import { AuthContext } from "../../contexts/AuthContext";
+import { placeBets, makeBet } from "../../utils/GameService";
 
 const GREEN = "#3FA16C";
 
@@ -63,11 +66,13 @@ function getPanasForTwoDigit(twoDigit) {
 }
 
 const TwoDigitPana = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || "GAME";
 
   const allowedTypes = ["OPEN", "CLOSE"]; // later from game state/timing
-  const balance = 0; // later from wallet context
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const todayLabel = (() => {
     const d = new Date();
@@ -148,28 +153,52 @@ const TwoDigitPana = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      return;
+    }
+
     if (totals.points > balance) {
       Alert.alert("Insufficient balance", "Your wallet balance is too low.");
       return;
     }
 
-    const payload = {
-      gameId,
-      subGame: "TWO_DIGIT_PANA",
-      type: selectedType,
-      bets: bets.map((b) => ({
-        pana: b.digit,
-        points: Number(b.points) || 0,
-        type: b.type,
-      })),
+    const openClose = String(selectedType).toUpperCase();
+
+    // TwoDigitPana generates a MIX of SP/DP/TP -> decide bet type by digit-count pattern
+    const detectType = (panaStr) => {
+      const s = String(panaStr || "");
+      if (!/^\d{3}$/.test(s)) return "SINGLE_PANA";
+      const c = buildDigitCount(s);
+      const max = Math.max(...Object.values(c));
+      if (max === 3) return "TRIPLE_PANA"; // 000,111...
+      if (max === 2) return "DOUBLE_PANA"; // 112, 505...
+      return "SINGLE_PANA";               // 123...
     };
 
+    const betsToSend = bets.map((b) =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: detectType(b.digit),
+        openClose,
+        amount: Number(b.points) || 0,
+        betValue: String(b.digit),
+      })
+    );
+
     try {
-      console.log("Submitting Two Digit Pana payload:", payload);
-      Alert.alert("Success", "Bets submitted (mock).");
+      const res = await placeBets(betsToSend);
+      console.log("TwoDigitPana bet response:", res);
+
+      Alert.alert("Success", "Bets placed successfully!");
+
+      setBets([]);
+      setDigit("");
+      setPoints("");
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", "Failed to submit bets.");
+      Alert.alert("Error", e?.message || "Failed to place bets.");
     }
   };
 
@@ -235,7 +264,11 @@ const TwoDigitPana = ({ route }) => {
           </View>
 
           {/* Add button */}
-          <TouchableOpacity style={styles.addButton} onPress={handleAdd} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={handleAdd}
+            activeOpacity={0.85}
+          >
             <Text style={styles.addText}>Add</Text>
           </TouchableOpacity>
 
@@ -249,7 +282,11 @@ const TwoDigitPana = ({ route }) => {
           </View>
         </View>
 
-        <BottomBetBar bids={totals.bids} points={totals.points} onSubmit={handleSubmit} />
+        <BottomBetBar
+          bids={totals.bids}
+          points={totals.points}
+          onSubmit={handleSubmit}
+        />
       </View>
     </SafeAreaView>
   );

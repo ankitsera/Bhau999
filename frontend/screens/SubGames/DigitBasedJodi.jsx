@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useContext } from "react";
 import {
   View,
   StyleSheet,
@@ -15,6 +15,9 @@ import GameDateTypeRow from "../../components/games/GameDateTypeRow";
 import BottomBetBar from "../../components/games/BottomBetBar";
 import EasyModeTable from "../../components/games/EasyModeTable";
 
+import { AuthContext } from "../../contexts/AuthContext";
+import { placeBets, makeBet } from "../../utils/GameService";
+
 const GREEN = "#3FA16C";
 
 const DIGIT_ROWS = [
@@ -23,11 +26,13 @@ const DIGIT_ROWS = [
 ];
 
 const DigitBasedJodi = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || "GAME";
 
   const allowedTypes = ["OPEN", "CLOSE"]; // later from context
-  const balance = 0; // later from wallet context
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const todayLabel = (() => {
     const d = new Date();
@@ -65,7 +70,6 @@ const DigitBasedJodi = ({ route }) => {
     const typeLower = selectedType.toLowerCase();
 
     setBets((prev) => {
-      // id = `${type}-${jodi}` ensures no duplicates
       const map = new Map(prev.map((b) => [b.id, b]));
 
       group.forEach((jodi) => {
@@ -99,28 +103,39 @@ const DigitBasedJodi = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      return;
+    }
+
     if (totals.points > balance) {
       Alert.alert("Insufficient balance", "Your wallet balance is too low.");
       return;
     }
 
-    const payload = {
-      gameId,
-      subGame: "DIGIT_BASED_JODI",
-      type: selectedType,
-      bets: bets.map((b) => ({
-        jodi: b.digit,
-        points: b.points,
-        type: b.type,
-      })),
-    };
+    // ✅ NEW: backend bet array
+    const betsToSend = bets.map((b) =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: "DIGIT_BASED_JODI",
+        openClose: String(b.type).toUpperCase(),
+        amount: Number(b.points) || 0,
+        betValue: b.digit,
+      })
+    );
 
     try {
-      console.log("Submitting DigitBasedJodi payload:", payload);
-      Alert.alert("Success", "Bets submitted (mock).");
+      const res = await placeBets(betsToSend); //API call
+      Alert.alert("Success", "Bets placed successfully!");
+
+      // minimal reset
+      setBets([]);
+      // keep points (optional UX), but you can clear if you want:
+      setPoints("");
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", "Failed to submit bets.");
+      Alert.alert("Error", e?.message || "Failed to place bets.");
     }
   };
 

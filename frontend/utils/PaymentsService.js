@@ -1,4 +1,7 @@
 import { API_URL } from "../env-vars";
+import { NativeModules, Platform } from "react-native";
+
+const { UpiIntentModule } = NativeModules;
 
 // read body safely even if empty
 async function readBody(res) {
@@ -8,6 +11,7 @@ async function readBody(res) {
     return null;
   }
 }
+
 function fail(res, body, fallback) {
   const err = new Error(body?.message || `${fallback} (status ${res.status})`);
   err.status = res.status;
@@ -15,8 +19,73 @@ function fail(res, body, fallback) {
   throw err;
 }
 
+function enc(v) {
+  return encodeURIComponent(String(v ?? ""));
+}
+
+function buildUpiUrl({ vpa, payeeName, amountRupees, txnRef, note }) {
+  const am = Number(amountRupees || 0);
+  const amount = Number.isFinite(am) ? am.toFixed(2) : "0.00";
+
+  // Common params used across UPI apps:
+  // pa (payee vpa), pn (name), am (amount), cu, tn (note), tr (reference)
+  return (
+    `upi://pay?pa=${enc(vpa)}` +
+    `&pn=${enc(payeeName)}` +
+    `&am=${enc(amount)}` +
+    `&cu=INR` +
+    (note ? `&tn=${enc(note)}` : "") +
+    (txnRef ? `&tr=${enc(txnRef)}` : "")
+  );
+}
+
+function parseUpiResponseString(raw) {
+  if (!raw || typeof raw !== "string") return {};
+
+  // Some apps return "upi://pay?Status=SUCCESS&txnId=..."
+  let s = raw;
+  const q = s.indexOf("?");
+  if (q >= 0 && q < s.length - 1) s = s.slice(q + 1);
+
+  const out = {};
+  s.split("&").forEach((part) => {
+    const [k, v] = part.split("=", 2);
+    if (k && v != null) out[k] = v;
+  });
+
+  return out;
+}
+
+function normalizeUpiResult(nativeRes) {
+  // nativeRes could be:
+  // 1) object map { raw, status, txnId, ApprovalRefNo, ... }
+  // 2) string "txnId=...&Status=SUCCESS..."
+  const raw =
+    typeof nativeRes === "string" ? nativeRes : nativeRes?.raw || null;
+
+  const parsedFromRaw = parseUpiResponseString(raw);
+
+  const merged =
+    typeof nativeRes === "object" && nativeRes != null
+      ? { ...nativeRes, ...parsedFromRaw }
+      : { ...parsedFromRaw, raw };
+
+  const status = String(merged?.Status || merged?.status || "").toUpperCase();
+
+  return {
+    raw: merged?.raw ?? raw,
+    status,
+    txnId: merged?.txnId || merged?.TxnId || null,
+    approvalRefNo:
+      merged?.ApprovalRefNo || merged?.approvalRefNo || merged?.approvalrefno || null,
+    rrn: merged?.RRN || merged?.rrn || null,
+    responseCode: merged?.responseCode || merged?.ResponseCode || null,
+    // keep everything for debugging / backend logging if you want
+    all: merged,
+  };
+}
+
 /**
- *
  * Backend response (200):
  *   { message: "IFSC valid", details: { BANK, BRANCH, ... } }
  *
@@ -48,7 +117,6 @@ export const lookupIFSC = async (ifsc) => {
  * Accepts either bank OR UPI payload (mobileNumber is required by backend).
  * - Bank: { mobileNumber, accountHolderName, accountNumber, ifscCode }
  * - UPI : { mobileNumber, upiId }
- * Server may return: { message, user } or just 200 with no body.
  */
 export const savePayout = async (payload) => {
   const res = await fetch(`${API_URL}/users/bank`, {
@@ -60,84 +128,62 @@ export const savePayout = async (payload) => {
   const body = await readBody(res);
   if (!res.ok) fail(res, body, "Save payout failed");
 
-  // normalize return
   return {
     ok: true,
     message: body?.message || "Saved",
     user: body?.user || null,
   };
-}
-
-/**
- * OPTIONAL helper: get installed UPI apps (package names).
- * Returns [] if none. :contentReference[oaicite:3]{index=3}
- */
-export const getInstalledUpiApps = async () => {
-  try {
-    const apps = await OneUpi.getInstalledUPIApps();
-    return Array.isArray(apps) ? apps : [];
-  } catch {
-    return [];
-  }
 };
 
 /**
- * Start UPI payment.
- * If targetPackage is NOT passed -> chooser opens. :contentReference[oaicite:4]{index=4}
+ * Optional helper — without extra native work we can't reliably list installed UPI apps.
+ * Keeping it as a harmless stub so your imports don't break.
+ */
+export const getInstalledUpiApps = async () => {
+  return [];
+};
+
+/**
+ * Start UPI payment using your custom native module.
  *
  * Returns normalized:
- *   { status, txnId, responseCode, approvalRefNo, raw }
+ *   { status, txnId, approvalRefNo, rrn, responseCode, raw, txnRef, all }
  */
 export const startUpiPayment = async ({
   vpa,
   payeeName,
   amountRupees,
-  transactionRef, // we’ll pass it in note so it’s visible in many UPI apps
+  transactionRef,
   transactionNote,
-  targetPackage, // optional
 }) => {
-  return new Promise((resolve, reject) => {
-    if (!vpa || !payeeName || !amountRupees) {
-      reject(new Error("Missing required UPI payment params"));
-      return;
-    }
+  if (Platform.OS !== "android") {
+    throw new Error("UPI Intent is Android-only in this setup");
+  }
+  if (!UpiIntentModule?.openUpiApp) {
+    throw new Error("UPI module not linked (UpiIntentModule.openUpiApp missing)");
+  }
+  if (!vpa || !payeeName || !amountRupees) {
+    throw new Error("Missing required UPI payment params");
+  }
 
-    const note = transactionNote || "Wallet topup";
-    const ref = transactionRef ? ` | Ref:${transactionRef}` : "";
-
-    const config = {
-      upiId: String(vpa),          // README uses upiId :contentReference[oaicite:5]{index=5}
-      name: String(payeeName),
-      note: `${note}${ref}`,
-      amount: String(amountRupees),
-      ...(targetPackage ? { targetPackage: String(targetPackage) } : {}), // optional chooser
-    };
-
-    // OneUpi.initiate(
-    //   config,
-    //   (success) => {
-    //     // README success: { status, txnId, code, approvalRefNo } :contentReference[oaicite:6]{index=6}
-    //     resolve({
-    //       status: success?.status || "SUCCESS",
-    //       txnId: success?.txnId || null,
-    //       responseCode: success?.code || null,
-    //       approvalRefNo: success?.approvalRefNo || null,
-    //       raw: success,
-    //     });
-    //   },
-    //   (error) => {
-    //     // README failure: { status: FAILED, message } :contentReference[oaicite:7]{index=7}
-    //     const msg = error?.message || "UPI payment cancelled / failed";
-    //     const err = new Error(msg);
-    //     err.raw = error;
-    //     reject(err);
-    //   }
-    // );
+  const upiUrl = buildUpiUrl({
+    vpa,
+    payeeName,
+    amountRupees,
+    txnRef: transactionRef,
+    note: transactionNote || "Wallet topup",
   });
+
+  const nativeRes = await UpiIntentModule.openUpiApp(upiUrl);
+  const normalized = normalizeUpiResult(nativeRes);
+
+  return {
+    ...normalized,
+    txnRef: transactionRef,
+  };
 };
 
 export const submitUpiTopupResult = async (payload) => {
-  // TODO: change endpoint later when your real API comes
   const res = await fetch(`${API_URL}/wallet/topup/upi/submit`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -21,14 +21,19 @@ import { SINGLE_PANA_BY_RESULT_DIGIT } from "../../data/singlePanaMap";
 import { DOUBLE_PANA_BY_RESULT_DIGIT } from "../../data/doublePanaMap";
 import { TRIPLE_PANA_BY_RESULT_DIGIT } from "../../data/triplePanaMap";
 
+import { AuthContext } from "../../contexts/AuthContext";
+import { placeBets, makeBet } from "../../utils/GameService";
+
 const GREEN = "#3FA16C";
 
 const SpDpTp = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || "GAME";
 
   const allowedTypes = ["OPEN", "CLOSE"]; // later from backend
-  const balance = 0; // later from wallet
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const todayLabel = (() => {
     const d = new Date();
@@ -143,29 +148,42 @@ const SpDpTp = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      return;
+    }
+
     if (totals.points > balance) {
       Alert.alert("Insufficient balance", "Your wallet balance is too low.");
       return;
     }
 
-    const payload = {
-      gameId,
-      subGame: "SP_DP_TP",
-      type: selectedType,
-      bets: bets.map((b) => ({
-        pana: b.digit,
-        points: Number(b.points),
-        type: b.type,
-      })),
-      meta: { sp: spChecked, dp: dpChecked, tp: tpChecked },
-    };
+    const betsToSend = bets.map((b) =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: "SP_DP_TP",
+        openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(), // OPEN/CLOSE
+        amount: Number(b.points) || 0,
+        betValue: String(b.digit),
+      })
+    );
 
     try {
-      console.log("Submitting SP/DP/TP payload:", payload);
-      Alert.alert("Success", "Bets submitted (mock).");
+      const res = await placeBets(betsToSend);
+      console.log("SpDpTp bet response:", res);
+
+      Alert.alert("Success", "Bets placed successfully!");
+
+      setBets([]);
+      setDigit("");
+      setPoints("");
+      setSpChecked(false);
+      setDpChecked(false);
+      setTpChecked(false);
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", "Failed to submit bets.");
+      Alert.alert("Error", e?.message || "Failed to place bets.");
     }
   };
 
@@ -279,8 +297,14 @@ const CheckItem = ({ label, checked, onToggle }) => {
 
 /** ---------- Styles ---------- */
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#F3F3F3" },
-  screen: { flex: 1, backgroundColor: "#F3F3F3" },
+  safe: { 
+    flex: 1, 
+    backgroundColor: "#F3F3F3" 
+  },
+  screen: { 
+    flex: 1, 
+    backgroundColor: "#F3F3F3" 
+  },
 
   content: {
     flex: 1,

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -16,17 +16,22 @@ import GameDateTypeRow from "../../components/games/GameDateTypeRow";
 import EasyModeTable from "../../components/games/EasyModeTable";
 import BottomBetBar from "../../components/games/BottomBetBar";
 
+import { AuthContext } from "../../contexts/AuthContext";
+import { placeBets, makeBet } from "../../utils/GameService";
+
 const GREEN = "#3FA16C";
 
 const ODD_DIGITS = ["1", "3", "5", "7", "9"];
 const EVEN_DIGITS = ["0", "2", "4", "6", "8"];
 
 const OddEven = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || "GAME";
 
   const allowedTypes = ["OPEN", "CLOSE"]; // temp
-  const balance = 0; // temp
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const todayLabel = (() => {
     const d = new Date();
@@ -93,28 +98,35 @@ const OddEven = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      return;
+    }
+
     if (totals.points > balance) {
       Alert.alert("Insufficient balance", "Your wallet balance is too low.");
       return;
     }
 
-    const payload = {
-      gameId,
-      subGame: "ODD_EVEN",
-      type: selectedType,
-      bets: bets.map((b) => ({
-        digit: b.digit,
-        points: b.points,
-        type: b.type,
-      })),
-    };
+    const betsToSend = bets.map((b) =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: "ODD_EVEN",
+        openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(),
+        amount: Number(b.points) || 0,
+        betValue: b.digit,
+      })
+    );
 
     try {
-      console.log("Submitting Odd/Even payload:", payload);
-      Alert.alert("Success", "Bets submitted (mock).");
+      const res = await placeBets(betsToSend);
+      console.log("OddEven bet response:", res);
+      Alert.alert("Success", "Bets placed successfully!");
+      setBets([]);
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", "Failed to submit bets.");
+      Alert.alert("Error", e?.message || "Failed to place bets.");
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -20,14 +20,19 @@ import {
   getSinglePanaMotorPanas,
 } from '../../data/singlePanaMap';
 
+import { AuthContext } from '../../contexts/AuthContext';
+import { placeBets, makeBet } from '../../utils/GameService';
+
 const GREEN = '#3FA16C';
 
 const SpMotor = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // later from game config
-  const balance = 0; // later from wallet context
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const todayLabel = (() => {
     const d = new Date();
@@ -106,28 +111,39 @@ const SpMotor = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert('Login required', 'Mobile number missing. Please login again.');
+      return;
+    }
+
     if (totals.points > balance) {
       Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
       return;
     }
 
-    const payload = {
-      gameId,
-      subGame: 'SP_MOTOR',
-      type: selectedType,
-      bets: bets.map(b => ({
-        pana: b.digit,
-        points: b.points,
-        type: b.type,
-      })),
-    };
+    const betsToSend = bets.map(b =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: 'SINGLE_PANA',
+        openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(), // OPEN/CLOSE
+        amount: Number(b.points) || 0,
+        betValue: String(b.digit),
+      }),
+    );
 
     try {
-      console.log('Submitting SP Motor payload:', payload);
-      Alert.alert('Success', 'Bets submitted (mock).');
+      const res = await placeBets(betsToSend);
+      console.log('SP Motor bet response:', res);
+
+      Alert.alert('Success', 'Bets placed successfully!');
+
+      setBets([]);
+      setDigits('');
+      setPoints('');
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', 'Failed to submit bets.');
+      Alert.alert('Error', e?.message || 'Failed to place bets.');
     }
   };
 

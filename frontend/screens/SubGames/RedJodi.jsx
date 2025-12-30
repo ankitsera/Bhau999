@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import {
   View,
   ScrollView,
@@ -12,6 +12,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import DynamicHeader from "../../components/DynamicHeader";
 import GameDateTypeRow from "../../components/games/GameDateTypeRow";
 import SpecialModeGrid from "../../components/games/SpecialModeGrid";
+
+import { AuthContext } from "../../contexts/AuthContext";
+import { placeBets, makeBet } from "../../utils/GameService";
 
 const GREEN = "#3FA16C";
 
@@ -30,11 +33,13 @@ const RED_JODI_NUMBERS = [
 ];
 
 const RedJodi = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || "GAME";
 
   const allowedTypes = ["OPEN", "CLOSE"]; // TODO: from backend/game timings
-  const balance = Number.MAX_SAFE_INTEGER; // TODO: from wallet context
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const todayLabel = (() => {
     const d = new Date();
@@ -82,38 +87,48 @@ const RedJodi = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      return;
+    }
+
     if (totals.points > balance) {
       Alert.alert("Insufficient balance", "Your wallet balance is too low.");
       return;
     }
 
-    const bets = [];
+    const list = [];
     RED_JODI_NUMBERS.forEach((j) => {
       const p = Number(pointsByJodi[j] || 0);
-      if (p > 0) {
-        bets.push({
-          jodi: j,
-          points: p,
-          type: selectedType.toLowerCase(),
-        });
-      }
+      if (p > 0) list.push({ jodi: j, points: p });
     });
 
-    const payload = {
-      gameId,
-      subGame: "RED_JODI",
-      mode: "SPECIAL",
-      type: selectedType,
-      bets,
-    };
+    const betsToSend = list.map((b) =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: "RED_JODI",
+        openClose: selectedType, // "OPEN"/"CLOSE"
+        amount: Number(b.points) || 0,
+        betValue: b.jodi,
+      })
+    );
 
     try {
-      // await GameService.submitRedJodi(payload);
-      console.log("Submitting Red Jodi payload:", payload);
-      Alert.alert("Success", "Bets submitted (mock).");
+      const res = await placeBets(betsToSend);
+      console.log("RedJodi bet response:", res);
+      Alert.alert("Success", "Bets placed successfully!");
+
+      // clear points
+      setPointsByJodi(
+        RED_JODI_NUMBERS.reduce((acc, j) => {
+          acc[j] = "";
+          return acc;
+        }, {})
+      );
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", "Failed to submit bets.");
+      Alert.alert("Error", e?.message || "Failed to place bets.");
     }
   };
 
@@ -145,13 +160,13 @@ const RedJodi = ({ route }) => {
 
         {/* Sticky bottom submit like screenshot */}
         <View style={styles.specialSubmitWrapper}>
-            <TouchableOpacity
-                style={styles.specialSubmitButton}
-                onPress={handleSubmit}
-                activeOpacity={0.85}
-            >
+          <TouchableOpacity
+            style={styles.specialSubmitButton}
+            onPress={handleSubmit}
+            activeOpacity={0.85}
+          >
             <Text style={styles.specialSubmitText}>Submit</Text>
-            </TouchableOpacity>
+          </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>

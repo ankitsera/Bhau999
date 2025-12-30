@@ -1,5 +1,5 @@
 // screens/SubGames/DoublePanaBulk.jsx
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useContext } from 'react';
 import {
   View,
   StyleSheet,
@@ -17,15 +17,20 @@ import EasyModeTable from '../../components/games/EasyModeTable';
 
 import { DOUBLE_PANA_BY_RESULT_DIGIT } from '../../data/doublePanaMap';
 
+import { AuthContext } from '../../contexts/AuthContext';
+import { placeBets, makeBet } from '../../utils/GameService';
+
 const GREEN = '#3FA16C';
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']; // increasing order
 
 const DoublePanaBulk = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // replace later
-  const balance = 0; // replace later
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const [selectedType, setSelectedType] = useState(allowedTypes[0] || 'OPEN');
 
@@ -63,14 +68,29 @@ const DoublePanaBulk = ({ route }) => {
     const pts = Number(points);
     const typeLower = selectedType.toLowerCase();
 
-    const newBets = panaList.map(pana => ({
-      id: `${digitKey}-${pana}-${Date.now()}-${Math.random()}`,
-      pana: String(pana),
-      points: pts,
-      type: typeLower,
-    }));
+    setBets(prev => {
+      const map = new Map(prev.map(b => [b.id, b]));
 
-    setBets(prev => [...prev, ...newBets]);
+      panaList.forEach(pana => {
+        const p = String(pana);
+        const id = `${typeLower}-${p}`; // stable id => no duplicates
+        if (map.has(id)) {
+          map.set(id, { ...map.get(id), points: pts });
+        } else {
+          map.set(id, {
+            id,
+            pana: p,
+            points: pts,
+            type: typeLower,
+          });
+        }
+      });
+
+      return Array.from(map.values()).sort((a, b) => {
+        if (a.type !== b.type) return a.type.localeCompare(b.type);
+        return Number(a.pana) - Number(b.pana);
+      });
+    });
   };
 
   const handleDeleteBet = id => {
@@ -83,28 +103,41 @@ const DoublePanaBulk = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert(
+        'Login required',
+        'Mobile number missing. Please login again.',
+      );
+      return;
+    }
+
     if (totalPoints > balance) {
       Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
       return;
     }
 
-    const payload = {
-      gameId,
-      subGame: 'DOUBLE_PANA_BULK',
-      type: selectedType,
-      bets: bets.map(b => ({
-        pana: b.pana,
-        points: b.points,
-        type: b.type,
-      })),
-    };
+    const betsToSend = bets.map(b =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: 'DOUBLE_PANA_BULK',
+        openClose: String(b.type).toUpperCase(),
+        amount: Number(b.points) || 0,
+        betValue: b.pana,
+      }),
+    );
 
     try {
-      console.log('Submitting Double Pana Bulk payload:', payload);
-      Alert.alert('Success', 'Bets submitted (mock).');
+      const res = await placeBets(betsToSend);
+      console.log('Double Pana Bulk placed bets:', res);
+      Alert.alert('Success', 'Bets placed successfully!');
+
+      setBets([]);
+      // keep points as-is (bulk UX). If you want reset:
+      // setPoints("");
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', 'Failed to submit bets.');
+      Alert.alert('Error', e?.message || 'Failed to place bets.');
     }
   };
 

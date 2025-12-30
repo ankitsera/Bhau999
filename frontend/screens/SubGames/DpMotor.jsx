@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useContext } from 'react';
 import {
   View,
   StyleSheet,
@@ -18,14 +18,19 @@ import EasyModeTable from '../../components/games/EasyModeTable';
 import { getDoublePanaMotorPanas } from '../../data/doublePanaMap';
 import { sanitizeMotorDigits } from '../../data/singlePanaMap'; // reuse same sanitizer (no need to duplicate)
 
+import { AuthContext } from '../../contexts/AuthContext';
+import { placeBets, makeBet } from '../../utils/GameService';
+
 const GREEN = '#3FA16C';
 
 const DpMotor = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE'];
-  const balance = 0;
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const todayLabel = (() => {
     const d = new Date();
@@ -82,15 +87,21 @@ const DpMotor = ({ route }) => {
       panas.forEach(p => {
         if (!existing.has(p)) {
           merged.push({
-            id: `${Date.now()}-${p}`,
+            id: `${selectedType.toLowerCase()}-${p}`, // stable id => avoid duplicates
             digit: p,
             points: pts,
             type: selectedType.toLowerCase(),
           });
+        } else {
+          // if already present, update points to latest entered
+          const idx = merged.findIndex(
+            x => x.digit === p && x.type === selectedType.toLowerCase(),
+          );
+          if (idx >= 0) merged[idx] = { ...merged[idx], points: pts };
         }
       });
 
-      return merged;
+      return merged.sort((a, b) => Number(a.digit) - Number(b.digit));
     });
   };
 
@@ -104,28 +115,40 @@ const DpMotor = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert(
+        'Login required',
+        'Mobile number missing. Please login again.',
+      );
+      return;
+    }
+
     if (totals.points > balance) {
       Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
       return;
     }
 
-    const payload = {
-      gameId,
-      subGame: 'DP_MOTOR',
-      type: selectedType,
-      bets: bets.map(b => ({
-        pana: b.digit,
-        points: b.points,
-        type: b.type,
-      })),
-    };
+    const betsToSend = bets.map(b =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: 'DP_MOTOR',
+        openClose: String(b.type).toUpperCase(), // OPEN / CLOSE
+        amount: Number(b.points) || 0,
+        betValue: b.digit, // pana
+      }),
+    );
 
     try {
-      console.log('Submitting DP Motor payload:', payload);
-      Alert.alert('Success', 'Bets submitted (mock).');
+      const res = await placeBets(betsToSend);
+      console.log('Submitting DP Motor bets:', res);
+      Alert.alert('Success', 'Bets placed successfully!');
+      setBets([]);
+      setDigits('');
+      setPoints('');
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', 'Failed to submit bets.');
+      Alert.alert('Error', e?.message || 'Failed to place bets.');
     }
   };
 
@@ -162,7 +185,9 @@ const DpMotor = ({ route }) => {
                 style={styles.input}
                 keyboardType="number-pad"
                 value={points}
-                onChangeText={setPoints}
+                onChangeText={t =>
+                  setPoints(String(t || '').replace(/[^0-9]/g, ''))
+                }
                 placeholder="Point"
                 placeholderTextColor="#999"
               />
@@ -235,6 +260,8 @@ const styles = StyleSheet.create({
     borderColor: '#DDD',
     fontSize: 16,
     textAlign: 'center',
+    writingDirection: 'ltr',
+    paddingHorizontal: 8,
   },
   addButton: {
     height: 44,
@@ -255,4 +282,4 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingBottom: 10,
   },
-});
+})

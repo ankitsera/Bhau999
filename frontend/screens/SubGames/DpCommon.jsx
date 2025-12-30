@@ -1,5 +1,5 @@
 // screens/SubGames/DpCommon.jsx
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useContext } from 'react';
 import {
   View,
   StyleSheet,
@@ -17,23 +17,28 @@ import BottomBetBar from '../../components/games/BottomBetBar';
 
 import { getDoublePanaCommonDigitPanas } from '../../data/doublePanaMap';
 
+import { AuthContext } from '../../contexts/AuthContext';
+import { placeBets, makeBet } from '../../utils/GameService';
+
 const GREEN = '#3FA16C';
 
 const ROW1 = ['1', '2', '3', '4', '5'];
 const ROW2 = ['6', '7', '8', '9', '0'];
 
 const DpCommon = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // later from context
-  const balance = 0; // later from wallet
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const [selectedType, setSelectedType] = useState(allowedTypes[0] || 'OPEN');
   const [points, setPoints] = useState('');
   const [pointsError, setPointsError] = useState(false);
 
-  const [bets, setBets] = useState([]);
+  const [bets, setBets] = useState([]); // {id, digit(pana), points, type}
 
   const totals = useMemo(() => {
     const bids = bets.length;
@@ -58,20 +63,24 @@ const DpCommon = ({ route }) => {
     const panas = getDoublePanaCommonDigitPanas(digit);
     if (!panas.length) return;
 
+    const typeLower = selectedType.toLowerCase();
+
     setBets(prev => {
-      const existing = new Set(prev.map(b => b.digit));
+      const existing = new Set(prev.map(b => b.digit)); // digit is pana here
       const stamp = Date.now().toString();
 
       const toAdd = panas
         .filter(p => !existing.has(p))
         .map((p, idx) => ({
-          id: `${p}-${stamp}-${idx}`,
+          id: `${typeLower}-${p}-${stamp}-${idx}`, // stable-ish, avoids collisions
           digit: p,
           points: pts,
-          type: selectedType.toLowerCase(),
+          type: typeLower,
         }));
 
-      return [...prev, ...toAdd];
+      return [...prev, ...toAdd].sort(
+        (a, b) => Number(a.digit) - Number(b.digit),
+      );
     });
   };
 
@@ -81,29 +90,38 @@ const DpCommon = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert(
+        'Login required',
+        'Mobile number missing. Please login again.',
+      );
+      return;
+    }
+
     if (totals.points > balance) {
       Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
       return;
     }
 
-    const payload = {
-      gameId,
-      subGame: 'DP_COMMON',
-      mode: 'EASY',
-      type: selectedType,
-      bets: bets.map(b => ({
-        pana: b.digit,
-        points: b.points,
-        type: b.type,
-      })),
-    };
+    const betsToSend = bets.map(b =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: 'DP_COMMON',
+        openClose: String(b.type).toUpperCase(),
+        amount: Number(b.points) || 0,
+        betValue: b.digit, // pana value
+      }),
+    );
 
     try {
-      console.log('Submitting DP Common payload:', payload);
-      Alert.alert('Success', 'Bets submitted (mock).');
+      const res = await placeBets(betsToSend);
+      console.log('DP Common placed bets:', res);
+      Alert.alert('Success', 'Bets placed successfully!');
+      setBets([]);
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', 'Failed to submit bets.');
+      Alert.alert('Error', e?.message || 'Failed to place bets.');
     }
   };
 
@@ -133,8 +151,9 @@ const DpCommon = ({ route }) => {
               keyboardType="number-pad"
               value={points}
               onChangeText={v => {
-                setPoints(v);
-                if (pointsError) setPointsError(false);
+                const clean = String(v || '').replace(/[^0-9]/g, '');
+                setPoints(clean);
+                if (pointsError && clean) setPointsError(false);
               }}
               placeholder="Point"
               placeholderTextColor="#999"
@@ -230,6 +249,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     color: '#111',
+    writingDirection: 'ltr',
+    paddingHorizontal: 8,
   },
 
   pad: {

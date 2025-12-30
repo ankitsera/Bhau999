@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useContext } from "react";
 import {
   View,
   ScrollView,
@@ -15,6 +15,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import DynamicHeader from "../../components/DynamicHeader";
 import { getSinglePanaSuggestions } from "../../data/singlePanaMap";
 
+import { AuthContext } from "../../contexts/AuthContext";
+import { placeBets, makeBet } from "../../utils/GameService";
+
 const GREEN = "#3FA16C";
 
 const normalizePana = (v) =>
@@ -25,8 +28,11 @@ const normalizePana = (v) =>
 const isValidPana = (p) => /^\d{3}$/.test(p);
 
 const FullSangam = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || "GAME";
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const [openPana, setOpenPana] = useState("");
   const [closePana, setClosePana] = useState("");
@@ -44,6 +50,11 @@ const FullSangam = ({ route }) => {
     const list = getSinglePanaSuggestions(closePana) || [];
     return list.slice(0, 30);
   }, [closePana]);
+
+  const totalPoints = useMemo(
+    () => bets.reduce((sum, b) => sum + (Number(b.points) || 0), 0),
+    [bets]
+  );
 
   const handlePickSuggestion = (type, value) => {
     if (type === "OPEN") setOpenPana(value);
@@ -85,12 +96,16 @@ const FullSangam = ({ route }) => {
 
     const sangam = `${op}-${cp}`;
     const newBet = {
-      id: Date.now().toString(),
+      id: sangam, // stable id => prevents duplicates (same pair)
       sangam,
       points: pts,
     };
 
-    setBets((prev) => [newBet, ...prev]);
+    setBets((prev) => {
+      const map = new Map(prev.map((b) => [b.id, b]));
+      map.set(newBet.id, newBet); // overwrite => update points if exists
+      return Array.from(map.values());
+    });
 
     // reset fields (points reset like your screenshot style)
     setOpenPana("");
@@ -109,21 +124,38 @@ const FullSangam = ({ route }) => {
       return;
     }
 
-    const payload = {
-      gameId,
-      subGame: "FULL_SANGAM",
-      bets: bets.map((b) => ({
-        sangam: b.sangam,
-        points: b.points,
-      })),
-    };
+    if (!mobileNumber) {
+      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      return;
+    }
+
+    if (totalPoints > balance) {
+      Alert.alert("Insufficient balance", "Your wallet balance is too low.");
+      return;
+    }
+
+    // Full Sangam is inherently a "close" style bet (it includes close pana).
+    const openClose = "CLOSE";
+
+    const betsToSend = bets.map((b) =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: "FULL_SANGAM",
+        openClose,
+        amount: Number(b.points) || 0,
+        betValue: b.sangam, // "open-close"
+      })
+    );
 
     try {
-      console.log("Submitting Full Sangam payload:", payload);
-      Alert.alert("Success", "Bets submitted (mock).");
+      const res = await placeBets(betsToSend);
+      console.log("Submitting Full Sangam bets:", res);
+      Alert.alert("Success", "Bets placed successfully!");
+      setBets([]);
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", "Failed to submit bets.");
+      Alert.alert("Error", e?.message || "Failed to place bets.");
     }
   };
 
@@ -333,6 +365,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 12,
     textAlign: "center",
+    writingDirection: "ltr",
+    paddingHorizontal: 8,
   },
 
   suggestionBox: {

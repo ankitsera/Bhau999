@@ -1,5 +1,5 @@
 // screens/SubGames/Jodi.jsx
-import React, { useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import {
   View,
   ScrollView,
@@ -21,6 +21,9 @@ import GameDateTypeRow from '../../components/games/GameDateTypeRow';
 import EasyModeTable from '../../components/games/EasyModeTable';
 import SpecialModeGrid from '../../components/games/SpecialModeGrid';
 
+import { AuthContext } from '../../contexts/AuthContext';
+import { placeBets, makeBet } from '../../utils/GameService';
+
 const GREEN = '#3FA16C';
 const BLACK = '#000';
 
@@ -40,11 +43,13 @@ const FIRST_DIGIT_MAP = Array.from({ length: 10 }, (_, d) => {
 }, {});
 
 const Jodi = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // temp (later from timing logic)
-  const balance = 0; // temp (later from wallet)
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const todayLabel = (() => {
     const d = new Date();
@@ -141,53 +146,66 @@ const Jodi = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert('Login required', 'Mobile number missing. Please login again.');
+      return;
+    }
+
     if (points > balance) {
       Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
       return;
     }
 
-    let payload;
+    let betsToSend = [];
 
     if (mode === 'EASY') {
-      payload = {
-        gameId,
-        subGame: 'JODI',
-        mode: 'EASY',
-        type: selectedType,
-        bets: easyBets.map(b => ({
-          jodi: b.digit,
-          points: b.points,
-          type: b.type,
-        })),
-      };
+      betsToSend = easyBets.map(b =>
+        makeBet({
+          mobileNumber,
+          gameName,
+          type: 'JODI',
+          openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(),
+          amount: Number(b.points) || 0,
+          betValue: b.digit,
+        }),
+      );
     } else {
-      const bets = [];
+      const list = [];
       JODI_NUMBERS.forEach(n => {
         const p = Number(specialPointsByJodi[n] || 0);
-        if (p > 0) {
-          bets.push({
-            jodi: n,
-            points: p,
-            type: selectedType.toLowerCase(),
-          });
-        }
+        if (p > 0) list.push({ jodi: n, points: p });
       });
 
-      payload = {
-        gameId,
-        subGame: 'JODI',
-        mode: 'SPECIAL',
-        type: selectedType,
-        bets,
-      };
+      betsToSend = list.map(x =>
+        makeBet({
+          mobileNumber,
+          gameName,
+          type: 'JODI',
+          openClose: selectedType,
+          amount: Number(x.points) || 0,
+          betValue: x.jodi,
+        }),
+      );
     }
 
     try {
-      console.log('Submitting Jodi payload:', payload);
-      Alert.alert('Success', 'Bets submitted (mock).');
+      const res = await placeBets(betsToSend);
+      console.log('Jodi bet response:', res);
+      Alert.alert('Success', 'Bets placed successfully!');
+
+      // clear placed bets
+      setEasyBets([]);
+      setSpecialPointsByJodi(
+        JODI_NUMBERS.reduce((acc, n) => {
+          acc[n] = '';
+          return acc;
+        }, {}),
+      );
+      setJodiDigit('');
+      setEasyPoints('');
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', 'Failed to submit bets.');
+      Alert.alert('Error', e?.message || 'Failed to place bets.');
     }
   };
 

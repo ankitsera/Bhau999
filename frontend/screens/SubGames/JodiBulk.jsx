@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -14,19 +14,21 @@ import BottomBetBar from "../../components/games/BottomBetBar";
 import GameTypePicker from "../../components/games/GameTypePicker";
 import EasyModeTable from "../../components/games/EasyModeTable";
 
-// TODO: wire real balance & API later
+import { AuthContext } from "../../contexts/AuthContext";
+import { placeBets, makeBet } from "../../utils/GameService";
+
 const GREEN = "#3FA16C";
 
 const JodiBulk = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || "GAME";
 
-  const balance = 0; // temp
   const allowedTypes = ["OPEN", "CLOSE"]; // or from backend
 
-  const [selectedType, setSelectedType] = useState(
-    allowedTypes[0] || "OPEN"
-  );
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
+
+  const [selectedType, setSelectedType] = useState(allowedTypes[0] || "OPEN");
 
   const [points, setPoints] = useState("");
   const [jodiDigit, setJodiDigit] = useState("");
@@ -63,8 +65,8 @@ const JodiBulk = ({ route }) => {
     };
 
     setBets((prev) => [...prev, newBet]);
-    setJodiDigit("");         // reset only digit
-    setPointsError(false);    // clear error, keep points
+    setJodiDigit(""); // reset only digit
+    setPointsError(false); // clear error, keep points
   };
 
   const handleDigitChange = (text) => {
@@ -106,29 +108,36 @@ const JodiBulk = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      return;
+    }
+
     if (totalPoints > balance) {
       Alert.alert("Insufficient balance", "Your wallet balance is too low.");
       return;
     }
 
-    const payload = {
-      gameId,
-      subGame: "JODI_BULK",
-      type: selectedType,
-      bets: bets.map((b) => ({
-        jodi: b.digit,
-        points: b.points,
-        type: b.type,
-      })),
-    };
+    const betsToSend = bets.map((b) =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: "JODI_BULK",
+        openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(),
+        amount: Number(b.points) || 0,
+        betValue: b.digit,
+      })
+    );
 
     try {
-      // await GameService.submitJodiBulk(payload);
-      console.log("Submitting Jodi Bulk payload:", payload);
-      Alert.alert("Success", "Bets submitted (mock).");
+      const res = await placeBets(betsToSend);
+      console.log("Jodi Bulk bet response:", res);
+      Alert.alert("Success", "Bets placed successfully!");
+      setBets([]);
+      setJodiDigit("");
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", "Failed to submit bets.");
+      Alert.alert("Error", e?.message || "Failed to place bets.");
     }
   };
 

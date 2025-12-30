@@ -1,5 +1,5 @@
 // screens/SubGames/SingleDigit.jsx
-import React, { useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import {
   View,
   ScrollView,
@@ -22,16 +22,21 @@ import GameDateTypeRow from '../../components/games/GameDateTypeRow';
 import EasyModeTable from '../../components/games/EasyModeTable';
 import SpecialModeGrid from '../../components/games/SpecialModeGrid';
 
+import { AuthContext } from '../../contexts/AuthContext';
+import { placeBets, makeBet } from '../../utils/GameService';
+
 const GREEN = '#3FA16C';
 const BLACK = '#000';
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 const SingleDigit = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // temp
-  const balance = 0; // temp
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const todayLabel = (() => {
     const d = new Date();
@@ -133,53 +138,60 @@ const SingleDigit = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert('Login required', 'Mobile number missing. Please login again.');
+      return;
+    }
+
     if (points > balance) {
       Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
       return;
     }
 
-    let payload;
-
-    if (mode === 'EASY') {
-      payload = {
-        gameId,
-        subGame: 'SINGLE_DIGIT',
-        mode: 'EASY',
-        type: selectedType,
-        bets: easyBets.map(b => ({
-          digit: b.digit,
-          points: b.points,
-          type: b.type,
-        })),
-      };
-    } else {
-      const bets = [];
-      DIGITS.forEach(d => {
-        const p = Number(specialPointsByDigit[d] || 0);
-        if (p > 0) {
-          bets.push({
-            digit: d,
-            points: p,
-            type: selectedType.toLowerCase(),
-          });
-        }
-      });
-
-      payload = {
-        gameId,
-        subGame: 'SINGLE_DIGIT',
-        mode: 'SPECIAL',
-        type: selectedType,
-        bets,
-      };
-    }
+    const betsToSend =
+      mode === 'EASY'
+        ? easyBets.map(b =>
+            makeBet({
+              mobileNumber,
+              gameName,
+              type: 'SINGLE_DIGIT',
+              openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(), // OPEN/CLOSE
+              amount: Number(b.points) || 0,
+              betValue: String(b.digit),
+            }),
+          )
+        : DIGITS.map(d => {
+            const p = Number(specialPointsByDigit[d] || 0);
+            if (p <= 0) return null;
+            return makeBet({
+              mobileNumber,
+              gameName,
+              type: 'SINGLE_DIGIT',
+              openClose: String(selectedType).toUpperCase(), // OPEN/CLOSE
+              amount: p,
+              betValue: String(d),
+            });
+          }).filter(Boolean);
 
     try {
-      console.log('Submitting payload:', payload);
-      Alert.alert('Success', 'Bets submitted (mock).');
+      const res = await placeBets(betsToSend);
+      console.log('SingleDigit bet response:', res);
+
+      Alert.alert('Success', 'Bets placed successfully!');
+
+      // reset
+      setEasyBets([]);
+      setEasyDigit('');
+      setEasyPoints('');
+      setSpecialPointsByDigit(
+        DIGITS.reduce((acc, d) => {
+          acc[d] = '';
+          return acc;
+        }, {}),
+      );
     } catch (err) {
       console.error(err);
-      Alert.alert('Error', 'Failed to submit bets.');
+      Alert.alert('Error', err?.message || 'Failed to place bets.');
     }
   };
 

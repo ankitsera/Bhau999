@@ -129,8 +129,15 @@ const buildResultText = (allowedLen, openPana, closePana) => {
   return `${left}-${mid1}${mid2}-${right}`;
 };
 
+const normalizeAllowedTypes = (arr) => {
+  const raw = Array.isArray(arr) ? arr : [];
+  return raw
+    .map((x) => String(x || "").trim().toUpperCase())
+    .filter(Boolean);
+};
+
 const toActiveGameUi = (g) => {
-  const allowed = Array.isArray(g?.allowed_types) ? g.allowed_types : [];
+  const allowed = normalizeAllowedTypes(g?.allowed_types);
   const len = allowed.length;
 
   const isClosed = len === 0;

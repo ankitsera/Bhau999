@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import {
   View,
   ScrollView,
@@ -15,14 +15,19 @@ import SpecialModeGrid from "../../components/games/SpecialModeGrid";
 
 import { ALL_TRIPLE_PANA } from "../../data/triplePanaMap";
 
+import { AuthContext } from "../../contexts/AuthContext";
+import { placeBets, makeBet } from "../../utils/GameService";
+
 const GREEN = "#3FA16C";
 
 const TriplePana = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || 'GAME';
 
   const allowedTypes = ["OPEN", "CLOSE"]; // later from game timings
-  const balance = 0; // later from wallet context
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const todayLabel = (() => {
     const d = new Date();
@@ -70,38 +75,48 @@ const TriplePana = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      return;
+    }
+
     if (totals.points > balance) {
       Alert.alert("Insufficient balance", "Your wallet balance is too low.");
       return;
     }
 
-    const bets = [];
+    const betsToSend = [];
     ALL_TRIPLE_PANA.forEach((p) => {
       const pts = Number(pointsByPana[p] || 0);
       if (pts > 0) {
-        bets.push({
-          pana: p,
-          points: pts,
-          type: selectedType.toLowerCase(),
-        });
+        betsToSend.push(
+          makeBet({
+            mobileNumber,
+            gameName,
+            type: "TRIPLE_PANA",
+            openClose: String(selectedType).toUpperCase(), // OPEN/CLOSE
+            amount: pts,
+            betValue: String(p),
+          })
+        );
       }
     });
 
-    const payload = {
-      gameId,
-      subGame: "TRIPLE_PANA",
-      mode: "SPECIAL",
-      type: selectedType,
-      bets,
-    };
-
     try {
-      // await GameService.submitTriplePana(payload);
-      console.log("Submitting Triple Pana payload:", payload);
-      Alert.alert("Success", "Bets submitted (mock).");
+      const res = await placeBets(betsToSend);
+      console.log("TriplePana bet response:", res);
+
+      Alert.alert("Success", "Bets placed successfully!");
+
+      setPointsByPana(
+        ALL_TRIPLE_PANA.reduce((acc, p) => {
+          acc[p] = "";
+          return acc;
+        }, {})
+      );
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", "Failed to submit bets.");
+      Alert.alert("Error", e?.message || "Failed to place bets.");
     }
   };
 

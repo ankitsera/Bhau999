@@ -1,5 +1,5 @@
 // screens/SubGames/SingleDigitBulk.jsx
-import React, { useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import {
   View,
   ScrollView,
@@ -17,30 +17,22 @@ import GameTypePicker from "../../components/games/GameTypePicker";
 
 import DigitGrid from "../../components/games/DigitGrid";
 
-// TODO later:
-// import { useGameContext } from "../../contexts/GameContext";
-// import { useWalletContext } from "../../contexts/WalletContext";
-// import { GameService } from "../../services/GameService";
+import { AuthContext } from "../../contexts/AuthContext";
+import { placeBets, makeBet } from "../../utils/GameService";
 
 const DIGITS = ["1","2","3","4","5","6","7","8","9","0"];
 const GREEN = "#3FA16C";
 
 const SingleDigitBulk = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
-
-  // const { getGameState } = useGameContext();
-  // const { balance } = useWalletContext();
-  // const gameState = getGameState(gameId);
-  // const allowedTypes = gameState.allowedTypes;
-  // const balance = balanceFromContext;
+  const gameName = route?.params?.gameName || "GAME";
 
   const allowedTypes = ["OPEN", "CLOSE"]; // temp
-  const balance = 0;                       // temp
 
-  const [selectedType, setSelectedType] = useState(
-    allowedTypes[0] || "OPEN"
-  );
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
+
+  const [selectedType, setSelectedType] = useState(allowedTypes[0] || "OPEN");
 
   // points input at top
   const [pointInput, setPointInput] = useState("");
@@ -86,38 +78,49 @@ const SingleDigitBulk = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      return;
+    }
+
     if (totalPoints > balance) {
       Alert.alert("Insufficient balance", "Your wallet balance is too low.");
       return;
     }
 
-    const bets = [];
+    const list = [];
     DIGITS.forEach((d) => {
       const val = Number(pointsByDigit[d] || 0);
-      if (val > 0) {
-        bets.push({
-          digit: d,
-          points: val,
-          type: selectedType.toLowerCase(),
-        });
-      }
+      if (val > 0) list.push({ digit: d, points: val });
     });
 
-    const payload = {
-      gameId,
-      subGame: "SINGLE_DIGIT_BULK",
-      type: selectedType,
-      bets,
-    };
+    const betsToSend = list.map((b) =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: "SINGLE_DIGIT",
+        openClose: String(selectedType).toUpperCase(), // OPEN/CLOSE
+        amount: Number(b.points) || 0,
+        betValue: String(b.digit),
+      })
+    );
 
     try {
-      // await GameService.submitSingleDigitBulk(payload);
-      console.log("Submitting Single Ank payload:", payload);
-      Alert.alert("Success", "Bets submitted (mock).");
-      // optionally reset or navigate
+      const res = await placeBets(betsToSend);
+      console.log("SingleDigitBulk bet response:", res);
+      Alert.alert("Success", "Bets placed successfully!");
+
+      // reset
+      setPointInput("");
+      setPointsByDigit(
+        DIGITS.reduce((acc, d) => {
+          acc[d] = "";
+          return acc;
+        }, {})
+      );
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", "Failed to submit bets.");
+      Alert.alert("Error", e?.message || "Failed to place bets.");
     }
   };
 
@@ -143,15 +146,15 @@ const SingleDigitBulk = ({ route }) => {
 
             {/* Enter Points */}
             <View style={styles.pointInputRow}>
-                <Text style={styles.label}>Enter Points:</Text>
-                <TextInput
+              <Text style={styles.label}>Enter Points:</Text>
+              <TextInput
                 style={styles.input}
                 keyboardType="number-pad"
                 value={pointInput}
                 onChangeText={setPointInput}
                 placeholder="Point"
                 placeholderTextColor="#999"
-                />
+              />
             </View>
 
             {/* Digit grid */}
@@ -193,7 +196,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 16,
   },
-  pointInputRow:{
+  pointInputRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",

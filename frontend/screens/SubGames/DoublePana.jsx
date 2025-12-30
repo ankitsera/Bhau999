@@ -1,5 +1,5 @@
 // screens/SubGames/DoublePana.jsx
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useContext } from 'react';
 import {
   View,
   ScrollView,
@@ -28,6 +28,9 @@ import {
   getDoublePanaSuggestions,
 } from '../../data/doublePanaMap';
 
+import { AuthContext } from '../../contexts/AuthContext';
+import { placeBets, makeBet } from '../../utils/GameService';
+
 const GREEN = '#3FA16C';
 const BLACK = '#000';
 
@@ -36,11 +39,13 @@ const GROUP_KEYS = Object.keys(DOUBLE_PANA_BY_RESULT_DIGIT).sort(
 );
 
 const DoublePana = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // replace later
-  const balance = 0; // replace later
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const todayLabel = (() => {
     const d = new Date();
@@ -138,53 +143,71 @@ const DoublePana = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert(
+        'Login required',
+        'Mobile number missing. Please login again.',
+      );
+      return;
+    }
+
     if (points > balance) {
       Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
       return;
     }
 
-    let payload;
+    // Build backend bet array
+    let betsToSend = [];
 
     if (mode === 'EASY') {
-      payload = {
-        gameId,
-        subGame: 'DOUBLE_PANA',
-        mode: 'EASY',
-        type: selectedType,
-        bets: easyBets.map(b => ({
-          pana: b.pana,
-          points: b.points,
-          type: b.type,
-        })),
-      };
+      betsToSend = easyBets.map(b =>
+        makeBet({
+          mobileNumber,
+          gameName,
+          type: 'DOUBLE_PANA', // ✅ type=subgame
+          openClose: String(b.type).toUpperCase(),
+          amount: Number(b.points) || 0,
+          betValue: b.pana,
+        }),
+      );
     } else {
-      const bets = [];
+      const list = [];
       ALL_DOUBLE_PANA.forEach(pana => {
         const p = Number(specialPointsByPana[pana] || 0);
         if (p > 0) {
-          bets.push({
-            pana,
-            points: p,
-            type: selectedType.toLowerCase(),
-          });
+          list.push(
+            makeBet({
+              mobileNumber,
+              gameName,
+              type: 'DOUBLE_PANA',
+              openClose: selectedType,
+              amount: p,
+              betValue: pana,
+            }),
+          );
         }
       });
-
-      payload = {
-        gameId,
-        subGame: 'DOUBLE_PANA',
-        mode: 'SPECIAL',
-        type: selectedType,
-        bets,
-      };
+      betsToSend = list;
     }
 
     try {
-      console.log('Submitting Double Pana payload:', payload);
-      Alert.alert('Success', 'Bets submitted (mock).');
+      const res = await placeBets(betsToSend); // API call
+      console.log('DoublePana placed bets:', res);
+      Alert.alert('Success', 'Bets placed successfully!');
+
+      // minimal reset
+      if (mode === 'EASY') {
+        setEasyBets([]);
+      } else {
+        setSpecialPointsByPana(prev => {
+          const next = { ...prev };
+          ALL_DOUBLE_PANA.forEach(p => (next[p] = ''));
+          return next;
+        });
+      }
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', 'Failed to submit bets.');
+      Alert.alert('Error', e?.message || 'Failed to place bets.');
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useContext } from 'react';
 import {
   View,
   ScrollView,
@@ -15,14 +15,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import DynamicHeader from '../../components/DynamicHeader';
 import { getSinglePanaSuggestions } from '../../data/singlePanaMap';
 
+import { AuthContext } from '../../contexts/AuthContext';
+import { placeBets, makeBet } from '../../utils/GameService';
+
 const GREEN = '#3FA16C';
 
 const HalfSangamB = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || 'GAME';
 
   // TODO: replace with WalletContext later
-  const balance = 999999999;
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const [openAnk, setOpenAnk] = useState('');
   const [closePana, setClosePana] = useState('');
@@ -65,18 +69,35 @@ const HalfSangamB = ({ route }) => {
       return;
     }
 
+    const panaOk = (getSinglePanaSuggestions(panaVal[0]) || []).includes(
+      panaVal,
+    );
+    if (!panaOk) {
+      Alert.alert(
+        'Validation',
+        'Please select a valid Close Pana from suggestions.',
+      );
+      return;
+    }
+
     if (!pts || pts <= 0) {
       Alert.alert('Validation', 'Please enter a valid point amount.');
       return;
     }
 
+    const sangam = `${ankVal}-${panaVal}`;
     const bet = {
-      id: Date.now().toString(),
-      sangam: `${ankVal}-${panaVal}`,
+      id: `${sangam}`, // stable => avoids duplicates
+      sangam,
       points: pts,
     };
 
-    setBets(prev => [...prev, bet]);
+    setBets(prev => {
+      const map = new Map(prev.map(b => [b.id, b]));
+      map.set(bet.id, bet);
+      return Array.from(map.values());
+    });
+
     setOpenAnk('');
     setClosePana('');
     setPoints('');
@@ -95,26 +116,38 @@ const HalfSangamB = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert(
+        'Login required',
+        'Mobile number missing. Please login again.',
+      );
+      return;
+    }
+
     if (totalPts > balance) {
       Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
       return;
     }
 
-    const payload = {
-      gameId,
-      subGame: 'HALF_SANGAM_B',
-      bets: bets.map(b => ({
-        sangam: b.sangam,
-        points: b.points,
-      })),
-    };
+    const betsToSend = bets.map(b =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: 'HALF_SANGAM_B',
+        openClose: 'CLOSE',
+        amount: Number(b.points) || 0,
+        betValue: b.sangam, // "openAnk-closePana"
+      }),
+    );
 
     try {
-      console.log('Submitting Half Sangam(B):', payload);
-      Alert.alert('Success', 'Bets submitted (mock).');
+      const res = await placeBets(betsToSend);
+      console.log('Submitting Half Sangam(B):', res);
+      Alert.alert('Success', 'Bets placed successfully!');
+      setBets([]);
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', 'Failed to submit bets.');
+      Alert.alert('Error', e?.message || 'Failed to place bets.');
     }
   };
 
@@ -159,7 +192,7 @@ const HalfSangamB = ({ route }) => {
                   placeholderTextColor="#999"
                   maxLength={3}
                   onFocus={() => setShowCloseSug(true)}
-                  onBlur={() => setShowCloseSug(false)}
+                  onBlur={() => setTimeout(() => setShowCloseSug(false), 120)}
                 />
 
                 {showCloseSug && closeSuggestions.length > 0 && (
@@ -176,6 +209,7 @@ const HalfSangamB = ({ route }) => {
                           onPress={() => {
                             setClosePana(item);
                             setShowCloseSug(false);
+                            Keyboard.dismiss();
                           }}
                         >
                           <Text style={styles.suggestionText}>{item}</Text>

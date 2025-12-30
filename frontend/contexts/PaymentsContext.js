@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer } from "react";
+import React, { createContext, useContext, useReducer, useRef } from "react";
 import Snackbar from "react-native-snackbar";
 import {
   lookupIFSC,
@@ -43,6 +43,9 @@ export const PaymentsProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initial);
   const { user, updateUser } = useContext(AuthContext);
 
+  // prevents multi-tap causing multiple intents + multiple API calls
+  const inFlightPayRef = useRef(false);
+
   const resolveIFSC = async (ifsc) => lookupIFSC(ifsc);
 
   const savePayout = async (screenPayload) => {
@@ -51,7 +54,6 @@ export const PaymentsProvider = ({ children }) => {
 
       dispatch({ type: T.LOADING });
 
-      // map to backend format + inject mobileNumber
       let backendPayload = { mobileNumber: user.mobileNumber };
 
       if (screenPayload.type === "bank") {
@@ -69,11 +71,9 @@ export const PaymentsProvider = ({ children }) => {
 
       const res = await savePayoutAPI(backendPayload);
 
-      // Prefer server as source of truth if it returns user
       if (res?.user) {
         updateUser(res.user);
       } else {
-        // Fallback patch
         if (screenPayload.type === "bank") {
           updateUser({
             accountHolderName: screenPayload.accountHolderName,
@@ -110,23 +110,13 @@ export const PaymentsProvider = ({ children }) => {
     }
   };
 
-  /**
-   * UPI Add Money (frontend-driven)
-   *
-   * You pass payee details from config:
-   *  - payeeVpa  (your upi id)
-   *  - payeeName
-   *
-   * Backend is called after SUCCESS to update DB balance.
-   */
-  const addMoneyViaUpi = async ({
-    amountRupees,
-    payeeVpa,
-    payeeName,
-    note,
-  }) => {
+  const addMoneyViaUpi = async ({ amountRupees, payeeVpa, payeeName, note }) => {
     try {
+      if (inFlightPayRef.current) throw new Error("Payment already in progress");
+      inFlightPayRef.current = true;
+
       if (!user?.mobileNumber) throw new Error("Missing mobile number in session");
+
       const amt = Number(amountRupees);
       if (!Number.isFinite(amt) || amt <= 0) throw new Error("Enter a valid amount");
       if (!payeeVpa || !payeeName) throw new Error("Missing payee UPI details");
@@ -145,27 +135,37 @@ export const PaymentsProvider = ({ children }) => {
       });
 
       const status = String(upiRes?.status || "").toUpperCase();
+
+      // ✅ We only accept SUCCESS for instant credit
       if (status !== "SUCCESS") {
-        throw new Error(`UPI status: ${upiRes?.status || "UNKNOWN"}`);
+        throw new Error(`UPI status: ${status || "UNKNOWN"}`);
       }
 
-      // 🚨 This API MUST be protected on backend (auth + dedupe).
-      // Otherwise people can fake this call and add balance.
+      // ✅ "secure as possible" in frontend-only world:
+      // don't credit if we didn't receive any trace id
+      const hasTrace =
+        !!upiRes?.txnId || !!upiRes?.approvalRefNo || !!upiRes?.rrn;
+
+      if (!hasTrace) {
+        throw new Error("Payment response missing txn reference. Try another UPI app.");
+      }
+
+      // Single backend call after payment
       const submitRes = await submitUpiTopupResult({
         mobileNumber: user.mobileNumber,
         amountRupees: amt,
-        txnRef: upiRes?.txnRef || txnRef,
+        txnRef, // always use our generated ref
+        status,
         txnId: upiRes?.txnId,
-        responseCode: upiRes?.responseCode,
         approvalRefNo: upiRes?.approvalRefNo,
-        status: upiRes?.status,
+        rrn: upiRes?.rrn,
+        responseCode: upiRes?.responseCode,
+        raw: upiRes?.raw, // optional but useful for logs
       });
 
-      // Update local user with returned data
       if (submitRes?.user) {
         updateUser(submitRes.user);
       } else if (submitRes?.balance != null) {
-        // If your backend returns just balance
         updateUser({ balance: submitRes.balance });
       }
 
@@ -189,6 +189,8 @@ export const PaymentsProvider = ({ children }) => {
         backgroundColor: "#d32f2f",
       });
       throw error;
+    } finally {
+      inFlightPayRef.current = false;
     }
   };
 

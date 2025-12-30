@@ -1,5 +1,5 @@
 // screens/SubGames/SinglePanaBulk.jsx
-import React, { useMemo, useState } from "react";
+import React, { useContext, useMemo, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -17,15 +17,20 @@ import EasyModeTable from "../../components/games/EasyModeTable";
 
 import { SINGLE_PANA_BY_RESULT_DIGIT } from "../../data/singlePanaMap";
 
+import { AuthContext } from "../../contexts/AuthContext";
+import { placeBets, makeBet } from "../../utils/GameService";
+
 const GREEN = "#3FA16C";
 const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
 const SinglePanaBulk = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || "GAME";
 
   const allowedTypes = ["OPEN", "CLOSE"]; // replace with backend data later
-  const balance = 0; // hook into wallet later
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const [selectedType, setSelectedType] = useState(
     allowedTypes[0] || "OPEN"
@@ -91,29 +96,39 @@ const SinglePanaBulk = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      return;
+    }
+
     if (totalPoints > balance) {
       Alert.alert("Insufficient balance", "Your wallet balance is too low.");
       return;
     }
 
-    const payload = {
-      gameId,
-      subGame: "SINGLE_PANA_BULK",
-      type: selectedType,
-      bets: bets.map((b) => ({
-        pana: b.pana,
-        points: b.points,
-        type: b.type,
-      })),
-    };
+    const betsToSend = bets.map((b) =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: "SINGLE_PANA",
+        openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(), // OPEN/CLOSE
+        amount: Number(b.points) || 0,
+        betValue: String(b.pana),
+      })
+    );
 
     try {
-      // await GameService.submitSinglePanaBulk(payload);
-      console.log("Submitting Single Pana Bulk payload:", payload);
-      Alert.alert("Success", "Bets submitted (mock).");
+      const res = await placeBets(betsToSend);
+      console.log("SinglePanaBulk bet response:", res);
+
+      Alert.alert("Success", "Bets placed successfully!");
+
+      setBets([]);
+      setPoints("");
+      setPointsError(false);
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", "Failed to submit bets.");
+      Alert.alert("Error", e?.message || "Failed to place bets.");
     }
   };
 
@@ -167,7 +182,7 @@ const SinglePanaBulk = ({ route }) => {
             <EasyModeTable
               bets={bets.map((b) => ({
                 id: b.id,
-                digit: b.pana, // EasyModeTable expects digit field
+                digit: String(b.pana),
                 points: b.points,
                 type: b.type,
               }))}

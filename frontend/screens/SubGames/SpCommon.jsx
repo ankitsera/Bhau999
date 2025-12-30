@@ -1,5 +1,5 @@
 // screens/SubGames/SpCommon.jsx
-import React, { useMemo, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import {
   View,
   StyleSheet,
@@ -17,17 +17,22 @@ import BottomBetBar from '../../components/games/BottomBetBar';
 
 import { getSinglePanaCommonDigitPanas } from '../../data/singlePanaMap';
 
+import { AuthContext } from '../../contexts/AuthContext';
+import { placeBets, makeBet } from '../../utils/GameService';
+
 const GREEN = '#3FA16C';
 
 const ROW1 = ['1', '2', '3', '4', '5'];
 const ROW2 = ['6', '7', '8', '9', '0'];
 
 const SpCommon = ({ route }) => {
-  const gameId = route?.params?.game?.id;
-  const gameName = route?.params?.game?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || 'GAME';
 
   const allowedTypes = ['OPEN', 'CLOSE']; // later from context
-  const balance = 0; // later from wallet
+
+  const { user } = useContext(AuthContext);
+  const balance = Number(user?.balance || 0);
+  const mobileNumber = user?.mobileNumber;
 
   const [selectedType, setSelectedType] = useState(allowedTypes[0] || 'OPEN');
   const [points, setPoints] = useState('');
@@ -83,29 +88,41 @@ const SpCommon = ({ route }) => {
       return;
     }
 
+    if (!mobileNumber) {
+      Alert.alert('Login required', 'Mobile number missing. Please login again.');
+      return;
+    }
+
     if (totals.points > balance) {
       Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
       return;
     }
 
-    const payload = {
-      gameId,
-      subGame: 'SP_COMMON',
-      mode: 'EASY',
-      type: selectedType,
-      bets: bets.map(b => ({
-        pana: b.digit,
-        points: b.points,
-        type: b.type,
-      })),
-    };
+    const openClose = String(selectedType).toUpperCase();
+
+    const betsToSend = bets.map(b =>
+      makeBet({
+        mobileNumber,
+        gameName,
+        type: 'SINGLE_PANA',
+        openClose,
+        amount: Number(b.points) || 0,
+        betValue: String(b.digit),
+      }),
+    );
 
     try {
-      console.log('Submitting SP Common payload:', payload);
-      Alert.alert('Success', 'Bets submitted (mock).');
+      const res = await placeBets(betsToSend);
+      console.log('SpCommon bet response:', res);
+
+      Alert.alert('Success', 'Bets placed successfully!');
+
+      setBets([]);
+      setPoints('');
+      setPointsError(false);
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', 'Failed to submit bets.');
+      Alert.alert('Error', e?.message || 'Failed to place bets.');
     }
   };
 
