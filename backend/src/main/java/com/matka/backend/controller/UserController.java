@@ -153,6 +153,49 @@ public class UserController {
         return ResponseEntity.status(404).body(Map.of("message", "User not found"));
     }
 
+    @PostMapping("/auth/UpdateDetails")
+    public ResponseEntity<?> updateDetails(@RequestBody User user) {
+        log.info("Received updateDetails request for mobile='{}'", user.getMobileNumber());
+
+        if (user.getMobileNumber() == null) {
+            log.info("updateDetails failed: missing mobile number");
+            return ResponseEntity.badRequest().body(Map.of("message", "mobileNumber is required"));
+        }
+
+        Optional<User> existingUserOpt = userRepository.findByMobileNumber(user.getMobileNumber());
+        if (existingUserOpt.isEmpty()) {
+            log.info("updateDetails failed: user not found for mobile='{}'", user.getMobileNumber());
+            return ResponseEntity.status(404).body(Map.of("message", "User not found"));
+        }
+
+        User existingUser = existingUserOpt.get();
+        // Update fields if provided
+        if (user.getUsername() != null) {
+            existingUser.setUsername(user.getUsername());
+        }
+        if (user.getPassword() != null) {
+            existingUser.setPassword(user.getPassword());
+        }
+        if( user.getAccountNumber() != null) {
+            existingUser.setAccountNumber(user.getAccountNumber());
+        }
+        if( user.getAccountHolderName() != null) {
+            existingUser.setAccountHolderName(user.getAccountHolderName());
+        }
+        if( user.getIfscCode() != null) {
+            existingUser.setIfscCode(user.getIfscCode());
+        }
+        if( user.getUpiId() != null) {
+            existingUser.setUpiId(user.getUpiId());
+        }
+        if( user.getApprovalStatus() != null) {
+            existingUser.setApprovalStatus(user.getApprovalStatus());
+        }
+        userRepository.save(existingUser);
+        log.info("updateDetails successful for mobile='{}'", user.getMobileNumber());
+        return ResponseEntity.ok(Map.of("message", "User details updated"));
+    }
+
     public static class LoginRequest {
         private String mobileNumber;
         private String password;
