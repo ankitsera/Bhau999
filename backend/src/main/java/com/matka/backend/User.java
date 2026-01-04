@@ -34,6 +34,9 @@ public class User {
     @Column(name = "upi_id")
     private String upiId;
 
+    @Column(name = "Approval_status")
+    private String approvalStatus;
+
     // Getters and setters
     public String getMobileNumber() { return mobileNumber; }
     public void setMobileNumber(String mobileNumber) { this.mobileNumber = mobileNumber; }
@@ -60,4 +63,7 @@ public class User {
 
     public String getUpiId() { return upiId; }
     public void setUpiId(String upiId) { this.upiId = upiId; }
+
+    public String getApprovalStatus() { return approvalStatus; }
+    public void setApprovalStatus(String approvalStatus) { this.approvalStatus = approvalStatus; }
 }
