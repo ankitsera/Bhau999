@@ -119,8 +119,6 @@ const SinglePanaBulk = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      console.log("SinglePanaBulk bet response:", res);
-
       Alert.alert("Success", "Bets placed successfully!");
 
       setBets([]);

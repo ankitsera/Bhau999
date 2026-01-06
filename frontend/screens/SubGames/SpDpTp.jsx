@@ -171,8 +171,6 @@ const SpDpTp = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      console.log("SpDpTp bet response:", res);
-
       Alert.alert("Success", "Bets placed successfully!");
 
       setBets([]);

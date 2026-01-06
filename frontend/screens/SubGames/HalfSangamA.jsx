@@ -142,7 +142,6 @@ const HalfSangamA = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      console.log('Submitting Half Sangam(A):', res);
       Alert.alert('Success', 'Bets placed successfully!');
       setBets([]);
     } catch (e) {

@@ -121,7 +121,6 @@ const OddEven = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      console.log("OddEven bet response:", res);
       Alert.alert("Success", "Bets placed successfully!");
       setBets([]);
     } catch (e) {

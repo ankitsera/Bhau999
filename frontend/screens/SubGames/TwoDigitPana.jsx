@@ -189,8 +189,6 @@ const TwoDigitPana = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      console.log("TwoDigitPana bet response:", res);
-
       Alert.alert("Success", "Bets placed successfully!");
 
       setBets([]);

@@ -177,10 +177,10 @@ const SinglePana = ({ route }) => {
             makeBet({
               mobileNumber,
               gameName,
-              type: "SINGLE_PANA", // ✅ CHANGED
-              openClose: selectedType, // ✅ NEW
-              amount: p, // ✅ CHANGED
-              betValue: pana, // ✅ NEW
+              type: "SINGLE_PANA",
+              openClose: selectedType,
+              amount: p,
+              betValue: pana,
             })
           );
         }
@@ -189,11 +189,8 @@ const SinglePana = ({ route }) => {
     }
 
     try {
-      // ✅ CHANGED: real API call
-      console.log("Placing bets:", betsToSend);
+      // API call
       const res = await placeBets(betsToSend);
-      console.log("Placed bets response:", res);
-
       Alert.alert("Success", "Bets placed successfully!");
 
       // optional small reset (kept minimal)

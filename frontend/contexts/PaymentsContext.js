@@ -153,29 +153,32 @@ export const PaymentsProvider = ({ children }) => {
       // Single backend call after payment
       const submitRes = await submitUpiTopupResult({
         mobileNumber: user.mobileNumber,
-        amountRupees: amt,
+        amount: amt,
         txnRef, // always use our generated ref
         status,
         txnId: upiRes?.txnId,
         approvalRefNo: upiRes?.approvalRefNo,
         rrn: upiRes?.rrn,
+        initiator: "User",
         responseCode: upiRes?.responseCode,
         raw: upiRes?.raw, // optional but useful for logs
       });
 
-      if (submitRes?.user) {
-        updateUser(submitRes.user);
-      } else if (submitRes?.balance != null) {
-        updateUser({ balance: submitRes.balance });
-      }
+      const newBalance = Number(user.balance || 0) + amt;
+      updateUser({ balance: newBalance });
 
       dispatch({
         type: T.TOPUP,
-        payload: { amountRupees: amt, txnRef, upi: upiRes, submit: submitRes },
+        payload: {
+          amountRupees: amt,
+          txnRef,
+          upi: upiRes,
+          transaction: submitRes, // saved entity
+        },
       });
 
       Snackbar.show({
-        text: submitRes?.message || "Money added ✅",
+        text: 'Money added ✅',
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#388e3c",
       });

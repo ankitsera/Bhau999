@@ -190,7 +190,6 @@ const Jodi = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      console.log('Jodi bet response:', res);
       Alert.alert('Success', 'Bets placed successfully!');
 
       // clear placed bets

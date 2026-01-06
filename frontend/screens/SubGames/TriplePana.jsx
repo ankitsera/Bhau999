@@ -104,8 +104,6 @@ const TriplePana = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      console.log("TriplePana bet response:", res);
-
       Alert.alert("Success", "Bets placed successfully!");
 
       setPointsByPana(

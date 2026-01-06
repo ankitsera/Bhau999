@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ const GREEN = "#3FA16C";
 const WHATSAPP = "#25D366";
 const CONTACT_NUMBER = "7757033237";
 const WHATSAPP_NUMBER = "7757033237";
-const MARQUEE_TEXT = "का मौका – सिर्फ AS Online पर!  |  Play Daily – Win Big!";
+const MARQUEE_TEXT = "Play Daily - Win Big! ₹1Cr+ Winnings Everyday 💸 AS Online : Safe ✅ Fast⚡Real Results हर दिन ₹1Cr+ जीतनेका मौका – सिर्फ AS Online पर!";
 
 /** helper functions */
 const openDialer = () => Linking.openURL(`tel:+91${CONTACT_NUMBER}`);
@@ -24,20 +24,30 @@ const openWhatsApp = () =>
 
 const TopStrip = () => {
   // marquee animation
-  const translateX = useRef(new Animated.Value(0)).current;
+  const [textW, setTextW] = useState(0);
+  const animX = useRef(new Animated.Value(0)).current;
+  const speed = 60;
+  const gap = 80;
 
   useEffect(() => {
-    const startAnim = () => {
-      translateX.setValue(0);
-      Animated.timing(translateX, {
-        toValue: -600,
-        duration: 5000,
+    if (!textW) return;
+
+    const distance = textW + gap;
+    const duration = (distance / speed) * 1000;
+
+    const loop = () => {
+      animX.setValue(20);
+      Animated.timing(animX, {
+        toValue: -distance + 10,
+        duration,
         easing: Easing.linear,
         useNativeDriver: true,
-      }).start(({ finished }) => finished && startAnim());
+      }).start(() => loop());
     };
-    startAnim();
-  }, [translateX]);
+
+    loop();
+    return () => animX.stopAnimation();
+  }, [textW, gap, speed, animX]);
 
   // Button handlers
   const handleLuckyStarline = () => {
@@ -52,17 +62,31 @@ const TopStrip = () => {
     <View style={styles.container}>
       {/* marquee text */}
       <View style={styles.marqueeWrap}>
-        <Animated.Text
-          numberOfLines={1}
-          style={[
-            styles.marqueeText,
-            {
-              transform: [{ translateX }],
-            },
-          ]}
+        <Animated.View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            transform: [{ translateX: animX }],
+            width: textW ? (textW + gap) * 2 + 20 : '1000%',
+          }}
         >
-          {MARQUEE_TEXT}
-        </Animated.Text>
+          {/* Initial Spacer to prevent clipping on start */}
+          <View style={{ width: 10 }} />
+
+          <Text
+            numberOfLines={1}
+            style={styles.marqueeText}
+            onLayout={(e) => setTextW(e.nativeEvent.layout.width)}
+          >
+            {MARQUEE_TEXT}
+          </Text>
+
+          <View style={{ width: gap }} />
+
+          <Text numberOfLines={1} style={styles.marqueeText}>
+            {MARQUEE_TEXT}
+          </Text>
+        </Animated.View>
       </View>
 
       {/* pill buttons */}

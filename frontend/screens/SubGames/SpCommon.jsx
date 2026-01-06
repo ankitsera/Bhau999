@@ -113,8 +113,6 @@ const SpCommon = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      console.log('SpCommon bet response:', res);
-
       Alert.alert('Success', 'Bets placed successfully!');
 
       setBets([]);

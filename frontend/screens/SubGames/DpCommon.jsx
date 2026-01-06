@@ -116,7 +116,6 @@ const DpCommon = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      console.log('DP Common placed bets:', res);
       Alert.alert('Success', 'Bets placed successfully!');
       setBets([]);
     } catch (e) {

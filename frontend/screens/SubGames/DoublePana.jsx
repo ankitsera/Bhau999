@@ -192,7 +192,7 @@ const DoublePana = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend); // API call
-      console.log('DoublePana placed bets:', res);
+
       Alert.alert('Success', 'Bets placed successfully!');
 
       // minimal reset

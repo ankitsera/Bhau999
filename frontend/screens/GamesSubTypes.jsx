@@ -138,7 +138,7 @@ const GamesSubTypes = () => {
         renderItem={({ item }) => (
           <SubGameTile
             label={item.label}
-            icon={item.icon}
+            image={item.image}
             onPress={() => handlePressTile(item)}
           />
         )}

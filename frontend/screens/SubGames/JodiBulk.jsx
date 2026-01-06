@@ -131,7 +131,6 @@ const JodiBulk = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      console.log("Jodi Bulk bet response:", res);
       Alert.alert("Success", "Bets placed successfully!");
       setBets([]);
       setJodiDigit("");

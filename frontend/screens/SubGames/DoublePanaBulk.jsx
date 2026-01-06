@@ -129,7 +129,6 @@ const DoublePanaBulk = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      console.log('Double Pana Bulk placed bets:', res);
       Alert.alert('Success', 'Bets placed successfully!');
 
       setBets([]);

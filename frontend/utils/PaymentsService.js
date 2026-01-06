@@ -184,7 +184,8 @@ export const startUpiPayment = async ({
 };
 
 export const submitUpiTopupResult = async (payload) => {
-  const res = await fetch(`${API_URL}/wallet/topup/upi/submit`, {
+
+  const res = await fetch(`${API_URL}/transaction`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -195,9 +196,6 @@ export const submitUpiTopupResult = async (payload) => {
 
   return {
     ok: true,
-    message: body?.message || "Topup submitted",
-    user: body?.user || null,
-    balance: body?.balance ?? null,
-    raw: body,
+    data: body,        // ← actual API response (saved entity)
   };
 };

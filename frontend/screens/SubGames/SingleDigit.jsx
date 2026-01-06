@@ -175,8 +175,6 @@ const SingleDigit = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      console.log('SingleDigit bet response:', res);
-
       Alert.alert('Success', 'Bets placed successfully!');
 
       // reset

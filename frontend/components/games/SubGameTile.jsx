@@ -1,14 +1,17 @@
 import React from "react";
-import { TouchableOpacity, View, Text, StyleSheet } from "react-native";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { TouchableOpacity, View, Text, StyleSheet, Image } from "react-native";
 
 const GREEN = "#3FA16C";
 
-const SubGameTile = ({ label, icon, onPress }) => {
+const SubGameTile = ({ label, image, onPress }) => {
   return (
     <TouchableOpacity style={styles.tile} onPress={onPress} activeOpacity={0.8}>
       <View style={styles.circle}>
-        <MaterialCommunityIcons name={icon} size={50} color={GREEN} />
+        {image ? (
+          <Image source={image} style={styles.image} />
+        ) : (
+          <View style={styles.placeholderImage} />
+        )}
       </View>
       <Text style={styles.label}>{label}</Text>
     </TouchableOpacity>
@@ -35,6 +38,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
+  },
+  image: {
+    width: 100,
+    height: 100,
+    resizeMode: "contain",
+  },
+  placeholderImage: {
+    width: 50,
+    height: 50,
+    backgroundColor: "#e0e0e0",
+    borderRadius: 25,
   },
   label: {
     fontSize: 16,
