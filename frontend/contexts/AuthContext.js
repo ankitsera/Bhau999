@@ -121,7 +121,7 @@ export const AuthProvider = ({ children }) => {
       dispatch({ type: TYPES.SIGNUP_START });
       const result = await signupAPI(mobileNumber, username, password);
       const dateSignup = new Date().toISOString();
-      const newUser = { mobileNumber, username, dateSignup, balance: 100000 }; // Testing: hardcoded balance
+      const newUser = { mobileNumber, username, dateSignup };
       dispatch({ type: TYPES.SIGNUP_SUCCESS, user: newUser });
 
       Snackbar.show({

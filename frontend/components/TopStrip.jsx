@@ -15,7 +15,7 @@ const GREEN = "#3FA16C";
 const WHATSAPP = "#25D366";
 const CONTACT_NUMBER = "7757033237";
 const WHATSAPP_NUMBER = "7757033237";
-const MARQUEE_TEXT = "Play Daily - Win Big! ₹1Cr+ Winnings Everyday 💸 AS Online : Safe ✅ Fast⚡Real Results हर दिन ₹1Cr+ जीतनेका मौका – सिर्फ AS Online पर!";
+const MARQUEE_TEXT = "Play Daily - Win Big! ₹1Cr+ Winnings Everyday 💸 A1 Online : Safe ✅ Fast⚡Real Results हर दिन ₹1Cr+ जीतनेका मौका – सिर्फ A1 Online पर!";
 
 /** helper functions */
 const openDialer = () => Linking.openURL(`tel:+91${CONTACT_NUMBER}`);

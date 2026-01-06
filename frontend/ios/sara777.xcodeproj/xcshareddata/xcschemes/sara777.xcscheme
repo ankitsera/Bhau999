@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "sara777.app"
-               BlueprintName = "sara777"
-               ReferencedContainer = "container:sara777.xcodeproj">
+               BuildableName = "a1online.app"
+               BlueprintName = "a1online"
+               ReferencedContainer = "container:a1online.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "sara777Tests.xctest"
-               BlueprintName = "sara777Tests"
-               ReferencedContainer = "container:sara777.xcodeproj">
+               BuildableName = "a1onlineTests.xctest"
+               BlueprintName = "a1onlineTests"
+               ReferencedContainer = "container:a1online.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "sara777.app"
-            BlueprintName = "sara777"
-            ReferencedContainer = "container:sara777.xcodeproj">
+            BuildableName = "a1online.app"
+            BlueprintName = "a1online"
+            ReferencedContainer = "container:a1online.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "sara777.app"
-            BlueprintName = "sara777"
-            ReferencedContainer = "container:sara777.xcodeproj">
+            BuildableName = "a1online.app"
+            BlueprintName = "a1online"
+            ReferencedContainer = "container:a1online.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
