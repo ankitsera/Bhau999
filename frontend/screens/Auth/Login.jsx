@@ -10,7 +10,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { AuthContext } from '../../contexts/AuthContext';
-import Navigation from '../../navigation/Navigation';
 
 const GREEN = '#328555ff';
 const TILE_GREEN = '#41B773';

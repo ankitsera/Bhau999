@@ -22,9 +22,9 @@ const UserCheck = ({navigation}) => {
   const WHATSAPP_NUMBER = '917757033237';
 
   const openDialer = () =>
-    Linking.openURL(`tel:${MOBILE_NUMBER}).catch(() => {}`);
+    Linking.openURL(`tel:${MOBILE_NUMBER}`).catch(() => {});
   const openWhatsapp = () =>
-    Linking.openURL(`https://wa.me/${WHATSAPP_NUMBER}).catch(() => {}`);
+    Linking.openURL(`https://wa.me/${WHATSAPP_NUMBER}`).catch(() => {});
 
   const handleLogin = () => {
     const phoneRegex = /^[0-9]{10}$/;
