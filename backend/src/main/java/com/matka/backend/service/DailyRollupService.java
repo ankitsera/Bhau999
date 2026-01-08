@@ -2,7 +2,6 @@ package com.matka.backend.service;
 
 import com.matka.backend.ActiveGame;
 import com.matka.backend.Bet;
-import com.matka.backend.BetHistory;
 import com.matka.backend.Game;
 import com.matka.backend.GameHistory;
 import com.matka.backend.repository.ActiveGameRepository;
@@ -94,17 +93,18 @@ public class DailyRollupService {
             // 3) Move bets to bets_history with yesterday's date
             List<Bet> bets = betRepository.findAll();
             if (!bets.isEmpty()) {
-                List<BetHistory> bhList = new ArrayList<>();
+                List<Bet> bhList = new ArrayList<>();
                 for (Bet b : bets) {
-                    BetHistory bh = new BetHistory();
+                    Bet bh = new Bet();
                     bh.setMobileNumber(b.getMobileNumber());
                     bh.setGameName(b.getGameName());
-                    // Bet entity no longer has betDate; history uses yesterday
-                    bh.setBetDate(yesterday);
+                    // preserve type/amount/betValue/openClose and betTime/result in the copied row
                     bh.setType(b.getType());
                     bh.setAmount(b.getAmount());
                     bh.setBetValue(b.getBetValue());
                     bh.setOpenClose(b.getOpenClose());
+                    bh.setBetTime(b.getBetTime());
+                    bh.setResult(b.getResult());
                     bhList.add(bh);
                 }
                 betHistoryRepository.saveAll(bhList);
