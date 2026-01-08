@@ -1,6 +1,7 @@
 package com.matka.backend;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "bets")
@@ -27,6 +28,12 @@ public class Bet {
 
     @Column(name = "open_close")
     private String openClose; // allowed values: "Open", "Close", or null
+
+    @Column(name = "bet_time")
+    private LocalDateTime betTime;
+
+    @Column(name = "result")
+    private String result; // null, "Won", or "Lost"
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mobile_number", referencedColumnName = "mobile_number", insertable = false, updatable = false)
@@ -62,6 +69,12 @@ public class Bet {
 
     public String getOpenClose() { return openClose; }
     public void setOpenClose(String openClose) { this.openClose = openClose; }
+
+    public java.time.LocalDateTime getBetTime() { return betTime; }
+    public void setBetTime(java.time.LocalDateTime betTime) { this.betTime = betTime; }
+
+    public String getResult() { return result; }
+    public void setResult(String result) { this.result = result; }
 
     public User getUser() { return user; }
     public Game getGame() { return game; }

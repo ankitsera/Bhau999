@@ -15,12 +15,42 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.List;
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api")
 public class BetController {
     private static final Logger log = LoggerFactory.getLogger(BetController.class);
+
+    // Lightweight DTO used only for JSON responses to avoid triggering lazy loads
+    private static class BetResponse {
+        public Long id;
+        public String mobileNumber;
+        public String gameName;
+        public String type;
+        public Integer amount;
+        public Integer betValue;
+        public String openClose;
+        public java.time.LocalDateTime betTime;
+        public String result;
+
+        public BetResponse() {}
+        public BetResponse(Bet b) {
+            if (b == null) return;
+            this.id = b.getId();
+            this.mobileNumber = b.getMobileNumber();
+            this.gameName = b.getGameName();
+            this.type = b.getType();
+            this.amount = b.getAmount();
+            this.betValue = b.getBetValue();
+            this.openClose = b.getOpenClose();
+            this.betTime = b.getBetTime();
+            this.result = b.getResult();
+        }
+    }
 
     @Autowired
     private BetRepository betRepository;
@@ -36,6 +66,9 @@ public class BetController {
 
     @Autowired
     private TransactionRepository transactionRepository;
+
+    @Autowired
+    private com.matka.backend.repository.BetHistoryRepository betHistoryRepository;
 
     // POST /api/bet  -> create one or many bets (accepts a JSON array of bets)
     @PostMapping("/bet")
@@ -82,12 +115,17 @@ public class BetController {
             user.setBalance(newBalance);
             userRepository.save(user);
 
+            // set bet time to current datetime
+            bet.setBetTime(LocalDateTime.now());
+
             // record transaction for the bet (negative amount)
             TransactionEntity tx = new TransactionEntity();
             tx.setMobileNumber(bet.getMobileNumber());
             tx.setAmount(-Math.abs(bet.getAmount()));
             tx.setTxDate(LocalDate.now());
             tx.setTxTime(java.time.LocalTime.now());
+            // mark who initiated this transaction
+            tx.setInitiator("Bet placed");
             transactionRepository.save(tx);
 
             Bet saved = betRepository.save(bet);
@@ -99,10 +137,63 @@ public class BetController {
     }
 
     // List all bets
-    // GET /api/bets -> return all bets
+    // GET /api/bets -> return all bets (mapped to DTO to avoid lazy fetches)
     @GetMapping("/bets")
-    public ResponseEntity<java.util.List<Bet>> listAll() {
+    public ResponseEntity<java.util.List<BetResponse>> listAll() {
         java.util.List<Bet> list = betRepository.findAll();
-        return ResponseEntity.ok(list);
+        java.util.List<BetResponse> out = new java.util.ArrayList<>();
+        if (list != null) for (Bet b : list) out.add(new BetResponse(b));
+        return ResponseEntity.ok(out);
+    }
+
+    // Move of BetHistory list endpoint: GET /api/bet-history
+    @GetMapping("/bet-history")
+    public ResponseEntity<java.util.List<BetResponse>> listHistory() {
+        java.util.List<Bet> list = betHistoryRepository.findAll();
+        java.util.List<BetResponse> out = new java.util.ArrayList<>();
+        if (list != null) for (Bet b : list) out.add(new BetResponse(b));
+        return ResponseEntity.ok(out);
+    }
+
+    // GET /api/bets/user/{mobileNumber} -> fetch bets for a user from both bets and bets_history
+    @GetMapping("/bets/user/{mobileNumber}")
+    public ResponseEntity<List<BetResponse>> listByUser(@PathVariable String mobileNumber) {
+        if (mobileNumber == null || mobileNumber.isBlank()) {
+            return ResponseEntity.badRequest().body(new ArrayList<>());
+        }
+        List<Bet> fromBets = betRepository.findByMobileNumber(mobileNumber);
+        List<Bet> fromHistory = betHistoryRepository.findByMobileNumber(mobileNumber);
+        List<BetResponse> combined = new ArrayList<>();
+        if (fromBets != null) for (Bet b : fromBets) combined.add(new BetResponse(b));
+        if (fromHistory != null) for (Bet b : fromHistory) combined.add(new BetResponse(b));
+        return ResponseEntity.ok(combined);
+    }
+
+    // GET /api/bets/game/{gameName}/all -> fetch bets for a game from both bets and bets_history
+    @GetMapping("/bets/game/{gameName}/all")
+    public ResponseEntity<List<BetResponse>> listByGameAll(@PathVariable String gameName) {
+        if (gameName == null || gameName.isBlank()) {
+            return ResponseEntity.badRequest().body(new ArrayList<>());
+        }
+        String normalized = gameName.trim().toUpperCase();
+        List<Bet> fromBets = betRepository.findByGameName(normalized);
+        List<Bet> fromHistory = betHistoryRepository.findByGameName(normalized);
+        List<BetResponse> combined = new ArrayList<>();
+        if (fromBets != null) for (Bet b : fromBets) combined.add(new BetResponse(b));
+        if (fromHistory != null) for (Bet b : fromHistory) combined.add(new BetResponse(b));
+        return ResponseEntity.ok(combined);
+    }
+
+    // GET /api/bets/game/{gameName} -> fetch bets for a game from bets only
+    @GetMapping("/bets/game/{gameName}")
+    public ResponseEntity<List<BetResponse>> listByGame(@PathVariable String gameName) {
+        if (gameName == null || gameName.isBlank()) {
+            return ResponseEntity.badRequest().body(new ArrayList<>());
+        }
+        String normalized = gameName.trim().toUpperCase();
+        List<Bet> fromBets = betRepository.findByGameName(normalized);
+        List<BetResponse> out = new ArrayList<>();
+        if (fromBets != null) for (Bet b : fromBets) out.add(new BetResponse(b));
+        return ResponseEntity.ok(out);
     }
 }

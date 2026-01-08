@@ -5,16 +5,16 @@ Below are example MySQL-compatible INSERT statements you can use to populate the
 -- 1) Games
 ```sql
 INSERT INTO `game` (`name`, `open_time`, `close_time`) VALUES
-('SINGLE', '08:00:00', '12:30:00'),
-('DOUBLE', '13:00:00', '18:00:00'),
-('JACKPOT', '19:00:00', '23:30:00');
+('MADHUR', '08:00:00', '12:30:00'),
+('MALINI', '13:00:00', '18:00:00'),
+('SRIDEVI', '19:00:00', '23:30:00');
 ```
 
 -- 2) Rates (bet types)
 ```sql
 INSERT INTO `rate` (`type`, `rate`) VALUES
-('single-digit', 1.95),
-('double-digit', 9.5),
+('Ank', 1.95),
+('Jodi', 9.5),
 ('jodi', 80.0);
 ```
 
@@ -30,54 +30,54 @@ INSERT INTO `users` (`mobile_number`, `username`, `password`, `date_signup`, `ba
 -- Note: DB columns are named `open` and `close` (Java mapped fields may differ), so we write to those columns.
 ```sql
 INSERT INTO `active_games` (`game_name`, `open`, `close`) VALUES
-('SINGLE', NULL, NULL),     -- not declared yet
-('DOUBLE', 12, NULL),       -- open declared as 12
-('JACKPOT', NULL, 77);      -- close declared as 77
+('MADHUR', NULL, NULL),     -- not declared yet
+('MALINI', 12, NULL),       -- open declared as 12
+('SRIDEVI', NULL, 77);      -- close declared as 77
 ```
 
 -- 5) Game history (example previous-day results)
 ```sql
 INSERT INTO `game_history` (`game_name`, `hist_date`, `open`, `close`) VALUES
-('SINGLE', '2025-12-31', 5, 25),
-('DOUBLE', '2025-12-31', 12, 34),
-('JACKPOT', '2025-12-31', 7, 77);
+('MADHUR', '2025-12-31', 5, 25),
+('MALINI', '2025-12-31', 12, 34),
+('SRIDEVI', '2025-12-31', 7, 77);
 ```
 
 -- 5b) Additional game history (two more prior days)
 ```sql
 INSERT INTO `game_history` (`game_name`, `hist_date`, `open`, `close`) VALUES
-('SINGLE', '2025-12-30', 3, 21),
-('DOUBLE', '2025-12-30', 10, 32),
-('JACKPOT', '2025-12-30', 9, 66),
-('SINGLE', '2025-12-29', 8, 28),
-('DOUBLE', '2025-12-29', 4, 14),
-('JACKPOT', '2025-12-29', 2, 55);
+('MADHUR', '2025-12-30', 3, 21),
+('MALINI', '2025-12-30', 10, 32),
+('SRIDEVI', '2025-12-30', 9, 66),
+('MADHUR', '2025-12-29', 8, 28),
+('MALINI', '2025-12-29', 4, 14),
+('SRIDEVI', '2025-12-29', 2, 55);
 ```
 
 -- 6) Bets (active bets table)
 ```sql
 INSERT INTO `bets` (`mobile_number`, `game_name`, `type`, `amount`, `bet_value`, `open_close`) VALUES
-('9876543210', 'SINGLE', 'single-digit', 100, 5, 'Open'),
-('9123456789', 'DOUBLE', 'double-digit', 50, 12, 'Open'),
-('9012345678', 'JACKPOT', 'jodi', 10, 77, 'Close');
+('9876543210', 'MADHUR', 'Ank', 100, 5, 'Open'),
+('9123456789', 'MALINI', 'Jodi', 50, 12, 'Open'),
+('9012345678', 'SRIDEVI', 'jodi', 10, 77, 'Close');
 ```
 
 -- 7) Bets history (example past bets)
 ```sql
 INSERT INTO `bets_history` (`mobile_number`, `game_name`, `bet_date`, `type`, `amount`, `bet_value`, `open_close`) VALUES
-('9876543210', 'SINGLE', '2025-12-31', 'single-digit', 100, 5, 'Open'),
-('9123456789', 'DOUBLE', '2025-12-31', 'double-digit', 50, 12, 'Open');
+('9876543210', 'MADHUR', '2025-12-31', 'Ank', 100, 5, 'Open'),
+('9123456789', 'MALINI', '2025-12-31', 'Jodi', 50, 12, 'Open');
 ```
 
 -- 7b) Additional bets history for the two extra days
 ```sql
 INSERT INTO `bets_history` (`mobile_number`, `game_name`, `bet_date`, `type`, `amount`, `bet_value`, `open_close`) VALUES
-('9876543210', 'SINGLE', '2025-12-30', 'single-digit', 150, 3, 'Open'),
-('9123456789', 'DOUBLE', '2025-12-30', 'double-digit', 75, 10, 'Open'),
-('9012345678', 'JACKPOT', '2025-12-30', 'jodi', 20, 66, 'Close'),
-('9876543210', 'SINGLE', '2025-12-29', 'single-digit', 200, 8, 'Close'),
-('9123456789', 'DOUBLE', '2025-12-29', 'double-digit', 100, 4, 'Open'),
-('9012345678', 'JACKPOT', '2025-12-29', 'jodi', 5, 55, 'Close');
+('9876543210', 'MADHUR', '2025-12-30', 'Ank', 150, 3, 'Open'),
+('9123456789', 'MALINI', '2025-12-30', 'Jodi', 75, 10, 'Open'),
+('9012345678', 'SRIDEVI', '2025-12-30', 'jodi', 20, 66, 'Close'),
+('9876543210', 'MADHUR', '2025-12-29', 'Ank', 200, 8, 'Close'),
+('9123456789', 'MALINI', '2025-12-29', 'Jodi', 100, 4, 'Open'),
+('9012345678', 'SRIDEVI', '2025-12-29', 'jodi', 5, 55, 'Close');
 ```
 
 -- 8) Transactions
