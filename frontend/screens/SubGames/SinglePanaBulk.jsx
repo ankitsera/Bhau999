@@ -19,6 +19,8 @@ import { SINGLE_PANA_BY_RESULT_DIGIT } from "../../data/singlePanaMap";
 
 import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
+import BettingClosedModal from "../../components/BettingClosedModal";
+import { useBettingGuard } from "../../utils/BettingGuard";
 
 const GREEN = "#3FA16C";
 const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
@@ -26,15 +28,17 @@ const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 const SinglePanaBulk = ({ route }) => {
   const gameName = route?.params?.gameName || "GAME";
 
-  const allowedTypes = ["OPEN", "CLOSE"]; // replace with backend data later
-
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
-  const [selectedType, setSelectedType] = useState(
-    allowedTypes[0] || "OPEN"
-  );
+  const [selectedType, setSelectedType] = useState("OPEN");
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
 
   const [points, setPoints] = useState("");
   const [pointsError, setPointsError] = useState(false);
@@ -91,6 +95,8 @@ const SinglePanaBulk = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     if (bids === 0) {
       Alert.alert("No bets", "Please add at least one bet.");
       return;
@@ -110,7 +116,7 @@ const SinglePanaBulk = ({ route }) => {
       makeBet({
         mobileNumber,
         gameName,
-        type: "SINGLE_PANA",
+        type: "Single Pana",
         openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(), // OPEN/CLOSE
         amount: Number(b.points) || 0,
         betValue: String(b.pana),
@@ -134,13 +140,14 @@ const SinglePanaBulk = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - SINGLE PANA BULK`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
           {/* Game type dropdown */}
           <GameTypePicker
             label="Select Game Type:"
             value={selectedType}
-            options={allowedTypes}
+            options={pickerOptions}
             onChange={setSelectedType}
             containerStyle={{ marginBottom: 12 }}
           />

@@ -19,6 +19,8 @@ import DigitGrid from "../../components/games/DigitGrid";
 
 import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
+import BettingClosedModal from "../../components/BettingClosedModal";
+import { useBettingGuard } from "../../utils/BettingGuard";
 
 const DIGITS = ["1","2","3","4","5","6","7","8","9","0"];
 const GREEN = "#3FA16C";
@@ -26,13 +28,17 @@ const GREEN = "#3FA16C";
 const SingleDigitBulk = ({ route }) => {
   const gameName = route?.params?.gameName || "GAME";
 
-  const allowedTypes = ["OPEN", "CLOSE"]; // temp
-
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
-  const [selectedType, setSelectedType] = useState(allowedTypes[0] || "OPEN");
+  const [selectedType, setSelectedType] = useState("OPEN");
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
 
   // points input at top
   const [pointInput, setPointInput] = useState("");
@@ -73,6 +79,8 @@ const SingleDigitBulk = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     if (bids === 0) {
       Alert.alert("No bets", "Please select at least one digit.");
       return;
@@ -98,7 +106,7 @@ const SingleDigitBulk = ({ route }) => {
       makeBet({
         mobileNumber,
         gameName,
-        type: "SINGLE_DIGIT",
+        type: "Ank",
         openClose: String(selectedType).toUpperCase(), // OPEN/CLOSE
         amount: Number(b.points) || 0,
         betValue: String(b.digit),
@@ -127,6 +135,7 @@ const SingleDigitBulk = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - SINGLE DIGIT BULK`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
           <ScrollView
@@ -138,7 +147,7 @@ const SingleDigitBulk = ({ route }) => {
             <GameTypePicker
               label="Select Game Type:"
               value={selectedType}
-              options={allowedTypes}
+              options={pickerOptions}
               onChange={setSelectedType}
               containerStyle={{ marginBottom: 12 }}
             />

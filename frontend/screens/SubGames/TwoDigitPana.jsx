@@ -24,6 +24,8 @@ import { ALL_TRIPLE_PANA } from "../../data/triplePanaMap";
 
 import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
+import BettingClosedModal from "../../components/BettingClosedModal";
+import { useBettingGuard } from "../../utils/BettingGuard";
 
 const GREEN = "#3FA16C";
 
@@ -68,8 +70,6 @@ function getPanasForTwoDigit(twoDigit) {
 const TwoDigitPana = ({ route }) => {
   const gameName = route?.params?.gameName || "GAME";
 
-  const allowedTypes = ["OPEN", "CLOSE"]; // later from game state/timing
-
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
@@ -82,7 +82,14 @@ const TwoDigitPana = ({ route }) => {
     return `${dd}-${mm}-${yyyy}`;
   })();
 
-  const [selectedType, setSelectedType] = useState(allowedTypes[0] || "OPEN");
+  const [selectedType, setSelectedType] = useState("OPEN");
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
+
   const [digit, setDigit] = useState(""); // 2-digit input
   const [points, setPoints] = useState("");
   const [bets, setBets] = useState([]); // { id, digit(pana), points, type }
@@ -148,6 +155,8 @@ const TwoDigitPana = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     if (totals.bids === 0) {
       Alert.alert("No bets", "Please add at least one bet.");
       return;
@@ -168,12 +177,12 @@ const TwoDigitPana = ({ route }) => {
     // TwoDigitPana generates a MIX of SP/DP/TP -> decide bet type by digit-count pattern
     const detectType = (panaStr) => {
       const s = String(panaStr || "");
-      if (!/^\d{3}$/.test(s)) return "SINGLE_PANA";
+      if (!/^\d{3}$/.test(s)) return "Single Pana";
       const c = buildDigitCount(s);
       const max = Math.max(...Object.values(c));
-      if (max === 3) return "TRIPLE_PANA"; // 000,111...
-      if (max === 2) return "DOUBLE_PANA"; // 112, 505...
-      return "SINGLE_PANA";               // 123...
+      if (max === 3) return "Triple Pana"; // 000,111...
+      if (max === 2) return "Double Pana"; // 112, 505...
+      return "Single Pana";               // 123...
     };
 
     const betsToSend = bets.map((b) =>
@@ -204,12 +213,13 @@ const TwoDigitPana = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - TWO DIGIT`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
           <GameDateTypeRow
             dateLabel={todayLabel}
             gameTypeValue={selectedType}
-            gameTypeOptions={allowedTypes}
+            gameTypeOptions={pickerOptions}
             onChangeGameType={setSelectedType}
           />
 

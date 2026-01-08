@@ -18,6 +18,8 @@ import BottomBetBar from "../../components/games/BottomBetBar";
 
 import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
+import BettingClosedModal from "../../components/BettingClosedModal";
+import { useBettingGuard } from "../../utils/BettingGuard";
 
 const GREEN = "#3FA16C";
 
@@ -26,8 +28,6 @@ const EVEN_DIGITS = ["0", "2", "4", "6", "8"];
 
 const OddEven = ({ route }) => {
   const gameName = route?.params?.gameName || "GAME";
-
-  const allowedTypes = ["OPEN", "CLOSE"]; // temp
 
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
@@ -41,7 +41,13 @@ const OddEven = ({ route }) => {
     return `${dd}-${mm}-${yyyy}`;
   })();
 
-  const [selectedType, setSelectedType] = useState(allowedTypes[0] || "OPEN");
+  const [selectedType, setSelectedType] = useState("OPEN");
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
   const [pick, setPick] = useState("ODD"); // "ODD" | "EVEN"
   const [points, setPoints] = useState("");
   const [bets, setBets] = useState([]); // { id, digit, points, type }
@@ -93,6 +99,8 @@ const OddEven = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     if (totals.bids === 0) {
       Alert.alert("No bets", "Please add at least one bet.");
       return;
@@ -112,7 +120,7 @@ const OddEven = ({ route }) => {
       makeBet({
         mobileNumber,
         gameName,
-        type: "ODD_EVEN",
+        type: "Ank",
         openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(),
         amount: Number(b.points) || 0,
         betValue: b.digit,
@@ -133,12 +141,13 @@ const OddEven = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - ODD EVEN`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
           <GameDateTypeRow
             dateLabel={todayLabel}
             gameTypeValue={selectedType}
-            gameTypeOptions={allowedTypes}
+            gameTypeOptions={pickerOptions}
             onChangeGameType={setSelectedType}
           />
 

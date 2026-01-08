@@ -15,6 +15,8 @@ import SpecialModeGrid from "../../components/games/SpecialModeGrid";
 
 import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
+import BettingClosedModal from "../../components/BettingClosedModal";
+import { useBettingGuard } from "../../utils/BettingGuard";
 
 const GREEN = "#3FA16C";
 
@@ -35,8 +37,6 @@ const RED_JODI_NUMBERS = [
 const RedJodi = ({ route }) => {
   const gameName = route?.params?.gameName || "GAME";
 
-  const allowedTypes = ["OPEN", "CLOSE"]; // TODO: from backend/game timings
-
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
@@ -49,7 +49,13 @@ const RedJodi = ({ route }) => {
     return `${dd}-${mm}-${yyyy}`;
   })();
 
-  const [selectedType, setSelectedType] = useState(allowedTypes[0] || "OPEN");
+  const [selectedType, setSelectedType] = useState("OPEN");
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
 
   // points keyed by jodi number
   const [pointsByJodi, setPointsByJodi] = useState(() =>
@@ -82,6 +88,8 @@ const RedJodi = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     if (totals.bids === 0) {
       Alert.alert("No bets", "Please enter points for at least one Red Jodi.");
       return;
@@ -107,7 +115,7 @@ const RedJodi = ({ route }) => {
       makeBet({
         mobileNumber,
         gameName,
-        type: "RED_JODI",
+        type: "Jodi",
         openClose: selectedType, // "OPEN"/"CLOSE"
         amount: Number(b.points) || 0,
         betValue: b.jodi,
@@ -135,6 +143,7 @@ const RedJodi = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - JODI`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
           <ScrollView
@@ -145,7 +154,7 @@ const RedJodi = ({ route }) => {
             <GameDateTypeRow
               dateLabel={todayLabel}
               gameTypeValue={selectedType}
-              gameTypeOptions={allowedTypes}
+              gameTypeOptions={pickerOptions}
               onChangeGameType={setSelectedType}
             />
 

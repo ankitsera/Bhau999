@@ -17,6 +17,8 @@ import EasyModeTable from "../../components/games/EasyModeTable";
 
 import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
+import BettingClosedModal from "../../components/BettingClosedModal";
+import { useBettingGuard } from "../../utils/BettingGuard";
 
 const GREEN = "#3FA16C";
 
@@ -28,7 +30,12 @@ const DIGIT_ROWS = [
 const DigitBasedJodi = ({ route }) => {
   const gameName = route?.params?.gameName || "GAME";
 
-  const allowedTypes = ["OPEN", "CLOSE"]; // later from context
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+    onClosed: () => navigation.goBack(),
+  });
 
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
@@ -98,6 +105,8 @@ const DigitBasedJodi = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     if (totals.bids === 0) {
       Alert.alert("No bets", "Please add at least one digit group.");
       return;
@@ -118,7 +127,7 @@ const DigitBasedJodi = ({ route }) => {
       makeBet({
         mobileNumber,
         gameName,
-        type: "DIGIT_BASED_JODI",
+        type: 'Jodi',
         openClose: String(b.type).toUpperCase(),
         amount: Number(b.points) || 0,
         betValue: b.digit,
@@ -143,6 +152,7 @@ const DigitBasedJodi = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - JODI`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         {/* MAIN CONTENT (no ScrollView) */}
         <View style={styles.content}>
@@ -150,7 +160,7 @@ const DigitBasedJodi = ({ route }) => {
           <GameDateTypeRow
             dateLabel={todayLabel}
             gameTypeValue={selectedType}
-            gameTypeOptions={allowedTypes}
+            gameTypeOptions={pickerOptions}
             onChangeGameType={setSelectedType}
           />
 

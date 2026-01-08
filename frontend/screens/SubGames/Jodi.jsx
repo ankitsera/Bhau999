@@ -23,6 +23,8 @@ import SpecialModeGrid from '../../components/games/SpecialModeGrid';
 
 import { AuthContext } from '../../contexts/AuthContext';
 import { placeBets, makeBet } from '../../utils/GameService';
+import BettingClosedModal from '../../components/BettingClosedModal';
+import { useBettingGuard } from '../../utils/BettingGuard';
 
 const GREEN = '#3FA16C';
 const BLACK = '#000';
@@ -45,8 +47,6 @@ const FIRST_DIGIT_MAP = Array.from({ length: 10 }, (_, d) => {
 const Jodi = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
 
-  const allowedTypes = ['OPEN', 'CLOSE']; // temp (later from timing logic)
-
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
@@ -60,7 +60,13 @@ const Jodi = ({ route }) => {
   })();
 
   const [mode, setMode] = useState('EASY'); // EASY | SPECIAL
-  const [selectedType, setSelectedType] = useState(allowedTypes[0] || 'OPEN');
+  const [selectedType, setSelectedType] = useState('OPEN');
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
 
   // easy mode
   const [jodiDigit, setJodiDigit] = useState('');
@@ -139,6 +145,8 @@ const Jodi = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     const { bids, points } = activeTotals;
 
     if (bids === 0) {
@@ -212,6 +220,7 @@ const Jodi = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - JODI`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
           {/* mode toggle */}
@@ -233,7 +242,7 @@ const Jodi = ({ route }) => {
               <GameTypePicker
                 label="Select Game Type:"
                 value={selectedType}
-                options={allowedTypes}
+                options={pickerOptions}
                 onChange={setSelectedType}
                 containerStyle={{ marginBottom: 12 }}
               />
@@ -264,7 +273,7 @@ const Jodi = ({ route }) => {
               <GameDateTypeRow
                 dateLabel={todayLabel}
                 gameTypeValue={selectedType}
-                gameTypeOptions={allowedTypes}
+                gameTypeOptions={pickerOptions}
                 onChangeGameType={setSelectedType}
               />
 

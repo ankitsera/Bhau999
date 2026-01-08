@@ -17,6 +17,8 @@ import { getSinglePanaSuggestions } from '../../data/singlePanaMap';
 
 import { AuthContext } from '../../contexts/AuthContext';
 import { placeBets, makeBet } from '../../utils/GameService';
+import BettingClosedModal from '../../components/BettingClosedModal';
+import { useBettingGuard } from '../../utils/BettingGuard';
 
 const GREEN = '#3FA16C';
 
@@ -26,6 +28,14 @@ const HalfSangamA = ({ route }) => {
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
+
+  const [selectedType, setSelectedType] = useState('OPEN');
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
 
   const [openPana, setOpenPana] = useState('');
   const [closeAnk, setCloseAnk] = useState('');
@@ -109,6 +119,8 @@ const HalfSangamA = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     const { bids, points: totalPts } = totals;
 
     if (bids === 0) {
@@ -133,7 +145,7 @@ const HalfSangamA = ({ route }) => {
       makeBet({
         mobileNumber,
         gameName,
-        type: 'HALF_SANGAM_A',
+        type: 'Half Sangam',
         openClose: 'CLOSE',
         amount: Number(b.points) || 0,
         betValue: b.sangam, // "openPana-closeAnk"
@@ -154,6 +166,7 @@ const HalfSangamA = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - HALF SANGAM(A)`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
           <ScrollView

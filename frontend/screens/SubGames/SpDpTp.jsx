@@ -23,13 +23,21 @@ import { TRIPLE_PANA_BY_RESULT_DIGIT } from "../../data/triplePanaMap";
 
 import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
+import BettingClosedModal from "../../components/BettingClosedModal";
+import { useBettingGuard } from "../../utils/BettingGuard";
 
 const GREEN = "#3FA16C";
 
+function buildDigitCount(str) {
+  const c = {};
+  for (const ch of String(str)) {
+    c[ch] = (c[ch] || 0) + 1;
+  }
+  return c;
+}
+
 const SpDpTp = ({ route }) => {
   const gameName = route?.params?.gameName || "GAME";
-
-  const allowedTypes = ["OPEN", "CLOSE"]; // later from backend
 
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
@@ -43,7 +51,13 @@ const SpDpTp = ({ route }) => {
     return `${dd}-${mm}-${yyyy}`;
   })();
 
-  const [selectedType, setSelectedType] = useState(allowedTypes[0] || "OPEN");
+  const [selectedType, setSelectedType] = useState("OPEN");
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
 
   const [spChecked, setSpChecked] = useState(false);
   const [dpChecked, setDpChecked] = useState(false);
@@ -143,6 +157,8 @@ const SpDpTp = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     if (totals.bids === 0) {
       Alert.alert("No bets", "Please generate at least one bet.");
       return;
@@ -158,11 +174,22 @@ const SpDpTp = ({ route }) => {
       return;
     }
 
+    // Detect bet type by digit-count pattern (Single/Double/Triple Pana)
+    const detectType = (panaStr) => {
+      const s = String(panaStr || "");
+      if (!/^\d{3}$/.test(s)) return "Single Pana";
+      const c = buildDigitCount(s);
+      const max = Math.max(...Object.values(c));
+      if (max === 3) return "Triple Pana"; // 000,111...
+      if (max === 2) return "Double Pana"; // 112, 505...
+      return "Single Pana";               // 123...
+    };
+
     const betsToSend = bets.map((b) =>
       makeBet({
         mobileNumber,
         gameName,
-        type: "SP_DP_TP",
+        type: detectType(b.digit),
         openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(), // OPEN/CLOSE
         amount: Number(b.points) || 0,
         betValue: String(b.digit),
@@ -189,12 +216,13 @@ const SpDpTp = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - SP DP TP`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
           <GameDateTypeRow
             dateLabel={todayLabel}
             gameTypeValue={selectedType}
-            gameTypeOptions={allowedTypes}
+            gameTypeOptions={pickerOptions}
             onChangeGameType={setSelectedType}
           />
 

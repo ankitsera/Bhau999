@@ -19,6 +19,8 @@ import { getSinglePanaCommonDigitPanas } from '../../data/singlePanaMap';
 
 import { AuthContext } from '../../contexts/AuthContext';
 import { placeBets, makeBet } from '../../utils/GameService';
+import BettingClosedModal from '../../components/BettingClosedModal';
+import { useBettingGuard } from '../../utils/BettingGuard';
 
 const GREEN = '#3FA16C';
 
@@ -28,13 +30,18 @@ const ROW2 = ['6', '7', '8', '9', '0'];
 const SpCommon = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
 
-  const allowedTypes = ['OPEN', 'CLOSE']; // later from context
-
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
-  const [selectedType, setSelectedType] = useState(allowedTypes[0] || 'OPEN');
+  const [selectedType, setSelectedType] = useState('OPEN');
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
+
   const [points, setPoints] = useState('');
   const [pointsError, setPointsError] = useState(false);
 
@@ -83,6 +90,8 @@ const SpCommon = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     if (totals.bids === 0) {
       Alert.alert('No bets', 'Please add at least one pana.');
       return;
@@ -104,7 +113,7 @@ const SpCommon = ({ route }) => {
       makeBet({
         mobileNumber,
         gameName,
-        type: 'SINGLE_PANA',
+        type: 'Single Pana',
         openClose,
         amount: Number(b.points) || 0,
         betValue: String(b.digit),
@@ -128,12 +137,13 @@ const SpCommon = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - SP COMMON`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
           <GameTypePicker
             label="Select Game Type:"
             value={selectedType}
-            options={allowedTypes}
+            options={pickerOptions}
             onChange={setSelectedType}
             containerStyle={{ marginBottom: 12 }}
           />

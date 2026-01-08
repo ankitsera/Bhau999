@@ -24,6 +24,8 @@ import SpecialModeGrid from '../../components/games/SpecialModeGrid';
 
 import { AuthContext } from '../../contexts/AuthContext';
 import { placeBets, makeBet } from '../../utils/GameService';
+import BettingClosedModal from '../../components/BettingClosedModal';
+import { useBettingGuard } from '../../utils/BettingGuard';
 
 const GREEN = '#3FA16C';
 const BLACK = '#000';
@@ -31,8 +33,6 @@ const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 const SingleDigit = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
-
-  const allowedTypes = ['OPEN', 'CLOSE']; // temp
 
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
@@ -48,7 +48,13 @@ const SingleDigit = ({ route }) => {
 
   // -------- STATE --------
   const [mode, setMode] = useState('EASY'); // "EASY" | "SPECIAL"
-  const [selectedType, setSelectedType] = useState(allowedTypes[0] || 'OPEN');
+  const [selectedType, setSelectedType] = useState('OPEN');
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
 
   // Easy mode
   const [easyDigit, setEasyDigit] = useState('');
@@ -131,6 +137,8 @@ const SingleDigit = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     const { bids, points } = activeTotals;
 
     if (bids === 0) {
@@ -198,6 +206,7 @@ const SingleDigit = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - SINGLE DIGIT`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
           {/* Mode toggle */}
@@ -219,7 +228,7 @@ const SingleDigit = ({ route }) => {
             <GameTypePicker
               label="Select Game Type:"
               value={selectedType}
-              options={allowedTypes}
+              options={pickerOptions}
               onChange={setSelectedType}
               containerStyle={{ marginBottom: 12 }}
             />
@@ -230,7 +239,7 @@ const SingleDigit = ({ route }) => {
             <GameDateTypeRow
               dateLabel={todayLabel}
               gameTypeValue={selectedType}
-              gameTypeOptions={allowedTypes}
+              gameTypeOptions={pickerOptions}
               onChangeGameType={setSelectedType}
             />
           )}

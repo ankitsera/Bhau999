@@ -22,13 +22,13 @@ import {
 
 import { AuthContext } from '../../contexts/AuthContext';
 import { placeBets, makeBet } from '../../utils/GameService';
+import BettingClosedModal from '../../components/BettingClosedModal';
+import { useBettingGuard } from '../../utils/BettingGuard';
 
 const GREEN = '#3FA16C';
 
 const SpMotor = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
-
-  const allowedTypes = ['OPEN', 'CLOSE']; // later from game config
 
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
@@ -42,7 +42,14 @@ const SpMotor = ({ route }) => {
     return `${dd}-${mm}-${yyyy}`;
   })();
 
-  const [selectedType, setSelectedType] = useState(allowedTypes[0] || 'OPEN');
+  const [selectedType, setSelectedType] = useState('OPEN');
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
+
   const [digits, setDigits] = useState(''); // 4..6 unique digits
   const [points, setPoints] = useState('');
   const [bets, setBets] = useState([]); // {id, digit(pana), points, type}
@@ -106,6 +113,8 @@ const SpMotor = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     if (totals.bids === 0) {
       Alert.alert('No bets', 'Please add at least one pana.');
       return;
@@ -125,7 +134,7 @@ const SpMotor = ({ route }) => {
       makeBet({
         mobileNumber,
         gameName,
-        type: 'SINGLE_PANA',
+        type: 'Single Pana',
         openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(), // OPEN/CLOSE
         amount: Number(b.points) || 0,
         betValue: String(b.digit),
@@ -149,12 +158,13 @@ const SpMotor = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - SP MOTOR`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
           <GameDateTypeRow
             dateLabel={todayLabel}
             gameTypeValue={selectedType}
-            gameTypeOptions={allowedTypes}
+            gameTypeOptions={pickerOptions}
             onChangeGameType={setSelectedType}
           />
 

@@ -17,6 +17,8 @@ import { getSinglePanaSuggestions } from "../../data/singlePanaMap";
 
 import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
+import BettingClosedModal from "../../components/BettingClosedModal";
+import { useBettingGuard } from "../../utils/BettingGuard";
 
 const GREEN = "#3FA16C";
 
@@ -33,6 +35,14 @@ const FullSangam = ({ route }) => {
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
+
+  const [selectedType, setSelectedType] = useState("OPEN");
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
 
   const [openPana, setOpenPana] = useState("");
   const [closePana, setClosePana] = useState("");
@@ -119,6 +129,8 @@ const FullSangam = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     if (bets.length === 0) {
       Alert.alert("No bets", "Please add at least one bet.");
       return;
@@ -141,7 +153,7 @@ const FullSangam = ({ route }) => {
       makeBet({
         mobileNumber,
         gameName,
-        type: "FULL_SANGAM",
+        type: "Full Sangam",
         openClose,
         amount: Number(b.points) || 0,
         betValue: b.sangam, // "open-close"
@@ -162,6 +174,7 @@ const FullSangam = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - FULL SANGAM`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
           <ScrollView

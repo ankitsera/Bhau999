@@ -16,19 +16,25 @@ import EasyModeTable from "../../components/games/EasyModeTable";
 
 import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
+import BettingClosedModal from "../../components/BettingClosedModal";
+import { useBettingGuard } from "../../utils/BettingGuard";
 
 const GREEN = "#3FA16C";
 
 const JodiBulk = ({ route }) => {
   const gameName = route?.params?.gameName || "GAME";
 
-  const allowedTypes = ["OPEN", "CLOSE"]; // or from backend
-
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
-  const [selectedType, setSelectedType] = useState(allowedTypes[0] || "OPEN");
+  const [selectedType, setSelectedType] = useState("OPEN");
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
 
   const [points, setPoints] = useState("");
   const [jodiDigit, setJodiDigit] = useState("");
@@ -103,6 +109,8 @@ const JodiBulk = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     if (bids === 0) {
       Alert.alert("No bets", "Please add at least one Jodi.");
       return;
@@ -122,7 +130,7 @@ const JodiBulk = ({ route }) => {
       makeBet({
         mobileNumber,
         gameName,
-        type: "JODI_BULK",
+        type: "Jodi",
         openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(),
         amount: Number(b.points) || 0,
         betValue: b.digit,
@@ -144,13 +152,14 @@ const JodiBulk = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - JODI BULK`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
           {/* Game type selector like other screens */}
           <GameTypePicker
             label="Select Game Type:"
             value={selectedType}
-            options={allowedTypes}
+            options={pickerOptions}
             onChange={setSelectedType}
             containerStyle={{ marginBottom: 12 }}
           />

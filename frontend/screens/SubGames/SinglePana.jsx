@@ -27,6 +27,8 @@ import {
 
 import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
+import BettingClosedModal from "../../components/BettingClosedModal";
+import { useBettingGuard } from "../../utils/BettingGuard";
 
 const GREEN = "#3FA16C";
 const BLACK = "#000";
@@ -38,8 +40,6 @@ const SinglePana = ({ route }) => {
 
   const { user } = useContext(AuthContext);
   const mobileNumber = user?.mobileNumber; 
-
-  const allowedTypes = ["OPEN", "CLOSE"]; // temp
   const balance = Number(user?.balance || 0);
 
   // today's date label (static style dd-mm-yyyy)
@@ -54,7 +54,13 @@ const SinglePana = ({ route }) => {
   // -------- STATE --------
   const [mode, setMode] = useState("EASY"); // "EASY" | "SPECIAL"
 
-  const [selectedType, setSelectedType] = useState(allowedTypes[0] || "OPEN");
+  const [selectedType, setSelectedType] = useState("OPEN");
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
 
   // Easy mode
   const [easyPana, setEasyPana] = useState("");
@@ -134,6 +140,8 @@ const SinglePana = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     const { bids, points } = activeTotals;
 
     if (bids === 0) {
@@ -214,6 +222,7 @@ const SinglePana = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - SINGLE PANA`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         {/* MAIN CONTENT */}
         <View style={styles.content}>
@@ -236,7 +245,7 @@ const SinglePana = ({ route }) => {
             <GameTypePicker
               label="Select Game Type:"
               value={selectedType}
-              options={allowedTypes}
+              options={pickerOptions}
               onChange={setSelectedType}
               containerStyle={{ marginBottom: 12 }}
             />
@@ -247,7 +256,7 @@ const SinglePana = ({ route }) => {
             <GameDateTypeRow
               dateLabel={todayLabel}
               gameTypeValue={selectedType}
-              gameTypeOptions={allowedTypes}
+              gameTypeOptions={pickerOptions}
               onChangeGameType={setSelectedType}
             />
           )}

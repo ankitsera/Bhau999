@@ -17,13 +17,13 @@ import { ALL_TRIPLE_PANA } from "../../data/triplePanaMap";
 
 import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
+import BettingClosedModal from "../../components/BettingClosedModal";
+import { useBettingGuard } from "../../utils/BettingGuard";
 
 const GREEN = "#3FA16C";
 
 const TriplePana = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
-
-  const allowedTypes = ["OPEN", "CLOSE"]; // later from game timings
 
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
@@ -37,7 +37,13 @@ const TriplePana = ({ route }) => {
     return `${dd}-${mm}-${yyyy}`;
   })();
 
-  const [selectedType, setSelectedType] = useState(allowedTypes[0] || "OPEN");
+  const [selectedType, setSelectedType] = useState("OPEN");
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
 
   // points keyed by pana (same shape SpecialModeGrid expects)
   const [pointsByPana, setPointsByPana] = useState(() =>
@@ -70,6 +76,8 @@ const TriplePana = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     if (totals.bids === 0) {
       Alert.alert("No bets", "Please enter points for at least one pana.");
       return;
@@ -122,6 +130,7 @@ const TriplePana = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={["bottom"]}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - TRIPLE PANA`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -131,7 +140,7 @@ const TriplePana = ({ route }) => {
           <GameDateTypeRow
             dateLabel={todayLabel}
             gameTypeValue={selectedType}
-            gameTypeOptions={allowedTypes}
+            gameTypeOptions={pickerOptions}
             onChangeGameType={setSelectedType}
           />
 

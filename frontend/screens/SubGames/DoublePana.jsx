@@ -30,6 +30,8 @@ import {
 
 import { AuthContext } from '../../contexts/AuthContext';
 import { placeBets, makeBet } from '../../utils/GameService';
+import BettingClosedModal from '../../components/BettingClosedModal';
+import { useBettingGuard } from '../../utils/BettingGuard';
 
 const GREEN = '#3FA16C';
 const BLACK = '#000';
@@ -40,8 +42,6 @@ const GROUP_KEYS = Object.keys(DOUBLE_PANA_BY_RESULT_DIGIT).sort(
 
 const DoublePana = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
-
-  const allowedTypes = ['OPEN', 'CLOSE']; // replace later
 
   const { user } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
@@ -57,7 +57,13 @@ const DoublePana = ({ route }) => {
 
   // -------- STATE --------
   const [mode, setMode] = useState('EASY'); // "EASY" | "SPECIAL"
-  const [selectedType, setSelectedType] = useState(allowedTypes[0] || 'OPEN');
+  const [selectedType, setSelectedType] = useState('OPEN');
+
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+    selectedType,
+    setSelectedType,
+  });
 
   // Easy mode
   const [easyPana, setEasyPana] = useState('');
@@ -136,6 +142,8 @@ const DoublePana = ({ route }) => {
   };
 
   const handleSubmit = async () => {
+    if (!guard()) return;
+
     const { bids, points } = activeTotals;
 
     if (bids === 0) {
@@ -215,6 +223,7 @@ const DoublePana = ({ route }) => {
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <View style={styles.screen}>
         <DynamicHeader title={`${gameName} - DOUBLE PANA`} />
+        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <KeyboardAvoidingView
           style={styles.content}
@@ -241,7 +250,7 @@ const DoublePana = ({ route }) => {
               <GameTypePicker
                 label="Select Game Type:"
                 value={selectedType}
-                options={allowedTypes}
+                options={pickerOptions}
                 onChange={setSelectedType}
                 containerStyle={{ marginBottom: 12 }}
               />
@@ -252,7 +261,7 @@ const DoublePana = ({ route }) => {
               <GameDateTypeRow
                 dateLabel={todayLabel}
                 gameTypeValue={selectedType}
-                gameTypeOptions={allowedTypes}
+                gameTypeOptions={pickerOptions}
                 onChangeGameType={setSelectedType}
               />
             )}
