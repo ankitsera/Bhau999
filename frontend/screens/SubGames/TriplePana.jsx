@@ -25,7 +25,7 @@ const GREEN = "#3FA16C";
 const TriplePana = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
 
-  const { user } = useContext(AuthContext);
+  const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
@@ -101,7 +101,7 @@ const TriplePana = ({ route }) => {
           makeBet({
             mobileNumber,
             gameName,
-            type: "TRIPLE_PANA",
+            type: "Triple Pana",
             openClose: String(selectedType).toUpperCase(), // OPEN/CLOSE
             amount: pts,
             betValue: String(p),
@@ -113,6 +113,11 @@ const TriplePana = ({ route }) => {
     try {
       const res = await placeBets(betsToSend);
       Alert.alert("Success", "Bets placed successfully!");
+
+      // Update balance safely
+      const spent = Number(totals.points) || 0;
+      const nextBalance = Math.max(0, balance - spent);
+      updateUser({ balance: nextBalance });
 
       setPointsByPana(
         ALL_TRIPLE_PANA.reduce((acc, p) => {

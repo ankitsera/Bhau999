@@ -34,7 +34,7 @@ const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 const SingleDigit = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
 
-  const { user } = useContext(AuthContext);
+  const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
@@ -162,7 +162,7 @@ const SingleDigit = ({ route }) => {
             makeBet({
               mobileNumber,
               gameName,
-              type: 'SINGLE_DIGIT',
+              type: 'Ank',
               openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(), // OPEN/CLOSE
               amount: Number(b.points) || 0,
               betValue: String(b.digit),
@@ -174,7 +174,7 @@ const SingleDigit = ({ route }) => {
             return makeBet({
               mobileNumber,
               gameName,
-              type: 'SINGLE_DIGIT',
+              type: 'Ank',
               openClose: String(selectedType).toUpperCase(), // OPEN/CLOSE
               amount: p,
               betValue: String(d),
@@ -184,6 +184,11 @@ const SingleDigit = ({ route }) => {
     try {
       const res = await placeBets(betsToSend);
       Alert.alert('Success', 'Bets placed successfully!');
+
+      // Update balance safely
+      const spent = Number(points) || 0;
+      const nextBalance = Math.max(0, balance - spent);
+      updateUser({ balance: nextBalance });
 
       // reset
       setEasyBets([]);

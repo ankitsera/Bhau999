@@ -30,7 +30,7 @@ const ROW2 = ['6', '7', '8', '9', '0'];
 const SpCommon = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
 
-  const { user } = useContext(AuthContext);
+  const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
@@ -123,6 +123,11 @@ const SpCommon = ({ route }) => {
     try {
       const res = await placeBets(betsToSend);
       Alert.alert('Success', 'Bets placed successfully!');
+
+      // Update balance safely
+      const spent = Number(totals.points) || 0;
+      const nextBalance = Math.max(0, balance - spent);
+      updateUser({ balance: nextBalance });
 
       setBets([]);
       setPoints('');

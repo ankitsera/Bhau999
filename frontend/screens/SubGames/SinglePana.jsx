@@ -38,7 +38,7 @@ const GROUP_KEYS = Object.keys(SINGLE_PANA_BY_RESULT_DIGIT); // "0".."9"
 const SinglePana = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
 
-  const { user } = useContext(AuthContext);
+  const { user, updateUser } = useContext(AuthContext);
   const mobileNumber = user?.mobileNumber; 
   const balance = Number(user?.balance || 0);
 
@@ -170,7 +170,7 @@ const SinglePana = ({ route }) => {
         makeBet({
           mobileNumber,
           gameName,
-          type: "SINGLE_PANA", // ✅ CHANGED: type = sub-game
+          type: "Single Pana",
           openClose: String(b.type || "").toUpperCase(), // ✅ NEW: open_close per row
           amount: Number(b.points) || 0, // ✅ CHANGED: amount instead of points
           betValue: b.pana, // ✅ NEW: betValue
@@ -185,7 +185,7 @@ const SinglePana = ({ route }) => {
             makeBet({
               mobileNumber,
               gameName,
-              type: "SINGLE_PANA",
+              type: "Single Pana",
               openClose: selectedType,
               amount: p,
               betValue: pana,
@@ -200,6 +200,11 @@ const SinglePana = ({ route }) => {
       // API call
       const res = await placeBets(betsToSend);
       Alert.alert("Success", "Bets placed successfully!");
+
+      // Update balance safely
+      const spent = Number(activeTotals.points) || 0;
+      const nextBalance = Math.max(0, balance - spent);
+      updateUser({ balance: nextBalance });
 
       // optional small reset (kept minimal)
       if (mode === "EASY") {

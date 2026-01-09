@@ -43,7 +43,7 @@ const GROUP_KEYS = Object.keys(DOUBLE_PANA_BY_RESULT_DIGIT).sort(
 const DoublePana = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
 
-  const { user } = useContext(AuthContext);
+  const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
@@ -187,7 +187,7 @@ const DoublePana = ({ route }) => {
             makeBet({
               mobileNumber,
               gameName,
-              type: 'DOUBLE_PANA',
+              type: 'Double Pana',
               openClose: selectedType,
               amount: p,
               betValue: pana,
@@ -202,6 +202,11 @@ const DoublePana = ({ route }) => {
       const res = await placeBets(betsToSend); // API call
 
       Alert.alert('Success', 'Bets placed successfully!');
+
+      // Update balance safely
+      const spent = Number(activeTotals.points) || 0;
+      const nextBalance = Math.max(0, balance - spent);
+      updateUser({ balance: nextBalance });
 
       // minimal reset
       if (mode === 'EASY') {

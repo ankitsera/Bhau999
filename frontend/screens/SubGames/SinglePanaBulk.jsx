@@ -28,7 +28,7 @@ const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 const SinglePanaBulk = ({ route }) => {
   const gameName = route?.params?.gameName || "GAME";
 
-  const { user } = useContext(AuthContext);
+  const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
@@ -126,6 +126,11 @@ const SinglePanaBulk = ({ route }) => {
     try {
       const res = await placeBets(betsToSend);
       Alert.alert("Success", "Bets placed successfully!");
+
+      // Update balance safely
+      const spent = Number(totalPoints) || 0;
+      const nextBalance = Math.max(0, balance - spent);
+      updateUser({ balance: nextBalance });
 
       setBets([]);
       setPoints("");

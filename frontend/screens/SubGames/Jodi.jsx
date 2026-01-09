@@ -47,7 +47,7 @@ const FIRST_DIGIT_MAP = Array.from({ length: 10 }, (_, d) => {
 const Jodi = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
 
-  const { user } = useContext(AuthContext);
+  const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
@@ -188,7 +188,7 @@ const Jodi = ({ route }) => {
         makeBet({
           mobileNumber,
           gameName,
-          type: 'JODI',
+          type: 'Jodi',
           openClose: selectedType,
           amount: Number(x.points) || 0,
           betValue: x.jodi,
@@ -199,6 +199,11 @@ const Jodi = ({ route }) => {
     try {
       const res = await placeBets(betsToSend);
       Alert.alert('Success', 'Bets placed successfully!');
+
+      // Update balance safely
+      const spent = Number(activeTotals.points) || 0;
+      const nextBalance = Math.max(0, balance - spent);
+      updateUser({ balance: nextBalance });
 
       // clear placed bets
       setEasyBets([]);

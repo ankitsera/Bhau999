@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,14 @@ import {
   TouchableOpacity,
   Modal,
   Linking,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AuthContext } from '../../contexts/AuthContext';
+import { PaymentsContext } from '../../contexts/PaymentsContext';
 
 const GREEN = '#3FA16C';
 
@@ -42,6 +45,8 @@ function formatTime({ hour, minute }) {
 
 const WithdrawMoney = ({ navigation }) => {
   const { user } = useContext(AuthContext);
+  const { withdrawMoney, loading: payLoading } = useContext(PaymentsContext);
+
   const insets = useSafeAreaInsets();
   const [amount, setAmount] = useState('');
 
@@ -66,8 +71,35 @@ const WithdrawMoney = ({ navigation }) => {
     }
   }, []);
 
-  const handleWithdraw = () => {
-    // TODO: validate amount <= balance, submit request
+  const amtNum = useMemo(() => Number(String(amount).trim()), [amount]);
+  const isDisabled = !Number.isFinite(amtNum) || amtNum <= 0 || payLoading;
+
+  const handleWithdraw = async () => {
+    try {
+      const within = isWithinWithdrawalWindow();
+      if (!within) {
+        setShowClosedModal(true);
+        return;
+      }
+
+      if (!Number.isFinite(amtNum) || amtNum <= 0) {
+        Alert.alert('Invalid Amount', 'Please enter a valid amount.');
+        return;
+      }
+
+      const currentBal = Number(user?.balance || 0);
+      if (amtNum > currentBal) {
+        Alert.alert('Insufficient Balance', 'You do not have enough balance to withdraw.');
+        return;
+      }
+
+      await withdrawMoney({ amountRupees: amtNum });
+
+      // optional: clear input on success
+      setAmount('');
+    } catch (e) {
+      Alert.alert('Withdraw Failed', e?.message || 'Something went wrong.');
+    }
   };
 
   return (
@@ -79,7 +111,7 @@ const WithdrawMoney = ({ navigation }) => {
           <Pressable
             onPress={() => navigation.goBack()}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={{ paddingRight: 8, marginBottom: 15, }}
+            style={{ paddingRight: 8, marginBottom: 15 }}
           >
             <MaterialIcons name="arrow-back" size={26} color="#000" />
           </Pressable>
@@ -152,6 +184,7 @@ const WithdrawMoney = ({ navigation }) => {
               style={styles.amountInput}
               value={amount}
               onChangeText={setAmount}
+              editable={!payLoading}
             />
           </View>
         </View>
@@ -160,12 +193,12 @@ const WithdrawMoney = ({ navigation }) => {
       {/* BOTTOM CTA */}
       <View style={[styles.bottomWrap, { paddingBottom: insets.bottom }]}>
         <TouchableOpacity
-          style={[styles.bottomBtn, !amount && { opacity: 0.6 }]}
+          style={[styles.bottomBtn, isDisabled && { opacity: 0.6 }]}
           onPress={handleWithdraw}
-          disabled={!amount}
+          disabled={isDisabled}
           activeOpacity={0.85}
         >
-          <Text style={styles.bottomText}>Send Request</Text>
+          {payLoading ? <ActivityIndicator /> : <Text style={styles.bottomText}>Send Request</Text>}
         </TouchableOpacity>
       </View>
 

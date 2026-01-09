@@ -26,7 +26,7 @@ const HalfSangamB = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
 
   // TODO: replace with WalletContext later
-  const { user } = useContext(AuthContext);
+  const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
@@ -155,6 +155,12 @@ const HalfSangamB = ({ route }) => {
     try {
       const res = await placeBets(betsToSend);
       Alert.alert('Success', 'Bets placed successfully!');
+
+      // Update balance safely
+      const spent = Number(totals.points) || 0;
+      const nextBalance = Math.max(0, balance - spent);
+      updateUser({ balance: nextBalance });
+
       setBets([]);
     } catch (e) {
       console.error(e);

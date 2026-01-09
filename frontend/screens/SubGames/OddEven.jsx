@@ -29,7 +29,7 @@ const EVEN_DIGITS = ["0", "2", "4", "6", "8"];
 const OddEven = ({ route }) => {
   const gameName = route?.params?.gameName || "GAME";
 
-  const { user } = useContext(AuthContext);
+  const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
@@ -130,6 +130,12 @@ const OddEven = ({ route }) => {
     try {
       const res = await placeBets(betsToSend);
       Alert.alert("Success", "Bets placed successfully!");
+
+      // Update balance safely
+      const spent = Number(totals.points) || 0;
+      const nextBalance = Math.max(0, balance - spent);
+      updateUser({ balance: nextBalance });
+
       setBets([]);
     } catch (e) {
       console.error(e);

@@ -4,7 +4,7 @@ import {
   lookupIFSC,
   savePayout as savePayoutAPI,
   startUpiPayment,
-  submitUpiTopupResult,
+  submitTransaction,
 } from "../utils/PaymentsService";
 import { AuthContext } from "./AuthContext";
 
@@ -15,6 +15,7 @@ const initial = {
   error: null,
   lastSaved: null,
   lastTopup: null,
+  lastWithdraw: null,
 };
 
 const T = {
@@ -22,6 +23,7 @@ const T = {
   ERROR: "ERROR",
   SAVED: "SAVED",
   TOPUP: "TOPUP",
+  WITHDRAW: "WITHDRAW",
 };
 
 function reducer(state, action) {
@@ -34,6 +36,8 @@ function reducer(state, action) {
       return { ...state, loading: false, error: null, lastSaved: action.payload };
     case T.TOPUP:
       return { ...state, loading: false, error: null, lastTopup: action.payload };
+    case T.WITHDRAW:
+      return { ...state, loading: false, error: null, lastWithdraw: action.payload };
     default:
       return state;
   }
@@ -45,6 +49,9 @@ export const PaymentsProvider = ({ children }) => {
 
   // prevents multi-tap causing multiple intents + multiple API calls
   const inFlightPayRef = useRef(false);
+
+  // prevents multi-tap on withdraw
+  const inFlightWithdrawRef = useRef(false);
 
   const resolveIFSC = async (ifsc) => lookupIFSC(ifsc);
 
@@ -151,7 +158,7 @@ export const PaymentsProvider = ({ children }) => {
       }
 
       // Single backend call after payment
-      const submitRes = await submitUpiTopupResult({
+      const submitRes = await submitTransaction({
         mobileNumber: user.mobileNumber,
         amount: amt,
         txnRef, // always use our generated ref
@@ -164,7 +171,7 @@ export const PaymentsProvider = ({ children }) => {
         raw: upiRes?.raw, // optional but useful for logs
       });
 
-      const newBalance = Number(user.balance || 0) + amt;
+      const newBalance = Number(user?.balance || 0) + amt;
       updateUser({ balance: newBalance });
 
       dispatch({
@@ -197,13 +204,79 @@ export const PaymentsProvider = ({ children }) => {
     }
   };
 
+  /**
+   * ✅ Withdraw money (frontend-driven)
+   * Uses submitTransaction with ONLY required fields:
+   *  - mobileNumber
+   *  - amount (NEGATIVE)
+   *  - initiator: "User"
+   *
+   * Updates balance instantly like addMoneyViaUpi.
+   */
+  const withdrawMoney = async ({ amountRupees }) => {
+    try {
+      if (inFlightWithdrawRef.current) throw new Error("Withdraw already in progress");
+      inFlightWithdrawRef.current = true;
+
+      if (!user?.mobileNumber) throw new Error("Missing mobile number in session");
+
+      const amt = Number(amountRupees);
+      if (!Number.isFinite(amt) || amt <= 0) throw new Error("Enter a valid withdraw amount");
+
+      const currentBal = Number(user?.balance || 0);
+      if (amt > currentBal) throw new Error("Insufficient balance");
+
+      dispatch({ type: T.LOADING });
+
+      // IMPORTANT: amount must be negative for withdraw
+      const negativeAmount = -Math.abs(amt);
+
+      const submitRes = await submitTransaction({
+        mobileNumber: user.mobileNumber,
+        amount: negativeAmount,
+        initiator: "User",
+      });
+
+      const newBalance = currentBal + negativeAmount; // subtracts
+      updateUser({ balance: newBalance });
+
+      dispatch({
+        type: T.WITHDRAW,
+        payload: {
+          amountRupees: amt,
+          transaction: submitRes,
+        },
+      });
+
+      Snackbar.show({
+        text: "Withdrawal requested ✅",
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: "#388e3c",
+      });
+
+      return submitRes;
+    } catch (error) {
+      dispatch({ type: T.ERROR, error });
+      Snackbar.show({
+        text: error?.message || "Withdraw failed",
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: "#d32f2f",
+      });
+      throw error;
+    } finally {
+      inFlightWithdrawRef.current = false;
+    }
+  };
+
   const value = {
     loading: state.loading,
     lastSaved: state.lastSaved,
     lastTopup: state.lastTopup,
+    lastWithdraw: state.lastWithdraw,
     resolveIFSC,
     savePayout,
     addMoneyViaUpi,
+    withdrawMoney,
   };
 
   return (

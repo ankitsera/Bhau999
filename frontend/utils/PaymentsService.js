@@ -183,7 +183,7 @@ export const startUpiPayment = async ({
   };
 };
 
-export const submitUpiTopupResult = async (payload) => {
+export const submitTransaction = async (payload) => {
 
   const res = await fetch(`${API_URL}/transaction`, {
     method: "POST",

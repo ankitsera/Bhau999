@@ -71,12 +71,12 @@ export const SUB_GAME_TYPES = [
     image: require("../assets/Images/halfSangam.webp"),
     routeName: "HalfSangamB",
   },
-  {
-    key: "PanaFamily",
-    label: "Pana Family",
-    image: require("../assets/Images/doublePana.webp"),
-    routeName: "PanaFamily",
-  },
+  // {
+  //   key: "PanaFamily",
+  //   label: "Pana Family",
+  //   image: require("../assets/Images/doublePana.webp"),
+  //   routeName: "PanaFamily",
+  // },
   {
     key: "spDpTp",
     label: "SP DP TP",
@@ -125,12 +125,12 @@ export const SUB_GAME_TYPES = [
     image: require("../assets/Images/dpCommon.webp"),
     routeName: "DpCommon",
   },
-  {
-    key: "CycleJodi",
-    label: "Cycle Jodi",
-    image: require("../assets/Images/cycleJodi.webp"),
-    routeName: "CycleJodi",
-  },
+  // {
+  //   key: "CycleJodi",
+  //   label: "Cycle Jodi",
+  //   image: require("../assets/Images/cycleJodi.webp"),
+  //   routeName: "CycleJodi",
+  // },
   {
     key: "Digit Based Jodi",
     label: "Digit Based Jodi",

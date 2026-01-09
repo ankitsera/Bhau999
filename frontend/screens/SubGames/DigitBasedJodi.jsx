@@ -37,7 +37,7 @@ const DigitBasedJodi = ({ route }) => {
     onClosed: () => navigation.goBack(),
   });
 
-  const { user } = useContext(AuthContext);
+  const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
@@ -137,6 +137,11 @@ const DigitBasedJodi = ({ route }) => {
     try {
       const res = await placeBets(betsToSend); //API call
       Alert.alert("Success", "Bets placed successfully!");
+
+      // Update balance safely
+      const spent = Number(totals.points) || 0;
+      const nextBalance = Math.max(0, balance - spent);
+      updateUser({ balance: nextBalance });
 
       // minimal reset
       setBets([]);
