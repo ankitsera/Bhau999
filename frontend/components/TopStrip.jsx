@@ -174,8 +174,8 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   pillIcon: {
-    width: 32,
-    height: 32,
+    width: 26,
+    height: 26,
     borderRadius: 20,
     backgroundColor: "#fff",
     alignItems: "center",
@@ -183,9 +183,9 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   pillText: {
-    color: "#fff",
+    color: "#000",
     fontWeight: "700",
-    fontSize: 16,
+    fontSize: 14,
   },
   contactRow: {
     flexDirection: "row",

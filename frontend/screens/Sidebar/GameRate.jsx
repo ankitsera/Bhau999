@@ -153,6 +153,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 5,
+    textAlign: "center",
   },
   rateLabel: {
     fontSize: 18,
