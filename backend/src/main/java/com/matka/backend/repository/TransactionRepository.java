@@ -9,4 +9,6 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
 	List<TransactionEntity> findByMobileNumber(String mobileNumber);
 	List<TransactionEntity> findByStatus(String status);
 	List<TransactionEntity> findByAmountLessThan(Integer amount);
+	List<TransactionEntity> findByMobileNumberAndAmountLessThan(String mobileNumber, Integer amount);
+	List<TransactionEntity> findByMobileNumberAndAmountGreaterThan(String mobileNumber, Integer amount);
 }

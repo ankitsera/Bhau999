@@ -1,3 +1,50 @@
+# API summary (changed endpoints)
+
+This document lists the important API endpoints and highlights recent changes in request/response shapes.
+
+Bet APIs
+- POST /api/bet
+  - Accepts an array of bets in the request body. Each bet should contain:
+    - mobileNumber (string)
+    - gameName (string)
+    - type (string)
+    - amount (integer)
+    - betValue (integer)
+    - openClose (string, optional)
+  - Server behavior: sets `bet_time` to current server datetime automatically when creating bets and records a transaction with `initiator` set to "Bet placed".
+  - Response: { message: "Bets placed", bets: [ ...saved bets... ] }
+
+- GET /api/bets
+  - Returns active bets. Response shape only contains scalar bet fields (id, mobileNumber, gameName, type, amount, betValue, openClose, betTime, result) to avoid triggering lazy loads.
+
+- GET /api/bet-history
+  - Returns archived bets (same scalar shape as /api/bets). Uses `bets_history` data.
+
+- GET /api/bets/user/{mobileNumber}
+  - Returns combined bets (active + history) for a mobile number. Response uses scalar bet fields.
+
+- GET /api/bets/game/{gameName}
+  - Returns bets for a game from the active `bets` table.
+
+- GET /api/bets/game/{gameName}/all
+  - Returns bets for a game from both active `bets` and `bets_history`.
+
+Game APIs
+- POST /api/game
+  - Create or update a game. Request body should include:
+    - name (string) — required
+    - open_time (string, optional) — format "HH:mm[:ss]" or use camelCase openTime
+    - close_time (string, optional) — format "HH:mm[:ss]" or use camelCase closeTime
+  - The controller normalizes `name` to upper-case, and parses `open_time` / `close_time` into TIME.
+
+- GET /api/game
+  - List all games. Returns `name`, `openTime`, `closeTime` fields.
+
+Transactions
+- New columns: `initiator`, `status`, `remarks` were added to the `transactions` table and are available in the Transaction API responses.
+
+Notes
+- Listing endpoints now map Bet entities to a scalar-only response (no nested `user`, `game` or `rate` objects) to prevent lazy-loading JPA relations during JSON serialization.
 # API Reference — Backend
 
 This document lists the REST APIs provided by the backend and how to use them. It includes request/response examples and validation notes to help the frontend developer integrate with the server.

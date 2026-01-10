@@ -1,3 +1,50 @@
+# Database Schemas (summary)
+
+This file summarizes the important tables/columns and recent changes to the schema that the backend expects.
+
+Important tables and relevant columns
+
+- `game` (primary key: `name` VARCHAR)
+  - `name` VARCHAR PRIMARY KEY
+  - `open_time` TIME NULL  -- when the game opens each day
+  - `close_time` TIME NULL -- when the game closes each day
+
+- `bets` (active bets)
+  - `id` BIGINT AUTO_INCREMENT
+  - `mobile_number` VARCHAR (FK to `users.mobile_number`)
+  - `game_name` VARCHAR (FK to `game.name`)
+  - `type` VARCHAR (FK to `rate.type`)
+  - `amount` INT
+  - `bet_value` INT
+  - `open_close` VARCHAR ("Open" | "Close" | NULL)
+  - `bet_time` DATETIME  -- NOTE: changed from a DATE/TIME column to DATETIME
+  - `result` VARCHAR NULL ("Won" | "Lost" | NULL)
+
+- `bets_history` (archived bets)
+  - same columns as `bets` but persisted historically
+  - uses `bet_time` DATETIME as well
+
+- `transactions`
+  - `id` BIGINT AUTO_INCREMENT
+  - `mobile_number` VARCHAR
+  - `amount` INT
+  - `tx_date` DATE
+  - `tx_time` TIME
+  - `initiator` VARCHAR NULL  -- new column; values like "Admin" or "Bet placed"
+  - `status` VARCHAR NULL     -- new column; e.g., "Pending", "Approved", "Rejected"
+  - `remarks` VARCHAR(100) NULL -- new column for short notes
+
+Notes and migration hints
+- `bets.bet_time` changed to DATETIME: you'll need to alter the column type in MySQL:
+  - ALTER TABLE `bets` MODIFY COLUMN `bet_time` DATETIME NULL;
+  - ALTER TABLE `bets_history` MODIFY COLUMN `bet_time` DATETIME NULL;
+
+- `transactions` new columns sample ALTERs:
+  - ALTER TABLE `transactions` ADD COLUMN `initiator` VARCHAR(100) NULL;
+  - ALTER TABLE `transactions` ADD COLUMN `status` VARCHAR(50) NULL;
+  - ALTER TABLE `transactions` ADD COLUMN `remarks` VARCHAR(100) NULL;
+
+If you use migrations (Flyway/Liquibase) add proper migration files to make these schema edits reproducible.
 # Database Schemas (current mapping from JPA entities)
 
 This file documents the current table schemas as implied by the JPA entities in `src/main/java/com/matka/backend`. Use these as the reference when creating or migrating the database schema. These CREATE TABLE statements are suggestions matching the entities; adjust types/lengths to suit your MySQL settings.
