@@ -147,6 +147,26 @@ public class TransactionController {
         return ResponseEntity.ok(list);
     }
 
+    // List withdrawals for a user (amount < 0)
+    @PostMapping("/withdrawals/by-user")
+    public ResponseEntity<?> listWithdrawalsByUser(@RequestBody UserTransactionsRequest req) {
+        if (req == null || req.getMobileNumber() == null) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message","mobileNumber is required"));
+        }
+        java.util.List<TransactionEntity> list = transactionRepository.findByMobileNumberAndAmountLessThan(req.getMobileNumber(), 0);
+        return ResponseEntity.ok(list);
+    }
+
+    // List deposits for a user (amount > 0)
+    @PostMapping("/deposits/by-user")
+    public ResponseEntity<?> listDepositsByUser(@RequestBody UserTransactionsRequest req) {
+        if (req == null || req.getMobileNumber() == null) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("message","mobileNumber is required"));
+        }
+        java.util.List<TransactionEntity> list = transactionRepository.findByMobileNumberAndAmountGreaterThan(req.getMobileNumber(), 0);
+        return ResponseEntity.ok(list);
+    }
+
     // List all pending transactions
     @GetMapping("/pending")
     public ResponseEntity<java.util.List<TransactionEntity>> listPending() {

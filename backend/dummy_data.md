@@ -56,28 +56,28 @@ INSERT INTO `game_history` (`game_name`, `hist_date`, `open`, `close`) VALUES
 
 -- 6) Bets (active bets table)
 ```sql
-INSERT INTO `bets` (`mobile_number`, `game_name`, `type`, `amount`, `bet_value`, `open_close`) VALUES
-('9876543210', 'MADHUR', 'Ank', 100, 5, 'Open'),
-('9123456789', 'MALINI', 'Jodi', 50, 12, 'Open'),
-('9012345678', 'SRIDEVI', 'jodi', 10, 77, 'Close');
+INSERT INTO `bets` (`mobile_number`, `game_name`, `type`, `amount`, `bet_value`, `open_close`, `bet_time`) VALUES
+('9876543210', 'MADHUR', 'Ank', 100, 5, 'Open', '2025-12-31 12:15:00'),
+('9123456789', 'MALINI', 'Jodi', 50, 12, 'Open', '2025-12-31 14:05:00'),
+('9012345678', 'SRIDEVI', 'jodi', 10, 77, 'Close', '2025-12-31 20:30:00');
 ```
 
 -- 7) Bets history (example past bets)
 ```sql
-INSERT INTO `bets_history` (`mobile_number`, `game_name`, `bet_date`, `type`, `amount`, `bet_value`, `open_close`) VALUES
-('9876543210', 'MADHUR', '2025-12-31', 'Ank', 100, 5, 'Open'),
-('9123456789', 'MALINI', '2025-12-31', 'Jodi', 50, 12, 'Open');
+INSERT INTO `bets_history` (`mobile_number`, `game_name`, `bet_time`, `type`, `amount`, `bet_value`, `open_close`) VALUES
+('9876543210', 'MADHUR', '2025-12-31 12:15:00', 'Ank', 100, 5, 'Open'),
+('9123456789', 'MALINI', '2025-12-31 14:05:00', 'Jodi', 50, 12, 'Open');
 ```
 
 -- 7b) Additional bets history for the two extra days
 ```sql
-INSERT INTO `bets_history` (`mobile_number`, `game_name`, `bet_date`, `type`, `amount`, `bet_value`, `open_close`) VALUES
-('9876543210', 'MADHUR', '2025-12-30', 'Ank', 150, 3, 'Open'),
-('9123456789', 'MALINI', '2025-12-30', 'Jodi', 75, 10, 'Open'),
-('9012345678', 'SRIDEVI', '2025-12-30', 'jodi', 20, 66, 'Close'),
-('9876543210', 'MADHUR', '2025-12-29', 'Ank', 200, 8, 'Close'),
-('9123456789', 'MALINI', '2025-12-29', 'Jodi', 100, 4, 'Open'),
-('9012345678', 'SRIDEVI', '2025-12-29', 'jodi', 5, 55, 'Close');
+INSERT INTO `bets_history` (`mobile_number`, `game_name`, `bet_time`, `type`, `amount`, `bet_value`, `open_close`) VALUES
+('9876543210', 'MADHUR', '2025-12-30 11:45:00', 'Ank', 150, 3, 'Open'),
+('9123456789', 'MALINI', '2025-12-30 15:20:00', 'Jodi', 75, 10, 'Open'),
+('9012345678', 'SRIDEVI', '2025-12-30 20:10:00', 'jodi', 20, 66, 'Close'),
+('9876543210', 'MADHUR', '2025-12-29 13:30:00', 'Ank', 200, 8, 'Close'),
+('9123456789', 'MALINI', '2025-12-29 16:40:00', 'Jodi', 100, 4, 'Open'),
+('9012345678', 'SRIDEVI', '2025-12-29 21:05:00', 'jodi', 5, 55, 'Close');
 ```
 
 -- 8) Transactions

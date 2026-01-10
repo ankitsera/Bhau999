@@ -29,9 +29,21 @@ public class GameController {
         }
         // normalize name
         String normalized = game.getName().trim().toUpperCase();
-        game.setName(normalized);
-        Game saved = gameRepository.save(game);
-        log.info("Saved game name={}", saved.getName());
+
+        // Load existing or create new so updates don't wipe other fields unintentionally
+        Game entity = gameRepository.findById(normalized).orElseGet(() -> new Game());
+        entity.setName(normalized);
+
+        // Set open/close times from incoming object if provided (same approach as name)
+        if (game.getOpenTime() != null) {
+            entity.setOpenTime(game.getOpenTime());
+        }
+        if (game.getCloseTime() != null) {
+            entity.setCloseTime(game.getCloseTime());
+        }
+
+        Game saved = gameRepository.save(entity);
+        log.info("Saved game name={} openTime={} closeTime={}", saved.getName(), saved.getOpenTime(), saved.getCloseTime());
         return ResponseEntity.ok(saved);
     }
 
