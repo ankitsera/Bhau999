@@ -51,9 +51,10 @@ const GameRate = () => {
       values?.[MIN_BID_KEY] ??
       values?.minBidAmount ??
       values?.MIN_BID_AMOUNT ??
-      null;
+      10; // 👈 default fallback
+
     const asNumber = Number(raw);
-    return Number.isFinite(asNumber) && asNumber > 0 ? asNumber : null;
+    return Number.isFinite(asNumber) && asNumber > 0 ? asNumber : 10;
   }, [values]);
 
   const sections = useMemo(() => {

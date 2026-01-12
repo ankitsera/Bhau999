@@ -1,21 +1,42 @@
-import React, { createContext, useContext, useReducer, useRef } from "react";
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
 import Snackbar from "react-native-snackbar";
 import {
   lookupIFSC,
   savePayout as savePayoutAPI,
   startUpiPayment,
   submitTransaction,
+  listTransactionsByUser,
+  listWithdrawalsByUser,
+  listDepositsByUser,
 } from "../utils/PaymentsService";
 import { AuthContext } from "./AuthContext";
 
 export const PaymentsContext = createContext(null);
 
+const GREEN = "#3FA16C";
+
 const initial = {
+  // existing
   loading: false,
   error: null,
   lastSaved: null,
   lastTopup: null,
   lastWithdraw: null,
+
+  // lists
+  transactions: [],
+  deposits: [],
+  withdrawals: [],
+  isLoadingTransactions: false,
+  isLoadingDeposits: false,
+  isLoadingWithdrawals: false,
 };
 
 const T = {
@@ -24,6 +45,20 @@ const T = {
   SAVED: "SAVED",
   TOPUP: "TOPUP",
   WITHDRAW: "WITHDRAW",
+
+  TXN_START: "TXN_START",
+  TXN_SUCCESS: "TXN_SUCCESS",
+  TXN_FAIL: "TXN_FAIL",
+
+  DEP_START: "DEP_START",
+  DEP_SUCCESS: "DEP_SUCCESS",
+  DEP_FAIL: "DEP_FAIL",
+
+  WDR_START: "WDR_START",
+  WDR_SUCCESS: "WDR_SUCCESS",
+  WDR_FAIL: "WDR_FAIL",
+
+  CLEAR_ERROR: "CLEAR_ERROR",
 };
 
 function reducer(state, action) {
@@ -32,12 +67,38 @@ function reducer(state, action) {
       return { ...state, loading: true, error: null };
     case T.ERROR:
       return { ...state, loading: false, error: action.error || null };
+
     case T.SAVED:
       return { ...state, loading: false, error: null, lastSaved: action.payload };
     case T.TOPUP:
       return { ...state, loading: false, error: null, lastTopup: action.payload };
     case T.WITHDRAW:
       return { ...state, loading: false, error: null, lastWithdraw: action.payload };
+
+    case T.TXN_START:
+      return { ...state, isLoadingTransactions: true, error: null };
+    case T.TXN_SUCCESS:
+      return { ...state, isLoadingTransactions: false, transactions: action.payload || [], error: null };
+    case T.TXN_FAIL:
+      return { ...state, isLoadingTransactions: false, error: action.error || null };
+
+    case T.DEP_START:
+      return { ...state, isLoadingDeposits: true, error: null };
+    case T.DEP_SUCCESS:
+      return { ...state, isLoadingDeposits: false, deposits: action.payload || [], error: null };
+    case T.DEP_FAIL:
+      return { ...state, isLoadingDeposits: false, error: action.error || null };
+
+    case T.WDR_START:
+      return { ...state, isLoadingWithdrawals: true, error: null };
+    case T.WDR_SUCCESS:
+      return { ...state, isLoadingWithdrawals: false, withdrawals: action.payload || [], error: null };
+    case T.WDR_FAIL:
+      return { ...state, isLoadingWithdrawals: false, error: action.error || null };
+
+    case T.CLEAR_ERROR:
+      return { ...state, error: null };
+
     default:
       return state;
   }
@@ -53,9 +114,23 @@ export const PaymentsProvider = ({ children }) => {
   // prevents multi-tap on withdraw
   const inFlightWithdrawRef = useRef(false);
 
-  const resolveIFSC = async (ifsc) => lookupIFSC(ifsc);
+  // prevents list spam (focus double-fire / refresh spamming)
+  const inFlightTxRef = useRef(false);
+  const inFlightDepRef = useRef(false);
+  const inFlightWdrRef = useRef(false);
 
-  const savePayout = async (screenPayload) => {
+  // tiny throttle (helps when focus fires twice)
+  const lastTxAtRef = useRef(0);
+  const lastDepAtRef = useRef(0);
+  const lastWdrAtRef = useRef(0);
+
+  const resolveIFSC = useCallback(async (ifsc) => lookupIFSC(ifsc), []);
+
+  const clearPaymentsError = useCallback(() => {
+    dispatch({ type: T.CLEAR_ERROR });
+  }, []);
+
+  const savePayout = useCallback(async (screenPayload) => {
     try {
       if (!user?.mobileNumber) throw new Error("Missing mobile number in session");
 
@@ -81,6 +156,7 @@ export const PaymentsProvider = ({ children }) => {
       if (res?.user) {
         updateUser(res.user);
       } else {
+        // fallback local update
         if (screenPayload.type === "bank") {
           updateUser({
             accountHolderName: screenPayload.accountHolderName,
@@ -99,6 +175,7 @@ export const PaymentsProvider = ({ children }) => {
       }
 
       dispatch({ type: T.SAVED, payload: screenPayload });
+
       Snackbar.show({
         text: res?.message || "Saved ✅",
         duration: Snackbar.LENGTH_SHORT,
@@ -113,11 +190,11 @@ export const PaymentsProvider = ({ children }) => {
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
-      throw error;
+      throw error; // keep throw (screen may depend on it)
     }
-  };
+  }, [user?.mobileNumber, updateUser]);
 
-  const addMoneyViaUpi = async ({ amountRupees, payeeVpa, payeeName, note }) => {
+  const addMoneyViaUpi = useCallback(async ({ amountRupees, payeeVpa, payeeName, note }) => {
     try {
       if (inFlightPayRef.current) throw new Error("Payment already in progress");
       inFlightPayRef.current = true;
@@ -202,7 +279,7 @@ export const PaymentsProvider = ({ children }) => {
     } finally {
       inFlightPayRef.current = false;
     }
-  };
+  }, [user?.mobileNumber, user?.balance, updateUser]);
 
   /**
    * ✅ Withdraw money (frontend-driven)
@@ -213,7 +290,7 @@ export const PaymentsProvider = ({ children }) => {
    *
    * Updates balance instantly like addMoneyViaUpi.
    */
-  const withdrawMoney = async ({ amountRupees }) => {
+  const withdrawMoney = useCallback(async ({ amountRupees }) => {
     try {
       if (inFlightWithdrawRef.current) throw new Error("Withdraw already in progress");
       inFlightWithdrawRef.current = true;
@@ -266,18 +343,145 @@ export const PaymentsProvider = ({ children }) => {
     } finally {
       inFlightWithdrawRef.current = false;
     }
-  };
+  }, [user?.mobileNumber, user?.balance, updateUser]);
 
-  const value = {
-    loading: state.loading,
-    lastSaved: state.lastSaved,
-    lastTopup: state.lastTopup,
-    lastWithdraw: state.lastWithdraw,
+  // ✅ list loaders: NO THROW + in-flight + throttle
+  const loadTransactions = useCallback(async () => {
+    const mobile = user?.mobileNumber;
+    if (!mobile) return [];
+
+    const now = Date.now();
+    if (now - lastTxAtRef.current < 500) return [];
+    lastTxAtRef.current = now;
+
+    if (inFlightTxRef.current) return [];
+    inFlightTxRef.current = true;
+
+    try {
+      dispatch({ type: T.TXN_START });
+      const list = await listTransactionsByUser(mobile);
+      dispatch({ type: T.TXN_SUCCESS, payload: list });
+      return Array.isArray(list) ? list : [];
+    } catch (error) {
+      dispatch({ type: T.TXN_FAIL, error });
+      Snackbar.show({
+        text: error?.message || "Failed to load transactions",
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: "#d32f2f",
+      });
+      return [];
+    } finally {
+      inFlightTxRef.current = false;
+    }
+  }, [user?.mobileNumber]);
+
+  const loadDeposits = useCallback(async () => {
+    const mobile = user?.mobileNumber;
+    if (!mobile) return [];
+
+    const now = Date.now();
+    if (now - lastDepAtRef.current < 500) return [];
+    lastDepAtRef.current = now;
+
+    if (inFlightDepRef.current) return [];
+    inFlightDepRef.current = true;
+
+    try {
+      dispatch({ type: T.DEP_START });
+      const list = await listDepositsByUser(mobile);
+      dispatch({ type: T.DEP_SUCCESS, payload: list });
+      return Array.isArray(list) ? list : [];
+    } catch (error) {
+      dispatch({ type: T.DEP_FAIL, error });
+      Snackbar.show({
+        text: error?.message || "Failed to load deposits",
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: "#d32f2f",
+      });
+      return [];
+    } finally {
+      inFlightDepRef.current = false;
+    }
+  }, [user?.mobileNumber]);
+
+  const loadWithdrawals = useCallback(async () => {
+    const mobile = user?.mobileNumber;
+    if (!mobile) return [];
+
+    const now = Date.now();
+    if (now - lastWdrAtRef.current < 500) return [];
+    lastWdrAtRef.current = now;
+
+    if (inFlightWdrRef.current) return [];
+    inFlightWdrRef.current = true;
+
+    try {
+      dispatch({ type: T.WDR_START });
+      const list = await listWithdrawalsByUser(mobile);
+      dispatch({ type: T.WDR_SUCCESS, payload: list });
+      return Array.isArray(list) ? list : [];
+    } catch (error) {
+      dispatch({ type: T.WDR_FAIL, error });
+      Snackbar.show({
+        text: error?.message || "Failed to load withdrawals",
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: "#d32f2f",
+      });
+      return [];
+    } finally {
+      inFlightWdrRef.current = false;
+    }
+  }, [user?.mobileNumber]);
+
+  const value = useMemo(() => {
+    return {
+      GREEN,
+
+      loading: state.loading,
+      error: state.error,
+      lastSaved: state.lastSaved,
+      lastTopup: state.lastTopup,
+      lastWithdraw: state.lastWithdraw,
+
+      transactions: state.transactions,
+      deposits: state.deposits,
+      withdrawals: state.withdrawals,
+      isLoadingTransactions: state.isLoadingTransactions,
+      isLoadingDeposits: state.isLoadingDeposits,
+      isLoadingWithdrawals: state.isLoadingWithdrawals,
+
+      resolveIFSC,
+      savePayout,
+      addMoneyViaUpi,
+      withdrawMoney,
+
+      loadTransactions,
+      loadDeposits,
+      loadWithdrawals,
+
+      clearPaymentsError,
+    };
+  }, [
+    state.loading,
+    state.error,
+    state.lastSaved,
+    state.lastTopup,
+    state.lastWithdraw,
+    state.transactions,
+    state.deposits,
+    state.withdrawals,
+    state.isLoadingTransactions,
+    state.isLoadingDeposits,
+    state.isLoadingWithdrawals,
     resolveIFSC,
     savePayout,
     addMoneyViaUpi,
     withdrawMoney,
-  };
+    loadTransactions,
+    loadDeposits,
+    loadWithdrawals,
+    clearPaymentsError,
+  ]);
 
   return (
     <PaymentsContext.Provider value={value}>

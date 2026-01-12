@@ -199,3 +199,75 @@ export const submitTransaction = async (payload) => {
     data: body,        // ← actual API response (saved entity)
   };
 };
+
+/**
+ * POST /transaction/by-user
+ * body: { mobileNumber }
+ */
+export const listTransactionsByUser = async (mobileNumber) => {
+  const mob = String(mobileNumber || "").trim();
+  if (!mob) {
+    const err = new Error("mobileNumber is required");
+    err.status = 400;
+    throw err;
+  }
+
+  const res = await fetch(`${API_URL}/transaction/by-user`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mobileNumber: mob }),
+  });
+
+  const body = await readBody(res);
+  if (!res.ok) fail(res, body, "Failed to load transactions");
+
+  return Array.isArray(body) ? body : [];
+};
+
+/**
+ * POST /transaction/withdrawals/by-user
+ * amount < 0
+ */
+export const listWithdrawalsByUser = async (mobileNumber) => {
+  const mob = String(mobileNumber || "").trim();
+  if (!mob) {
+    const err = new Error("mobileNumber is required");
+    err.status = 400;
+    throw err;
+  }
+
+  const res = await fetch(`${API_URL}/transaction/withdrawals/by-user`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mobileNumber: mob }),
+  });
+
+  const body = await readBody(res);
+  if (!res.ok) fail(res, body, "Failed to load withdrawals");
+
+  return Array.isArray(body) ? body : [];
+};
+
+/**
+ * POST /transaction/deposits/by-user
+ * amount > 0
+ */
+export const listDepositsByUser = async (mobileNumber) => {
+  const mob = String(mobileNumber || "").trim();
+  if (!mob) {
+    const err = new Error("mobileNumber is required");
+    err.status = 400;
+    throw err;
+  }
+
+  const res = await fetch(`${API_URL}/transaction/deposits/by-user`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mobileNumber: mob }),
+  });
+
+  const body = await readBody(res);
+  if (!res.ok) fail(res, body, "Failed to load deposits");
+
+  return Array.isArray(body) ? body : [];
+};

@@ -27,7 +27,9 @@ const PaginationBar = ({
       </TouchableOpacity>
 
       <View style={styles.pageDot}>
-        <Text style={styles.pageText}>{page}</Text>
+        <Text style={styles.pageText} numberOfLines={1}>
+          {page}
+        </Text>
       </View>
 
       <TouchableOpacity
@@ -81,9 +83,11 @@ const styles = StyleSheet.create({
   },
 
   pageDot: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    minWidth: 46,
+    maxWidth: 110,
+    height: 46,
+    paddingHorizontal: 12,
+    borderRadius: 50,
     backgroundColor: "#111",
     alignItems: "center",
     justifyContent: "center",

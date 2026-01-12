@@ -12,6 +12,7 @@ import Snackbar from "react-native-snackbar";
 import {
   getGameRates as getGameRatesAPI,
   getActiveGames as getActiveGamesAPI,
+  getBidHistoryByUser as getBidHistoryByUserAPI,
 } from "../utils/GameService";
 
 const GREEN = "#3FA16C";
@@ -25,6 +26,10 @@ const initialState = {
   // active games (raw)
   activeGames: [],
   isLoadingActiveGames: false,
+
+  // bid history
+  bidHistory: [],
+  isLoadingBidHistory: false,
 
   // common
   error: null,
@@ -40,6 +45,11 @@ const TYPES = {
   FETCH_ACTIVE_GAMES_START: "FETCH_ACTIVE_GAMES_START",
   FETCH_ACTIVE_GAMES_SUCCESS: "FETCH_ACTIVE_GAMES_SUCCESS",
   FETCH_ACTIVE_GAMES_FAILURE: "FETCH_ACTIVE_GAMES_FAILURE",
+
+  // bid history
+  FETCH_BID_HISTORY_START: "FETCH_BID_HISTORY_START",
+  FETCH_BID_HISTORY_SUCCESS: "FETCH_BID_HISTORY_SUCCESS",
+  FETCH_BID_HISTORY_FAILURE: "FETCH_BID_HISTORY_FAILURE",
 
   // common
   CLEAR_ERROR: "CLEAR_ERROR",
@@ -71,7 +81,28 @@ function gameReducer(state, action) {
         error: null,
       };
     case TYPES.FETCH_ACTIVE_GAMES_FAILURE:
-      return { ...state, isLoadingActiveGames: false, error: action.error || null };
+      return {
+        ...state,
+        isLoadingActiveGames: false,
+        error: action.error || null,
+      };
+
+    // BID HISTORY
+    case TYPES.FETCH_BID_HISTORY_START:
+      return { ...state, isLoadingBidHistory: true, error: null };
+    case TYPES.FETCH_BID_HISTORY_SUCCESS:
+      return {
+        ...state,
+        isLoadingBidHistory: false,
+        bidHistory: action.bidHistory || [],
+        error: null,
+      };
+    case TYPES.FETCH_BID_HISTORY_FAILURE:
+      return {
+        ...state,
+        isLoadingBidHistory: false,
+        error: action.error || null,
+      };
 
     // COMMON
     case TYPES.CLEAR_ERROR:
@@ -82,7 +113,7 @@ function gameReducer(state, action) {
   }
 }
 
-// -------- helpers (UI transformation) --------
+// -------- helpers (UI transformation for active games) --------
 const formatTime12h = (t) => {
   if (!t || typeof t !== "string") return "--:--";
   const parts = t.split(":");
@@ -178,19 +209,29 @@ export const GameContext = createContext({
   // derived UI data
   activeGamesUi: [],
 
-  // selectors (better way)
+  // selectors
   getGameRawByName: () => null,
   getGameUiByName: () => null,
 
   // actions
   loadGameRates: async () => {},
   loadActiveGames: async () => {},
+  loadBidHistoryByUser: async () => {},
   clearGameError: () => {},
 });
 
 export const GameProvider = ({ children }) => {
   const [state, dispatch] = useReducer(gameReducer, initialState);
-  const { rates, isLoadingRates, activeGames, isLoadingActiveGames, error } = state;
+
+  const {
+    rates,
+    isLoadingRates,
+    activeGames,
+    isLoadingActiveGames,
+    bidHistory,
+    isLoadingBidHistory,
+    error,
+  } = state;
 
   const loadGameRates = useCallback(async () => {
     try {
@@ -222,17 +263,32 @@ export const GameProvider = ({ children }) => {
     }
   }, []);
 
+  const loadBidHistoryByUser = useCallback(async (mobileNumber) => {
+    try {
+      dispatch({ type: TYPES.FETCH_BID_HISTORY_START });
+      const data = await getBidHistoryByUserAPI(mobileNumber);
+      dispatch({ type: TYPES.FETCH_BID_HISTORY_SUCCESS, bidHistory: data });
+    } catch (err) {
+      dispatch({ type: TYPES.FETCH_BID_HISTORY_FAILURE, error: err });
+      Snackbar.show({
+        text: err?.message || "Failed to load bid history",
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: "#d32f2f",
+      });
+    }
+  }, []);
+
   const clearGameError = useCallback(() => {
     dispatch({ type: TYPES.CLEAR_ERROR });
   }, []);
 
-  // ✅ derived UI list
+  // derived UI list
   const activeGamesUi = useMemo(() => {
     const list = Array.isArray(activeGames) ? activeGames : [];
     return list.map(toActiveGameUi);
   }, [activeGames]);
 
-  // ✅ maps for instant lookup (this enables the "better way")
+  // maps for instant lookup
   const activeGamesRawMap = useMemo(() => {
     const m = new Map();
     (Array.isArray(activeGames) ? activeGames : []).forEach((g) => {
@@ -261,7 +317,7 @@ export const GameProvider = ({ children }) => {
     [activeGamesUiMap]
   );
 
-  // ✅ polling (keeps allowed_types fresh)
+  // polling (keeps allowed_types fresh)
   const intervalRef = useRef(null);
   const appStateRef = useRef(AppState.currentState);
 
@@ -312,6 +368,9 @@ export const GameProvider = ({ children }) => {
       activeGamesUi,
       isLoadingActiveGames,
 
+      bidHistory,
+      isLoadingBidHistory,
+
       error,
 
       getGameRawByName,
@@ -319,6 +378,7 @@ export const GameProvider = ({ children }) => {
 
       loadGameRates,
       loadActiveGames,
+      loadBidHistoryByUser,
       clearGameError,
     }),
     [
@@ -327,11 +387,14 @@ export const GameProvider = ({ children }) => {
       activeGames,
       activeGamesUi,
       isLoadingActiveGames,
+      bidHistory,
+      isLoadingBidHistory,
       error,
       getGameRawByName,
       getGameUiByName,
       loadGameRates,
       loadActiveGames,
+      loadBidHistoryByUser,
       clearGameError,
     ]
   );

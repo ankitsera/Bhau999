@@ -24,7 +24,7 @@ const Footer = ({ navigation, active = "Home", onSupportPress }) => {
           <TabItem
             label="My Bids"
             icon={<MaterialCommunityIcons name="gavel" size={26} color="#333" />}
-            onPress={() => navigation.navigate("MyBids")}
+            onPress={() => navigation.navigate("My Bids")}
           />
           <TabItem
             label="Passbook"

@@ -13,17 +13,26 @@ import Login from "../screens/Auth/Login";
 import AddMoney from "../screens/Sidebar/AddMoney";
 import WithdrawMoney from "../screens/Sidebar/WithdrawMoney";
 import MyBids from "../screens/Sidebar/MyBids";
-import Passbook from "../screens/Sidebar/Passbook";
 import Funds from "../screens/Sidebar/Funds";
 import Notifications from "../screens/Sidebar/Notifications";
 import BankDetails from "../screens/BankDetails";
-import AddFundHistory from "../screens/AddFundHistory";
 import Charts from "../screens/Sidebar/Charts";
 import GameRate from "../screens/Sidebar/GameRate";
 import TimeTable from "../screens/Sidebar/TimeTable";
 import NoticeBoard from "../screens/Sidebar/NoticeBoard";
 import Settings from "../screens/Sidebar/Settings";
 import HowToPlay from "../screens/Sidebar/HowToPlay";
+
+//Fund History Screens
+import Passbook from "../screens/Sidebar/Passbook";
+import AddFundHistory from "../screens/AddFundHistory";
+import WithdrawFundHistory from "../screens/WithdrawFundHistory";
+
+//Bid History
+import BidHistory from "../screens/BidHistory";
+
+//Result Screen
+import GameResults from "../screens/GameResults";
 
 import GamesSubTypes from "../screens/GamesSubTypes";
 
@@ -49,6 +58,14 @@ import DpMotor from "../screens/SubGames/DpMotor";
 import SpCommon from "../screens/SubGames/SpCommon";
 import DpCommon from "../screens/SubGames/DpCommon";
 import DigitBasedJodi from "../screens/SubGames/DigitBasedJodi";
+
+// Lucky Starline and Lucky Jackpot
+import LuckyStarline from "../screens/LuckyGames/LuckyStarline";
+import LuckyJackpot from "../screens/LuckyGames/LuckyJackpot";
+import LuckyStarlineBidHistory from "../screens/LuckyGames/LuckyStarlineBidHistory";
+import LuckyJackpotBidHistory from "../screens/LuckyGames/LuckyJackpotBidHistory";
+import LuckyStarlineResultHistory from "../screens/LuckyGames/LuckyStarlineResultHistory";
+import LuckyJackpotResultHistory from "../screens/LuckyGames/LuckyJackpotResultHistory";
 
 const Stack = createNativeStackNavigator();
 
@@ -102,11 +119,9 @@ const Navigation = ({ navigationRef }) => {
         <Stack.Screen name="Add Money" component={AddMoney} options={{ headerShown: false }} /> 
         <Stack.Screen name="Withdraw Money" component={WithdrawMoney} options={{ headerShown: false }} /> 
         <Stack.Screen name="My Bids" component={MyBids} options={{ headerShown: false }} /> 
-        <Stack.Screen name="Passbook" component={Passbook} options={{ headerShown: false }} />
         <Stack.Screen name="Funds" component={Funds} options={{ headerShown: false }} /> 
         <Stack.Screen name="Notifications" component={Notifications} options={{ headerShown: false }} /> 
         <Stack.Screen name="Bank Details" component={BankDetails} options={{ headerShown: false }} />
-        <Stack.Screen name="Add Fund History" component={AddFundHistory} options={{ headerShown: false }} /> 
         <Stack.Screen name="Charts" component={Charts} options={{ headerShown: false }} />
         <Stack.Screen name="Game Rate" component={GameRate} options={{ headerShown: false }} />
         <Stack.Screen name="Time Table" component={TimeTable} options={{ headerShown: false }} /> 
@@ -114,6 +129,17 @@ const Navigation = ({ navigationRef }) => {
         <Stack.Screen name="Settings" component={Settings} options={{ headerShown: false }} />
         <Stack.Screen name="How to Play" component={HowToPlay} options={{ headerShown: false }} />
         <Stack.Screen name="Games Sub Types" component={GamesSubTypes} options={{ headerShown: false }} />
+
+        {/* Fund History Screens */}
+        <Stack.Screen name="Passbook" component={Passbook} options={{ headerShown: false }} />
+        <Stack.Screen name="Add Fund History" component={AddFundHistory} options={{ headerShown: false }} /> 
+        <Stack.Screen name="Withdraw Fund History" component={WithdrawFundHistory} options={{ headerShown: false }} /> 
+
+        {/* Bid History Screen */}
+        <Stack.Screen name="Bid History" component={BidHistory} options={{ headerShown: false }} />
+
+        {/* Result Screen */}
+        <Stack.Screen name="Game Results" component={GameResults} options={{ headerShown: false }} />
         
         {/* Sub-Games */}
         <Stack.Screen name="SingleDigit" component={SingleDigit} options={{ headerShown: false }} />
@@ -137,6 +163,14 @@ const Navigation = ({ navigationRef }) => {
         <Stack.Screen name="SpCommon" component={SpCommon} options={{ headerShown: false }} />
         <Stack.Screen name="DpCommon" component={DpCommon} options={{ headerShown: false }} />
         <Stack.Screen name="DigitBasedJodi" component={DigitBasedJodi} options={{ headerShown: false }} />
+
+        { /* Lucky Starline and Lucky Jackpot*/}
+        <Stack.Screen name="LuckyStarline" component={LuckyStarline} options={{ headerShown: false }} />
+        <Stack.Screen name="LuckyJackpot" component={LuckyJackpot} options={{ headerShown: false }} />
+        <Stack.Screen name="LuckyStarline Bid History" component={LuckyStarlineBidHistory} options={{ headerShown: false }} />
+        <Stack.Screen name="LuckyJackpot Bid History" component={LuckyJackpotBidHistory} options={{ headerShown: false }} />
+        <Stack.Screen name="LuckyStarline Result History" component={LuckyStarlineResultHistory} options={{ headerShown: false }} />
+        <Stack.Screen name="LuckyJackpot Result History" component={LuckyJackpotResultHistory} options={{ headerShown: false }} />
         </Stack.Navigator>
       </HeaderButtonsProvider>
     </NavigationContainer>

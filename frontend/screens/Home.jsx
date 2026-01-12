@@ -127,7 +127,7 @@ const Home = ({ navigation }) => {
 
       {/* fixed top strip right below header */}
       <View style={styles.topStripContainer}>
-        <TopStrip />
+        <TopStrip navigation={navigation} />
       </View>
 
       {/* only GamesList scrolls */}

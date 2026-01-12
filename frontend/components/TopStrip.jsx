@@ -22,7 +22,7 @@ const openDialer = () => Linking.openURL(`tel:+91${CONTACT_NUMBER}`);
 const openWhatsApp = () =>
   Linking.openURL(`whatsapp://send?phone=+91${WHATSAPP_NUMBER}&text=${encodeURIComponent("Hi, I need assistance!")}`);
 
-const TopStrip = () => {
+const TopStrip = ({ navigation }) => {
   // marquee animation
   const [textW, setTextW] = useState(0);
   const animX = useRef(new Animated.Value(0)).current;
@@ -51,11 +51,11 @@ const TopStrip = () => {
 
   // Button handlers
   const handleLuckyStarline = () => {
-    console.log("Lucky Starline pressed");
+    navigation.navigate("LuckyStarline");
   };
 
   const handleLuckyJackpot = () => {
-    console.log("Lucky Jackpot pressed");
+    navigation.navigate("LuckyJackpot");
   };
 
   return (

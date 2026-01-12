@@ -3,12 +3,6 @@ import { API_URL } from "../env-vars";
 
 // GET /api/rate  ->  ${API_URL}/rate
 export const getGameRates = async () => {
-  // return dummy data for testing
-  // return [
-  //   { id: 1, type: "Single Ank", rate: 95 },
-  //   { id: 2, type: "Jodi", rate: 950 },
-  //   { id: 3, type: "Single Pana", rate: 1500 },
-  // ];
   const res = await fetch(`${API_URL}/rate`, {
     method: "GET",
     headers: {
@@ -74,18 +68,57 @@ export const getActiveGames = async () => {
 };
 
 /**
+ * GET /api/bet-history/bets/user/{mobileNumber}
+ * Returns List<BetResponse> combined from bets + bets_history
+ */
+export const getBidHistoryByUser = async (mobileNumber) => {
+  const mob = String(mobileNumber || "").trim();
+  if (!mob) {
+    const err = new Error("Mobile number is required");
+    err.status = 400;
+    throw err;
+  }
+
+  const res = await fetch(
+    `${API_URL}/bets/user/${encodeURIComponent(mob)}`,
+    {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+
+  let body = null;
+  try {
+    body = await res.json();
+  } catch (e) {
+    body = null;
+  }
+
+  if (res.ok) {
+    return Array.isArray(body) ? body : [];
+  }
+
+  const msg =
+    body?.message || `Failed to load bid history (status ${res.status})`;
+  const err = new Error(msg);
+  err.status = res.status;
+  err.body = body;
+  throw err;
+};
+
+/**
  * POST /api/bet  ->  `${API_URL}/bet`
  *
  * Controller expects: JSON ARRAY of bets
  * Required (as per your controller + new field):
  * - mobileNumber
  * - gameName
- * - type           (NOW: sub-game key like "SINGLE_PANA", "JODI", "SP_MOTOR" etc)
+ * - type           (NOW: sub-game key like "Single Pana", "Jodi", "Sp Motor" etc)
  * - open_close     ("OPEN" | "CLOSE")
  * - amount
  * - betValue
  */
-export const placeBets = async bets => {
+export const placeBets = async (bets) => {
   if (!Array.isArray(bets) || bets.length === 0) {
     const err = new Error('Bets must be a non-empty array');
     err.status = 400;
@@ -127,15 +160,11 @@ export const makeBet = ({
   betValue,
 }) => {
   return {
-    mobileNumber: String(mobileNumber || ''),
-    gameName: String(gameName || ''),
-    type: String(type || '')
-      .trim()
-      .toUpperCase(),
-    open_close: String(openClose || '')
-      .trim()
-      .toUpperCase(),
+    mobileNumber: String(mobileNumber || ""),
+    gameName: String(gameName || ""),
+    type: String(type || "").trim(), // you now store "Single Pana" style, so keep as-is
+    open_close: String(openClose || "").trim(), // "Open"/"Close"
     amount: Number(amount) || 0,
-    betValue: String(betValue || ''),
+    betValue: betValue === null || betValue === undefined ? null : Number(betValue),
   };
 };
