@@ -18,6 +18,31 @@ import java.time.LocalTime;
 public class TransactionController {
     private static final Logger log = LoggerFactory.getLogger(TransactionController.class);
 
+    // Lightweight DTO for transaction responses to avoid lazy or sensitive fields
+    private static class TransactionResponse {
+        public Long id;
+        public String mobileNumber;
+        public Integer amount;
+        public java.time.LocalDate txDate;
+        public java.time.LocalTime txTime;
+        public String initiator;
+        public String status;
+        public String remarks;
+
+        public TransactionResponse() {}
+        public TransactionResponse(TransactionEntity t) {
+            if (t == null) return;
+            this.id = t.getId();
+            this.mobileNumber = t.getMobileNumber();
+            this.amount = t.getAmount();
+            this.txDate = t.getTxDate();
+            this.txTime = t.getTxTime();
+            this.initiator = t.getInitiator();
+            this.status = t.getStatus();
+            this.remarks = t.getRemarks();
+        }
+    }
+
     @Autowired
     private TransactionRepository transactionRepository;
 
@@ -132,53 +157,65 @@ public class TransactionController {
 
     // List all transactions
     @GetMapping
-    public ResponseEntity<java.util.List<TransactionEntity>> listAll() {
+    public ResponseEntity<java.util.List<TransactionResponse>> listAll() {
         java.util.List<TransactionEntity> list = transactionRepository.findAll();
-        return ResponseEntity.ok(list);
+        java.util.List<TransactionResponse> out = new java.util.ArrayList<>();
+        if (list != null) for (TransactionEntity t : list) out.add(new TransactionResponse(t));
+        return ResponseEntity.ok(out);
     }
 
     // List transactions for a user (mobile number) — accept JSON body { "mobileNumber": "..." }
     @PostMapping("/by-user")
-    public ResponseEntity<?> listByUser(@RequestBody UserTransactionsRequest req) {
+    public ResponseEntity<java.util.List<TransactionResponse>> listByUser(@RequestBody UserTransactionsRequest req) {
         if (req == null || req.getMobileNumber() == null) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("message","mobileNumber is required"));
+            return ResponseEntity.badRequest().body(new java.util.ArrayList<>());
         }
         java.util.List<TransactionEntity> list = transactionRepository.findByMobileNumber(req.getMobileNumber());
-        return ResponseEntity.ok(list);
+        java.util.List<TransactionResponse> out = new java.util.ArrayList<>();
+        if (list != null) for (TransactionEntity t : list) out.add(new TransactionResponse(t));
+        return ResponseEntity.ok(out);
     }
 
     // List withdrawals for a user (amount < 0)
     @PostMapping("/withdrawals/by-user")
-    public ResponseEntity<?> listWithdrawalsByUser(@RequestBody UserTransactionsRequest req) {
+    public ResponseEntity<java.util.List<TransactionResponse>> listWithdrawalsByUser(@RequestBody UserTransactionsRequest req) {
         if (req == null || req.getMobileNumber() == null) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("message","mobileNumber is required"));
+            return ResponseEntity.badRequest().body(new java.util.ArrayList<>());
         }
         java.util.List<TransactionEntity> list = transactionRepository.findByMobileNumberAndAmountLessThan(req.getMobileNumber(), 0);
-        return ResponseEntity.ok(list);
+        java.util.List<TransactionResponse> out = new java.util.ArrayList<>();
+        if (list != null) for (TransactionEntity t : list) out.add(new TransactionResponse(t));
+        return ResponseEntity.ok(out);
     }
 
     // List deposits for a user (amount > 0)
     @PostMapping("/deposits/by-user")
-    public ResponseEntity<?> listDepositsByUser(@RequestBody UserTransactionsRequest req) {
+    public ResponseEntity<java.util.List<TransactionResponse>> listDepositsByUser(@RequestBody UserTransactionsRequest req) {
         if (req == null || req.getMobileNumber() == null) {
-            return ResponseEntity.badRequest().body(java.util.Map.of("message","mobileNumber is required"));
+            return ResponseEntity.badRequest().body(new java.util.ArrayList<>());
         }
         java.util.List<TransactionEntity> list = transactionRepository.findByMobileNumberAndAmountGreaterThan(req.getMobileNumber(), 0);
-        return ResponseEntity.ok(list);
+        java.util.List<TransactionResponse> out = new java.util.ArrayList<>();
+        if (list != null) for (TransactionEntity t : list) out.add(new TransactionResponse(t));
+        return ResponseEntity.ok(out);
     }
 
     // List all pending transactions
     @GetMapping("/pending")
-    public ResponseEntity<java.util.List<TransactionEntity>> listPending() {
+    public ResponseEntity<java.util.List<TransactionResponse>> listPending() {
         java.util.List<TransactionEntity> list = transactionRepository.findByStatus("Pending");
-        return ResponseEntity.ok(list);
+        java.util.List<TransactionResponse> out = new java.util.ArrayList<>();
+        if (list != null) for (TransactionEntity t : list) out.add(new TransactionResponse(t));
+        return ResponseEntity.ok(out);
     }
 
     // List all withdrawals (amount < 0)
     @GetMapping("/withdrawals")
-    public ResponseEntity<java.util.List<TransactionEntity>> listWithdrawals() {
+    public ResponseEntity<java.util.List<TransactionResponse>> listWithdrawals() {
         java.util.List<TransactionEntity> list = transactionRepository.findByAmountLessThan(0);
-        return ResponseEntity.ok(list);
+        java.util.List<TransactionResponse> out = new java.util.ArrayList<>();
+        if (list != null) for (TransactionEntity t : list) out.add(new TransactionResponse(t));
+        return ResponseEntity.ok(out);
     }
 
     public static class UserTransactionsRequest {
