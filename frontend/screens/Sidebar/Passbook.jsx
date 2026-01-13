@@ -89,7 +89,7 @@ const PassbookRow = ({ item, GREEN }) => {
     item?.remarks != null
       ? String(item.remarks)
       : item?.initiator
-      ? `Direct ${isCredit ? 'Credit' : 'Debit'} By ${item.initiator}`
+      ? `${isCredit ? 'Credit' : 'Debit'} By ${item.initiator}`
       : 'Transaction';
 
   return (

@@ -53,6 +53,7 @@ const SpMotor = ({ route }) => {
   const [digits, setDigits] = useState(''); // 4..6 unique digits
   const [points, setPoints] = useState('');
   const [bets, setBets] = useState([]); // {id, digit(pana), points, type}
+  const [digitsError, setDigitsError] = useState(false);
 
   const totals = useMemo(() => {
     const bids = bets.length;
@@ -63,8 +64,27 @@ const SpMotor = ({ route }) => {
     return { bids, points: totalPoints };
   }, [bets]);
 
-  const handleChangeDigits = txt => {
-    setDigits(sanitizeMotorDigits(txt, 6));
+  const handleChangeDigits = (txt) => {
+    const clean = String(txt || "").replace(/[^0-9]/g, "");
+
+    const seen = new Set();
+    let out = "";
+    let hasDuplicate = false;
+
+    for (const ch of clean) {
+      if (out.length >= 6) break;
+
+      if (seen.has(ch)) {
+        hasDuplicate = true;
+        continue;
+      }
+
+      seen.add(ch);
+      out += ch;
+    }
+
+    setDigits(out);
+    setDigitsError(hasDuplicate);
   };
 
   const handleAdd = () => {
@@ -177,7 +197,7 @@ const SpMotor = ({ route }) => {
             <View style={styles.pointInputRow}>
               <Text style={styles.label}>Enter Digit:</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, digitsError && styles.errorInput]}
                 keyboardType="number-pad"
                 value={digits}
                 onChangeText={handleChangeDigits}
@@ -268,6 +288,10 @@ const styles = StyleSheet.create({
     borderColor: '#DDD',
     fontSize: 16,
     textAlign: 'center',
+  },
+  errorInput: {
+    borderColor: "#E53935",
+    borderWidth: 2,
   },
   addButton: {
     height: 44,

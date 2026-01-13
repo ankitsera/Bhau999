@@ -1,4 +1,3 @@
-// context/AppConfigContext.js
 import React, {
   createContext,
   useMemo,
@@ -72,11 +71,18 @@ export const AppConfigProvider = ({ children }) => {
   const [state, dispatch] = useReducer(configReducer, initialState);
   const { values, isLoading, error } = state;
 
-  const loadConfigValue = useCallback(async (key) => {
+  /**
+   * loadConfigValue(key, options?)
+   * options supports:
+   *  - forceRefresh?: boolean
+   *  - defaultValue?: any
+   */
+  const loadConfigValue = useCallback(async (key, options = {}) => {
     try {
       dispatch({ type: TYPES.FETCH_START });
-      const value = await fetchConfigValue(key);
+      const value = await fetchConfigValue(key, options);
       dispatch({ type: TYPES.FETCH_SUCCESS, key, value });
+      return value; // helpful for callers
     } catch (err) {
       dispatch({ type: TYPES.FETCH_FAILURE, error: err });
       Snackbar.show({
@@ -84,6 +90,7 @@ export const AppConfigProvider = ({ children }) => {
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
+      throw err;
     }
   }, []);
 

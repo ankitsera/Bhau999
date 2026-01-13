@@ -1,4 +1,4 @@
-import React, { useContext, useState, useCallback } from 'react';
+import React, { useContext, useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,10 +20,14 @@ import TopStrip from '../components/TopStrip';
 import GamesList from '../components/games/GamesList';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
+// ✅ AppConfig helpers (defaults live inside these)
+import {
+  getCallSupport,
+  getWhatsappSupport,
+  getTelegramChannel,
+} from '../utils/AppConfigService';
+
 const GREEN = '#3FA16C';
-const SUPPORT_PHONE = '+917757033237';
-const WHATSAPP_PHONE = '917757033237';
-const TELEGRAM_URL = 'https://t.me/asonline_support';
 
 const Header = ({ navigation }) => {
   const { user } = useContext(AuthContext);
@@ -75,12 +79,13 @@ const Header = ({ navigation }) => {
         </View>
 
         <View style={styles.headerRight}>
-          <Pressable style={styles.walletRight} onPress={() => {navigation.navigate('Add Money')}}>
-            <MaterialCommunityIcons
-              name="wallet-outline"
-              size={28}
-              color="#000"
-            />
+          <Pressable
+            style={styles.walletRight}
+            onPress={() => {
+              navigation.navigate('Add Money');
+            }}
+          >
+            <MaterialCommunityIcons name="wallet-outline" size={28} color="#000" />
             <Text style={styles.walletAmt}>
               {user?.balance ? user.balance : '0.0'}
             </Text>
@@ -102,6 +107,38 @@ const Home = ({ navigation }) => {
   const [supportVisible, setSupportVisible] = useState(false);
   const [quitVisible, setQuitVisible] = useState(false);
 
+  // ✅ from AppConfig (defaults already inside helpers)
+  const [supportPhone, setSupportPhone] = useState('');
+  const [whatsappPhone, setWhatsappPhone] = useState('');
+  const [telegramUrl, setTelegramUrl] = useState('https://t.me/asonline_support');
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadSupportConfig = async () => {
+      try {
+        const [call, wa, tg] = await Promise.all([
+          getCallSupport(),
+          getWhatsappSupport(),
+          getTelegramChannel(), // critical helper already forceRefresh:true
+        ]);
+
+        if (!mounted) return;
+
+        if (call) setSupportPhone(String(call));
+        if (wa) setWhatsappPhone(String(wa));
+        if (tg) setTelegramUrl(String(tg));
+      } catch {
+        // rely on defaults already set in state
+      }
+    };
+
+    loadSupportConfig();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   // Ensure the back override ONLY applies when Home is focused
   useFocusEffect(
     useCallback(() => {
@@ -114,11 +151,17 @@ const Home = ({ navigation }) => {
     }, []),
   );
 
+  const normalizeDigits = (v) => String(v || "").replace(/\D/g, "");
+
   const openDialer = () =>
-    Linking.openURL(`tel:${SUPPORT_PHONE}`).catch(() => {});
-  const openWhatsapp = () =>
-    Linking.openURL(`https://wa.me/${WHATSAPP_PHONE}`).catch(() => {});
-  const openTelegram = () => Linking.openURL(TELEGRAM_URL).catch(() => {});
+    Linking.openURL(`tel:+91${normalizeDigits(supportPhone)}`).catch(() => {});
+  const openWhatsapp = async () => {
+    const digits = normalizeDigits(whatsappPhone);
+    try {
+      return await Linking.openURL(`https://wa.me/91${digits}`);
+    } catch { }
+  };
+  const openTelegram = () => Linking.openURL(telegramUrl).catch(() => {});
 
   return (
     <View style={styles.container}>

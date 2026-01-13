@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,40 +6,70 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   Linking,
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Ionicons";
-import Snackbar from 'react-native-snackbar';
-import { AuthContext } from '../../contexts/AuthContext';
+import Snackbar from "react-native-snackbar";
+import { AuthContext } from "../../contexts/AuthContext";
+import { getCallSupport, getWhatsappSupport } from "../../utils/AppConfigService";
 
-const UserCheck = ({navigation}) => {
+const UserCheck = ({ navigation }) => {
   const [mobileNumber, setMobileNumber] = useState("");
   const { userCheck } = useContext(AuthContext);
 
-  const MOBILE_NUMBER = '+917757033237';
-  const WHATSAPP_NUMBER = '917757033237';
+  // ✅ from AppConfigService (defaults already handled there)
+  const [callSupport, setCallSupport] = useState("");
+  const [whatsappSupport, setWhatsappSupport] = useState("");
 
-  const openDialer = () =>
-    Linking.openURL(`tel:${MOBILE_NUMBER}`).catch(() => {});
-  const openWhatsapp = () =>
-    Linking.openURL(`https://wa.me/${WHATSAPP_NUMBER}`).catch(() => {});
+  useEffect(() => {
+    let mounted = true;
+
+    const init = async () => {
+      try {
+        const [callNo, waNo] = await Promise.all([
+          getCallSupport(),
+          getWhatsappSupport(),
+        ]);
+
+        if (!mounted) return;
+        setCallSupport(String(callNo || ""));
+        setWhatsappSupport(String(waNo || ""));
+      } catch (e) {
+        // helpers already handle defaults/critical behavior; keep screen silent
+      }
+    };
+
+    init();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const openDialer = () => {
+    if (!callSupport) return;
+    Linking.openURL(`tel:+91${callSupport}`).catch(() => {});
+  };
+
+  const openWhatsapp = () => {
+    if (!whatsappSupport) return;
+    Linking.openURL(`https://wa.me/91${whatsappSupport}`).catch(() => {});
+  };
 
   const handleLogin = () => {
     const phoneRegex = /^[0-9]{10}$/;
 
     if (mobileNumber.trim() === "") {
       Snackbar.show({
-        text: 'Please enter your mobile number',
+        text: "Please enter your mobile number",
         duration: Snackbar.LENGTH_SHORT,
-        backgroundColor: '#d32f2f',
-      })
+        backgroundColor: "#d32f2f",
+      });
     } else if (!phoneRegex.test(mobileNumber)) {
       Snackbar.show({
-        text: 'Please enter a valid 10-digit mobile number',
+        text: "Please enter a valid 10-digit mobile number",
         duration: Snackbar.LENGTH_SHORT,
-        backgroundColor: '#d32f2f',
+        backgroundColor: "#d32f2f",
       });
     } else {
       userCheck(mobileNumber, navigation);

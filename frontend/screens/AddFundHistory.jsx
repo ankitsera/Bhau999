@@ -104,7 +104,7 @@ const DepositCard = ({ item, GREEN }) => {
         <Row label="Transaction ID:" value={String(item?.id ?? '--')} />
         <Row
           label="Status:"
-          value={item?.status != null ? String(item.status) : '--'}
+          value={item?.status != null ? String(item.status) : 'SUCCESS'}
         />
         <Row
           label="Initiator:"

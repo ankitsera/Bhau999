@@ -96,7 +96,7 @@ const WithdrawCard = ({ item, GREEN }) => {
 
   const status = item?.status ? String(item.status) : 'Pending';
   const remark = item?.remarks != null ? String(item.remarks) : '';
-  const mode = item?.initiator ? String(item.initiator) : 'Other';
+  const mode = item?.initiator ? String(item.initiator) : 'Admin';
 
   const dt = parseTxDateTime(item?.txDate, item?.txTime);
 
@@ -119,7 +119,7 @@ const WithdrawCard = ({ item, GREEN }) => {
       </View>
 
       <View style={styles.mid}>
-        <Text style={styles.text}>Payment Mode: {mode}</Text>
+        <Text style={styles.text}>Withdrawal by: {mode}</Text>
         <Text style={[styles.status, { color: rightColor }]}>{status}</Text>
       </View>
 

@@ -1,4 +1,4 @@
-import React, { useContext, useState, useMemo } from 'react';
+import React, { useContext, useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,13 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AuthContext } from '../../contexts/AuthContext';
 import { PaymentsContext } from '../../contexts/PaymentsContext';
+import {
+  getCallSupport,
+  getWhatsappSupport,
+  getUpiId,
+  getBankingName,
+  getMinimumDepositAmount,
+} from '../../utils/AppConfigService';
 
 const GREEN = '#3FA16C';
 
@@ -26,28 +33,63 @@ const AddMoney = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const [amount, setAmount] = useState('');
 
-  const SUPPORT_PHONE = '+917757033237';
-  const WHATSAPP_PHONE = '917757033237';
+  // ✅ from AppConfigService (defaults already handled there)
+  const [supportPhone, setSupportPhone] = useState('');
+  const [whatsappPhone, setWhatsappPhone] = useState('');
+  const [upiId, setUpiId] = useState('');
+  const [bankingName, setBankingName] = useState('');
+  const [minDeposit, setMinDeposit] = useState(0);
 
-  const openDialer = () =>
-    Linking.openURL(`tel:${SUPPORT_PHONE}`).catch(() => {});
-  const openWhatsapp = () =>
-    Linking.openURL(`https://wa.me/${WHATSAPP_PHONE}`).catch(() => {});
+  useEffect(() => {
+    let mounted = true;
+
+    const init = async () => {
+      try {
+        const [callSupport, whatsappSupport, upi, bankName, minDep] =
+          await Promise.all([
+            getCallSupport(),
+            getWhatsappSupport(),
+            getUpiId(),
+            getBankingName(),
+            getMinimumDepositAmount(),
+          ]);
+
+        if (!mounted) return;
+
+        setSupportPhone(String(callSupport || ''));
+        setWhatsappPhone(String(whatsappSupport || ''));
+        setUpiId(String(upi || ''));
+        setBankingName(String(bankName || ''));
+        setMinDeposit(Number(minDep) || 0);
+      } catch (e) {
+        // helpers already handle defaults/critical behavior; keep screen silent
+        // (no extra defaults here to avoid duplicating logic)
+      }
+    };
+
+    init();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const openDialer = () => {
+    if (!supportPhone) return;
+    Linking.openURL(`tel:+91${supportPhone}`).catch(() => {});
+  };
+
+  const openWhatsapp = () => {
+    if (!whatsappPhone) return;
+    Linking.openURL(`https://wa.me/91${whatsappPhone}`).catch(() => {});
+  };
 
   const setPreset = v => setAmount(String(v));
 
-  // ✅ For now hardcoded. Later replace this with AppConfigContext values.
+  // ✅ payee config from AppConfigService
   const getPayeeConfig = () => ({
-    payeeVpa: 'hdml61i85097@hdfcbank',
-    payeeName: 'MUFINPAY',
+    payeeVpa: upiId,
+    payeeName: bankingName,
   });
-
-// const { getConfigValue } = useContext(AppConfigContext);
-
-// const getPayeeConfig = () => ({
-//   payeeVpa: getConfigValue("UPI_VPA"),
-//   payeeName: getConfigValue("UPI_NAME"),
-// });
 
   // ✅ tighter disable logic (handles " ", "0", etc.)
   const amtNum = useMemo(() => Number(String(amount).trim()), [amount]);
@@ -60,7 +102,18 @@ const AddMoney = ({ navigation }) => {
         return;
       }
 
+      const minDep = Number(minDeposit) || 0;
+      if (minDep > 0 && amtNum < minDep) {
+        Alert.alert('Invalid Amount', `Minimum deposit amount is ₹${minDep}.`);
+        return;
+      }
+
       const { payeeVpa, payeeName } = getPayeeConfig();
+
+      if (!payeeVpa || !payeeName) {
+        Alert.alert('Config Missing', 'Payment configuration is not available.');
+        return;
+      }
 
       await addMoneyViaUpi({
         amountRupees: amtNum,

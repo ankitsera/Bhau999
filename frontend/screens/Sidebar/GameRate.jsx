@@ -10,12 +10,9 @@ import {
 import GreenHeader from "../../components/GreenHeader";
 import EmptyState from "../../components/EmptyState";
 import { GameContext } from "../../contexts/GameContext";
-import { AppConfigContext } from "../../contexts/AppConfigContext";
+import { getMinBetAmount } from "../../utils/AppConfigService";
 
 const GREEN = "#3FA16C";
-
-// key for min bid amount in config API
-const MIN_BID_KEY = "MIN_BID_AMOUNT";
 
 const SectionHeader = ({ title }) => (
   <View style={styles.sectionHeader}>
@@ -32,33 +29,38 @@ const RateRow = ({ label, value }) => (
 
 const GameRate = () => {
   const { rates, isLoadingRates, loadGameRates } = useContext(GameContext);
-  const {
-    values,
-    isLoading: isConfigLoading,
-    loadConfigValue,
-  } = useContext(AppConfigContext);
+
+  const [minBetAmount, setMinBetAmount] = React.useState(null);
+  const [isConfigLoading, setIsConfigLoading] = React.useState(false);
 
   // run once on mount → avoids infinite loop
   useEffect(() => {
     if (loadGameRates) loadGameRates();
-    if (loadConfigValue) loadConfigValue(MIN_BID_KEY);
+
+    let mounted = true;
+    const loadMinBet = async () => {
+      try {
+        setIsConfigLoading(true);
+        const v = await getMinBetAmount(); // ✅ default handled inside AppConfigService
+        if (!mounted) return;
+        setMinBetAmount(v);
+      } finally {
+        if (mounted) setIsConfigLoading(false);
+      }
+    };
+    loadMinBet();
+
+    return () => {
+      mounted = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // derive min bid as number
-  const minBidAmount = useMemo(() => {
-    const raw =
-      values?.[MIN_BID_KEY] ??
-      values?.minBidAmount ??
-      values?.MIN_BID_AMOUNT ??
-      10; // 👈 default fallback
-
-    const asNumber = Number(raw);
-    return Number.isFinite(asNumber) && asNumber > 0 ? asNumber : 10;
-  }, [values]);
-
   const sections = useMemo(() => {
     if (!rates || rates.length === 0) return [];
+
+    const minBet = Number(minBetAmount); // should already be a number from helper
+    const safeMinBet = Number.isFinite(minBet) && minBet > 0 ? minBet : 0;
 
     return [
       {
@@ -68,14 +70,8 @@ const GameRate = () => {
           const baseRateNum = Number(r.rate);
           const safeBaseRate = Number.isFinite(baseRateNum) ? baseRateNum : 0;
 
-          let displayValue;
-          if (minBidAmount != null) {
-            const total = minBidAmount * safeBaseRate;
-            displayValue = `${minBidAmount} Ka ${total}`;
-          } else {
-            // fallback if config not loaded / invalid
-            displayValue = `Base rate: ${safeBaseRate}`;
-          }
+          const total = safeMinBet * safeBaseRate;
+          const displayValue = `${safeMinBet} Ka ${total}`;
 
           return {
             label: gameName,
@@ -84,7 +80,7 @@ const GameRate = () => {
         }),
       },
     ];
-  }, [rates, minBidAmount]);
+  }, [rates, minBetAmount]);
 
   const isLoading = isLoadingRates || isConfigLoading;
 
@@ -134,16 +130,19 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 12,
     marginBottom: 8,
+    alignItems: "center",
   },
   sectionTitle: {
     color: "#fff",
     fontSize: 18,
     fontWeight: "800",
+    textAlign: "center",
   },
 
   rateRow: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: 4,
     backgroundColor: "#fff",
     borderRadius: 10,
@@ -159,10 +158,12 @@ const styles = StyleSheet.create({
   rateLabel: {
     fontSize: 18,
     color: "#111",
+    textAlign: "center",
   },
   rateValue: {
     fontSize: 18,
     color: "#111",
     fontWeight: "800",
+    textAlign: "center",
   },
 });
