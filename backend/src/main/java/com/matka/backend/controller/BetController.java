@@ -50,6 +50,18 @@ public class BetController {
             this.betTime = b.getBetTime();
             this.result = b.getResult();
         }
+        public BetResponse(com.matka.backend.BetHistory b) {
+            if (b == null) return;
+            this.id = b.getId();
+            this.mobileNumber = b.getMobileNumber();
+            this.gameName = b.getGameName();
+            this.type = b.getType();
+            this.amount = b.getAmount();
+            this.betValue = b.getBetValue();
+            this.openClose = b.getOpenClose();
+            this.betTime = b.getBetTime();
+            this.result = b.getResult();
+        }
     }
 
     @Autowired
@@ -149,9 +161,9 @@ public class BetController {
     // Move of BetHistory list endpoint: GET /api/bet-history
     @GetMapping("/bet-history")
     public ResponseEntity<java.util.List<BetResponse>> listHistory() {
-        java.util.List<Bet> list = betHistoryRepository.findAll();
+        java.util.List<com.matka.backend.BetHistory> list = betHistoryRepository.findAll();
         java.util.List<BetResponse> out = new java.util.ArrayList<>();
-        if (list != null) for (Bet b : list) out.add(new BetResponse(b));
+        if (list != null) for (com.matka.backend.BetHistory b : list) out.add(new BetResponse(b));
         return ResponseEntity.ok(out);
     }
 
@@ -162,10 +174,10 @@ public class BetController {
             return ResponseEntity.badRequest().body(new ArrayList<>());
         }
         List<Bet> fromBets = betRepository.findByMobileNumber(mobileNumber);
-        List<Bet> fromHistory = betHistoryRepository.findByMobileNumber(mobileNumber);
+        List<com.matka.backend.BetHistory> fromHistory = betHistoryRepository.findByMobileNumber(mobileNumber);
         List<BetResponse> combined = new ArrayList<>();
         if (fromBets != null) for (Bet b : fromBets) combined.add(new BetResponse(b));
-        if (fromHistory != null) for (Bet b : fromHistory) combined.add(new BetResponse(b));
+        if (fromHistory != null) for (com.matka.backend.BetHistory b : fromHistory) combined.add(new BetResponse(b));
         return ResponseEntity.ok(combined);
     }
 
@@ -177,10 +189,10 @@ public class BetController {
         }
         String normalized = gameName.trim().toUpperCase();
         List<Bet> fromBets = betRepository.findByGameName(normalized);
-        List<Bet> fromHistory = betHistoryRepository.findByGameName(normalized);
+        List<com.matka.backend.BetHistory> fromHistory = betHistoryRepository.findByGameName(normalized);
         List<BetResponse> combined = new ArrayList<>();
         if (fromBets != null) for (Bet b : fromBets) combined.add(new BetResponse(b));
-        if (fromHistory != null) for (Bet b : fromHistory) combined.add(new BetResponse(b));
+        if (fromHistory != null) for (com.matka.backend.BetHistory b : fromHistory) combined.add(new BetResponse(b));
         return ResponseEntity.ok(combined);
     }
 
