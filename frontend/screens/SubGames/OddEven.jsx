@@ -120,7 +120,7 @@ const OddEven = ({ route }) => {
       makeBet({
         mobileNumber,
         gameName,
-        type: "Ank",
+        type: "Single Digit",
         openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(),
         amount: Number(b.points) || 0,
         betValue: b.digit,

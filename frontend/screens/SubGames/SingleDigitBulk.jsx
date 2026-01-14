@@ -106,7 +106,7 @@ const SingleDigitBulk = ({ route }) => {
       makeBet({
         mobileNumber,
         gameName,
-        type: "Ank",
+        type: "Single Digit",
         openClose: String(selectedType).toUpperCase(), // OPEN/CLOSE
         amount: Number(b.points) || 0,
         betValue: String(b.digit),

@@ -144,7 +144,7 @@ export const AuthProvider = ({ children }) => {
     try {
       dispatch({ type: TYPES.LOGIN_START });
       const loggedInUser = await loginAPI(mobileNumber, password);
-      dispatch({ type: TYPES.LOGIN_SUCCESS, user: loggedInUser });
+      dispatch({ type: TYPES.LOGIN_SUCCESS, user: { ...loggedInUser, password } });
       navigation.navigate("Home");
     } catch (error) {
       dispatch({ type: TYPES.LOGIN_FAILURE, error });
@@ -184,6 +184,39 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const refreshUser = async () => {
+    const mobileNumber = user?.mobileNumber;
+    const password = user?.password;
+
+    if (!mobileNumber || !password) {
+      // no creds saved -> can't refresh
+      return;
+    }
+
+    try {
+      dispatch({ type: TYPES.LOGIN_START });
+
+      const latestUser = await loginAPI(mobileNumber, password);
+
+      // keep password in state
+      dispatch({
+        type: TYPES.LOGIN_SUCCESS,
+        user: { ...latestUser, password },
+      });
+    } catch (error) {
+      dispatch({ type: TYPES.LOGIN_FAILURE, error });
+
+      Snackbar.show({
+        text: error?.message || "Refresh failed",
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: "#d32f2f",
+      });
+
+      // optional: if 401, force logout
+      // if (error?.status === 401) dispatch({ type: TYPES.LOGOUT });
+    }
+  };
+
   // Expose updateUser so other contexts (Payments) can patch & persist
   const updateUser = (patch) => dispatch({ type: TYPES.UPDATE, patch });
 
@@ -196,6 +229,7 @@ export const AuthProvider = ({ children }) => {
       logout,
       userCheck,
       updateUser,
+      refreshUser,
     }),
     [user, isLoading]
   );

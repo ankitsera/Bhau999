@@ -107,37 +107,49 @@ const Home = ({ navigation }) => {
   const [supportVisible, setSupportVisible] = useState(false);
   const [quitVisible, setQuitVisible] = useState(false);
 
-  // ✅ from AppConfig (defaults already inside helpers)
+  // Pull to refresh state (UI will be attached to GamesList FlatList)
+  const [refreshing, setRefreshing] = useState(false);
+
+  // from AppConfig (defaults already inside helpers)
   const [supportPhone, setSupportPhone] = useState('');
   const [whatsappPhone, setWhatsappPhone] = useState('');
-  const [telegramUrl, setTelegramUrl] = useState('https://t.me/asonline_support');
+  const [telegramUrl, setTelegramUrl] = useState('');
+
+  // User refresh handler should be added in AuthContext as `refreshUser`
+  const { refreshUser } = useContext(AuthContext);
+
+  const loadSupportConfig = useCallback(async (options = {}) => {
+    try {
+      const [call, wa, tg] = await Promise.all([
+        getCallSupport(options),
+        getWhatsappSupport(options),
+        getTelegramChannel(options),
+      ]);
+
+      if (call) setSupportPhone(String(call));
+      if (wa) setWhatsappPhone(String(wa));
+      if (tg) setTelegramUrl(String(tg));
+    } catch {
+      // rely on defaults inside helpers
+    }
+  }, []);
 
   useEffect(() => {
-    let mounted = true;
-
-    const loadSupportConfig = async () => {
-      try {
-        const [call, wa, tg] = await Promise.all([
-          getCallSupport(),
-          getWhatsappSupport(),
-          getTelegramChannel(), // critical helper already forceRefresh:true
-        ]);
-
-        if (!mounted) return;
-
-        if (call) setSupportPhone(String(call));
-        if (wa) setWhatsappPhone(String(wa));
-        if (tg) setTelegramUrl(String(tg));
-      } catch {
-        // rely on defaults already set in state
-      }
-    };
-
     loadSupportConfig();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  }, [loadSupportConfig]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      // Refresh user (balance etc.)
+      await refreshUser?.();
+
+      // Refresh important config values on manual pull
+      await loadSupportConfig({ forceRefresh: true });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshUser, loadSupportConfig]);
 
   // Ensure the back override ONLY applies when Home is focused
   useFocusEffect(
@@ -151,17 +163,26 @@ const Home = ({ navigation }) => {
     }, []),
   );
 
-  const normalizeDigits = (v) => String(v || "").replace(/\D/g, "");
+  const normalizeDigits = (v) => String(v || '').replace(/\D/g, '');
 
-  const openDialer = () =>
-    Linking.openURL(`tel:+91${normalizeDigits(supportPhone)}`).catch(() => {});
+  const openDialer = () => {
+    const digits = normalizeDigits(supportPhone);
+    if (!digits) return;
+    Linking.openURL(`tel:+91${digits}`).catch(() => {});
+  };
+
   const openWhatsapp = async () => {
     const digits = normalizeDigits(whatsappPhone);
+    if (!digits) return;
     try {
       return await Linking.openURL(`https://wa.me/91${digits}`);
-    } catch { }
+    } catch {}
   };
-  const openTelegram = () => Linking.openURL(telegramUrl).catch(() => {});
+
+  const openTelegram = () => {
+    if (!telegramUrl) return;
+    Linking.openURL(telegramUrl).catch(() => {});
+  };
 
   return (
     <View style={styles.container}>
@@ -175,7 +196,11 @@ const Home = ({ navigation }) => {
 
       {/* only GamesList scrolls */}
       <View style={styles.gamesListContainer}>
-        <GamesList navigation={navigation} />
+        <GamesList
+          navigation={navigation}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+        />
       </View>
 
       {/* fixed footer */}

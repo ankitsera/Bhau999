@@ -68,9 +68,8 @@ const GameRate = () => {
         data: rates.map((r) => {
           const gameName = r.type ?? "Unknown";
           const baseRateNum = Number(r.rate);
-          const safeBaseRate = Number.isFinite(baseRateNum) ? baseRateNum : 0;
+          const total = Number.isFinite(baseRateNum) ? baseRateNum : 0;
 
-          const total = safeMinBet * safeBaseRate;
           const displayValue = `${safeMinBet} Ka ${total}`;
 
           return {

@@ -162,7 +162,7 @@ const SingleDigit = ({ route }) => {
             makeBet({
               mobileNumber,
               gameName,
-              type: 'Ank',
+              type: 'Single Digit',
               openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(), // OPEN/CLOSE
               amount: Number(b.points) || 0,
               betValue: String(b.digit),
@@ -174,7 +174,7 @@ const SingleDigit = ({ route }) => {
             return makeBet({
               mobileNumber,
               gameName,
-              type: 'Ank',
+              type: 'Single Digit',
               openClose: String(selectedType).toUpperCase(), // OPEN/CLOSE
               amount: p,
               betValue: String(d),

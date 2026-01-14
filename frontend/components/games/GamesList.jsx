@@ -90,7 +90,7 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
   );
 };
 
-const GamesList = ({ navigation }) => {
+const GamesList = ({ navigation, refreshing, onRefresh }) => {
   const { activeGamesUi, isLoadingActiveGames, loadActiveGames } =
     useContext(GameContext);
 
@@ -123,6 +123,8 @@ const GamesList = ({ navigation }) => {
 
       <FlatList
         data={activeGamesUi}
+        refreshing={!!refreshing}
+        onRefresh={onRefresh}
         keyExtractor={(item, index) => `${item.gameName}-${index}`}
         renderItem={({ item }) => (
           <GameCard
