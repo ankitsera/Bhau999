@@ -33,28 +33,77 @@ const GameRate = () => {
   const [minBetAmount, setMinBetAmount] = React.useState(null);
   const [isConfigLoading, setIsConfigLoading] = React.useState(false);
 
-  // run once on mount → avoids infinite loop
-  useEffect(() => {
-    if (loadGameRates) loadGameRates();
-
-    let mounted = true;
-    const loadMinBet = async () => {
+  const fetchAll = React.useCallback(
+    async (options = {}) => {
+      let mounted = true;
       try {
         setIsConfigLoading(true);
-        const v = await getMinBetAmount(); // ✅ default handled inside AppConfigService
-        if (!mounted) return;
-        setMinBetAmount(v);
+
+        await Promise.all([
+          loadGameRates?.(),
+          (async () => {
+            const v = await getMinBetAmount(options); // ✅ default handled inside helper
+            if (!mounted) return;
+            setMinBetAmount(v);
+          })(),
+        ]);
+      } finally {
+        if (mounted) setIsConfigLoading(false);
+      }
+
+      return () => {
+        mounted = false;
+      };
+    },
+    [loadGameRates],
+  );
+
+  // run once on mount → avoids infinite loop
+  useEffect(() => {
+    let mounted = true;
+
+    const run = async () => {
+      try {
+        setIsConfigLoading(true);
+
+        await Promise.all([
+          loadGameRates?.(),
+          (async () => {
+            const v = await getMinBetAmount(); // Cached ok on mount
+            if (!mounted) return;
+            setMinBetAmount(v);
+          })(),
+        ]);
       } finally {
         if (mounted) setIsConfigLoading(false);
       }
     };
-    loadMinBet();
+
+    run();
 
     return () => {
       mounted = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ✅ pull-to-refresh
+  const [refreshing, setRefreshing] = React.useState(false);
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        loadGameRates?.(),
+        getMinBetAmount({ forceRefresh: true }), // ✅ bypass cache on manual refresh
+      ]).then((vals) => {
+        // vals[1] is min bet (from helper)
+        const v = vals?.[1];
+        if (v != null) setMinBetAmount(v);
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [loadGameRates]);
 
   const sections = useMemo(() => {
     if (!rates || rates.length === 0) return [];
@@ -81,7 +130,7 @@ const GameRate = () => {
     ];
   }, [rates, minBetAmount]);
 
-  const isLoading = isLoadingRates || isConfigLoading;
+  const isLoading = (isLoadingRates || isConfigLoading) && !refreshing;
 
   return (
     <View style={styles.container}>
@@ -107,6 +156,8 @@ const GameRate = () => {
           ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
           SectionSeparatorComponent={() => <View style={{ height: 12 }} />}
           showsVerticalScrollIndicator={false}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
         />
       )}
     </View>
