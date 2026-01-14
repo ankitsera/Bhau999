@@ -93,9 +93,9 @@ public class DailyRollupService {
             // 3) Move bets to bets_history with yesterday's date
             List<Bet> bets = betRepository.findAll();
             if (!bets.isEmpty()) {
-                List<Bet> bhList = new ArrayList<>();
+                List<com.matka.backend.BetHistory> bhList = new ArrayList<>();
                 for (Bet b : bets) {
-                    Bet bh = new Bet();
+                    com.matka.backend.BetHistory bh = new com.matka.backend.BetHistory();
                     bh.setMobileNumber(b.getMobileNumber());
                     bh.setGameName(b.getGameName());
                     // preserve type/amount/betValue/openClose and betTime/result in the copied row
