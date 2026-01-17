@@ -76,7 +76,17 @@ public class DailyRollupService {
             activeGameRepository.deleteAll();
             List<Game> games = gameRepository.findAll();
             List<ActiveGame> newActive = new ArrayList<>();
+            java.time.DayOfWeek todayDow = java.time.LocalDate.now().getDayOfWeek();
+            boolean isSat = todayDow == java.time.DayOfWeek.SATURDAY;
+            boolean isSun = todayDow == java.time.DayOfWeek.SUNDAY;
             for (Game g : games) {
+                // If today is Saturday or Sunday, only include games enabled for that day
+                if (isSat) {
+                    if (!Boolean.TRUE.equals(g.getSaturday())) continue;
+                } else if (isSun) {
+                    if (!Boolean.TRUE.equals(g.getSunday())) continue;
+                }
+
                 ActiveGame ag = new ActiveGame();
                 ag.setGameName(g.getName());
                 ag.setOpenPana(null);
@@ -85,9 +95,9 @@ public class DailyRollupService {
             }
             if (!newActive.isEmpty()) {
                 activeGameRepository.saveAll(newActive);
-                log.info("Repopulated active_games with {} games", newActive.size());
+                log.info("Repopulated active_games with {} games (today is {} )", newActive.size(), todayDow);
             } else {
-                log.info("No games found in game table to populate active_games");
+                log.info("No games found in game table to populate active_games for day={}", todayDow);
             }
 
             // 3) Move bets to bets_history with yesterday's date

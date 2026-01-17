@@ -16,6 +16,12 @@ public class Game {
     @Column(name = "close_time")
     private LocalTime closeTime;
 
+    @Column(name = "saturday")
+    private Boolean saturday;
+
+    @Column(name = "sunday")
+    private Boolean sunday;
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -24,4 +30,10 @@ public class Game {
 
     public LocalTime getCloseTime() { return closeTime; }
     public void setCloseTime(LocalTime closeTime) { this.closeTime = closeTime; }
+
+    public Boolean getSaturday() { return saturday; }
+    public void setSaturday(Boolean saturday) { this.saturday = saturday; }
+
+    public Boolean getSunday() { return sunday; }
+    public void setSunday(Boolean sunday) { this.sunday = sunday; }
 }
