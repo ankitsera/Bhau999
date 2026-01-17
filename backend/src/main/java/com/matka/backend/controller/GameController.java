@@ -41,9 +41,16 @@ public class GameController {
         if (game.getCloseTime() != null) {
             entity.setCloseTime(game.getCloseTime());
         }
+        // Set weekend flags if provided
+        if (game.getSaturday() != null) {
+            entity.setSaturday(game.getSaturday());
+        }
+        if (game.getSunday() != null) {
+            entity.setSunday(game.getSunday());
+        }
 
         Game saved = gameRepository.save(entity);
-        log.info("Saved game name={} openTime={} closeTime={}", saved.getName(), saved.getOpenTime(), saved.getCloseTime());
+        log.info("Saved game name={} openTime={} closeTime={} saturday={} sunday={}", saved.getName(), saved.getOpenTime(), saved.getCloseTime(), saved.getSaturday(), saved.getSunday());
         return ResponseEntity.ok(saved);
     }
 
