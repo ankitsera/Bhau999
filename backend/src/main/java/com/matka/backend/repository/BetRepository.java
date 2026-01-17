@@ -7,4 +7,6 @@ import java.util.List;
 public interface BetRepository extends JpaRepository<Bet, Long> {
 	List<Bet> findByMobileNumber(String mobileNumber);
 	List<Bet> findByGameName(String gameName);
+
+	List<Bet> findByGameNameAndOpenClose(String gameName, String openClose);
 }

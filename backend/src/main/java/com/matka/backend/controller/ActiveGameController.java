@@ -4,6 +4,7 @@ import com.matka.backend.ActiveGame;
 import com.matka.backend.Game;
 import com.matka.backend.repository.ActiveGameRepository;
 import com.matka.backend.repository.GameRepository;
+import com.matka.backend.service.BetProcessingService;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
@@ -25,6 +26,9 @@ public class ActiveGameController {
 
     @Autowired
     private GameRepository gameRepository;
+    
+    @Autowired
+    private BetProcessingService betProcessingService;
 
     @GetMapping
     public ResponseEntity<List<ActiveGameWithAllowedTypes>> listAll() {
@@ -111,6 +115,8 @@ public class ActiveGameController {
             }
             active.setOpenPana(result);
             activeGameRepository.save(active);
+            // after saving the open result, process bets for this game/when
+            betProcessingService.processBetsForResult(gameName, "Open", result);
             return ResponseEntity.ok(Map.of("message", "Open result declared", "activeGame", active));
         } else if (when.equals("close")) {
             if (game.getCloseTime() == null) {
@@ -121,6 +127,8 @@ public class ActiveGameController {
             }
             active.setClosePana(result);
             activeGameRepository.save(active);
+            // after saving the close result, process bets for this game/when
+            betProcessingService.processBetsForResult(gameName, "Close", result);
             return ResponseEntity.ok(Map.of("message", "Close result declared", "activeGame", active));
         } else {
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid 'when' value; expected 'open' or 'close'"));
@@ -172,3 +180,4 @@ public class ActiveGameController {
         public void setResult(Integer result) { this.result = result; }
     }
 }
+    

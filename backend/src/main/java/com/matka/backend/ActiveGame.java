@@ -1,6 +1,7 @@
 package com.matka.backend;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "active_games")
@@ -28,5 +29,6 @@ public class ActiveGame {
     public Integer getClosePana() { return closePana; }
     public void setClosePana(Integer closePana) { this.closePana = closePana; }
 
+    @JsonIgnore
     public Game getGame() { return game; }
 }
