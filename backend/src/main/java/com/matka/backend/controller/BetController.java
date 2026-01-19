@@ -32,7 +32,7 @@ public class BetController {
         public String gameName;
         public String type;
         public Integer amount;
-        public Integer betValue;
+            public String betValue;
         public String openClose;
         public java.time.LocalDateTime betTime;
         public String result;
@@ -93,7 +93,7 @@ public class BetController {
         java.util.List<Bet> savedBets = new java.util.ArrayList<>();
 
         for (Bet bet : bets) {
-            if (bet == null || bet.getMobileNumber() == null || bet.getGameName() == null || bet.getType() == null || bet.getAmount() == null || bet.getBetValue() == null) {
+            if (bet == null || bet.getMobileNumber() == null || bet.getGameName() == null || bet.getType() == null || bet.getAmount() == null || bet.getBetValue() == null || bet.getBetValue().isBlank()) {
                 return ResponseEntity.badRequest().body(java.util.Map.of("message", "Missing bet payload or required fields (mobileNumber, gameName, type, amount, betValue)"));
             }
 
