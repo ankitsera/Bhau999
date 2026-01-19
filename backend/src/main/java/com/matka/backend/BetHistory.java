@@ -10,7 +10,7 @@ public class BetHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "mobile_number", nullable = false)
+    @Column(name = "mobile_number", nullable = false, length = 10)
     private String mobileNumber;
 
     @Column(name = "game_name", nullable = false)
@@ -22,16 +22,16 @@ public class BetHistory {
     @Column(name = "amount", nullable = false)
     private Integer amount;
 
-    @Column(name = "bet_value")
-    private Integer betValue;
+    @Column(name = "bet_value", length = 7)
+    private String betValue;
 
-    @Column(name = "open_close")
+    @Column(name = "open_close", length = 5)
     private String openClose;
 
     @Column(name = "bet_time")
     private LocalDateTime betTime;
 
-    @Column(name = "result")
+    @Column(name = "result", length = 4)
     private String result;
 
     public Long getId() { return id; }
@@ -49,8 +49,8 @@ public class BetHistory {
     public Integer getAmount() { return amount; }
     public void setAmount(Integer amount) { this.amount = amount; }
 
-    public Integer getBetValue() { return betValue; }
-    public void setBetValue(Integer betValue) { this.betValue = betValue; }
+    public String getBetValue() { return betValue; }
+    public void setBetValue(String betValue) { this.betValue = betValue; }
 
     public String getOpenClose() { return openClose; }
     public void setOpenClose(String openClose) { this.openClose = openClose; }
