@@ -49,6 +49,13 @@ public class TransactionController {
     @Autowired
     private UserRepository userRepository;
 
+    // ---- helpers ----
+    private boolean isUserInitiated(TransactionEntity t) {
+        if (t == null) return false;
+        String init = t.getInitiator();
+        return init != null && init.trim().equalsIgnoreCase("user");
+    }
+
     @PostMapping
     @Transactional
     public ResponseEntity<?> create(@RequestBody TransactionEntity tx) {
@@ -176,28 +183,56 @@ public class TransactionController {
         return ResponseEntity.ok(out);
     }
 
-    // List withdrawals for a user (amount < 0)
+    // ✅ Withdrawals by user (amount < 0) + sum (ONLY initiator=user)
+    // sum is returned as a positive number (total withdrawn)
     @PostMapping("/withdrawals/by-user")
-    public ResponseEntity<java.util.List<TransactionResponse>> listWithdrawalsByUser(@RequestBody UserTransactionsRequest req) {
+    public ResponseEntity<?> listWithdrawalsByUser(@RequestBody UserTransactionsRequest req) {
         if (req == null || req.getMobileNumber() == null) {
-            return ResponseEntity.badRequest().body(new java.util.ArrayList<>());
+            return ResponseEntity.badRequest().body(java.util.Map.of("sum", 0L, "transactions", new java.util.ArrayList<>()));
         }
-        java.util.List<TransactionEntity> list = transactionRepository.findByMobileNumberAndAmountLessThan(req.getMobileNumber(), 0);
+
+        java.util.List<TransactionEntity> list =
+                transactionRepository.findByMobileNumberAndAmountLessThan(req.getMobileNumber(), 0);
+
         java.util.List<TransactionResponse> out = new java.util.ArrayList<>();
-        if (list != null) for (TransactionEntity t : list) out.add(new TransactionResponse(t));
-        return ResponseEntity.ok(out);
+        long sum = 0L;
+
+        if (list != null) {
+            for (TransactionEntity t : list) {
+                out.add(new TransactionResponse(t));
+                if (isUserInitiated(t) && t.getAmount() != null) {
+                    // amount is negative -> add absolute to show total withdrawn as positive
+                    sum += (long) (-t.getAmount());
+                }
+            }
+        }
+
+        return ResponseEntity.ok(java.util.Map.of("sum", sum, "transactions", out));
     }
 
-    // List deposits for a user (amount > 0)
+    // ✅ Deposits by user (amount > 0) + sum (ONLY initiator=user)
     @PostMapping("/deposits/by-user")
-    public ResponseEntity<java.util.List<TransactionResponse>> listDepositsByUser(@RequestBody UserTransactionsRequest req) {
+    public ResponseEntity<?> listDepositsByUser(@RequestBody UserTransactionsRequest req) {
         if (req == null || req.getMobileNumber() == null) {
-            return ResponseEntity.badRequest().body(new java.util.ArrayList<>());
+            return ResponseEntity.badRequest().body(java.util.Map.of("sum", 0L, "transactions", new java.util.ArrayList<>()));
         }
-        java.util.List<TransactionEntity> list = transactionRepository.findByMobileNumberAndAmountGreaterThan(req.getMobileNumber(), 0);
+
+        java.util.List<TransactionEntity> list =
+                transactionRepository.findByMobileNumberAndAmountGreaterThan(req.getMobileNumber(), 0);
+
         java.util.List<TransactionResponse> out = new java.util.ArrayList<>();
-        if (list != null) for (TransactionEntity t : list) out.add(new TransactionResponse(t));
-        return ResponseEntity.ok(out);
+        long sum = 0L;
+
+        if (list != null) {
+            for (TransactionEntity t : list) {
+                out.add(new TransactionResponse(t));
+                if (isUserInitiated(t) && t.getAmount() != null) {
+                    sum += (long) t.getAmount(); // positive
+                }
+            }
+        }
+
+        return ResponseEntity.ok(java.util.Map.of("sum", sum, "transactions", out));
     }
 
     // List all pending transactions
@@ -216,6 +251,26 @@ public class TransactionController {
         java.util.List<TransactionResponse> out = new java.util.ArrayList<>();
         if (list != null) for (TransactionEntity t : list) out.add(new TransactionResponse(t));
         return ResponseEntity.ok(out);
+    }
+
+    // ✅ List all deposits (amount > 0) + sum (ONLY initiator=user)
+    @GetMapping("/deposits")
+    public ResponseEntity<?> listDeposits() {
+        java.util.List<TransactionEntity> list = transactionRepository.findByAmountGreaterThan(0);
+
+        java.util.List<TransactionResponse> out = new java.util.ArrayList<>();
+        long sum = 0L;
+
+        if (list != null) {
+            for (TransactionEntity t : list) {
+                out.add(new TransactionResponse(t));
+                if (isUserInitiated(t) && t.getAmount() != null) {
+                    sum += (long) t.getAmount();
+                }
+            }
+        }
+
+        return ResponseEntity.ok(java.util.Map.of("sum", sum, "transactions", out));
     }
 
     public static class UserTransactionsRequest {
