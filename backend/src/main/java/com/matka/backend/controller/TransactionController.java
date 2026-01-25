@@ -263,9 +263,12 @@ public class TransactionController {
 
         if (list != null) {
             for (TransactionEntity t : list) {
-                out.add(new TransactionResponse(t));
-                if (isUserInitiated(t) && t.getAmount() != null) {
-                    sum += (long) t.getAmount();
+                // Only include user-initiated deposits
+                if (isUserInitiated(t)) {
+                    out.add(new TransactionResponse(t));
+                    if (t.getAmount() != null) {
+                        sum += (long) t.getAmount();
+                    }
                 }
             }
         }
