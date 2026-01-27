@@ -30,6 +30,45 @@ public class ActiveGameController {
     @Autowired
     private BetProcessingService betProcessingService;
 
+    @PostMapping("/identify-winners")
+    public ResponseEntity<?> identifyWinners(@RequestBody DeclareResultRequest req) {
+        if (req == null || req.getGameName() == null || req.getWhen() == null || req.getResult() == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Missing payload (gameName, when, result required)"));
+        }
+
+        String gameName = req.getGameName().trim().toUpperCase();
+        String when = req.getWhen().trim().toLowerCase();
+        Integer result = req.getResult();
+
+        // reuse validation from declareResult
+        Optional<Game> gameOpt = gameRepository.findById(gameName);
+        if (gameOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("message", "Game not found: " + gameName));
+        }
+
+        Optional<ActiveGame> activeOpt = activeGameRepository.findById(gameName);
+        if (activeOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("message", "Active game not configured: " + gameName));
+        }
+
+        java.util.List<com.matka.backend.Bet> winners = betProcessingService.findWinningBets(gameName, when.equals("open") ? "Open" : "Close", result);
+        // map to simple DTO
+        java.util.List<java.util.Map<String,Object>> out = new java.util.ArrayList<>();
+        for (com.matka.backend.Bet b : winners) {
+            out.add(java.util.Map.of(
+                "id", b.getId(),
+                "mobileNumber", b.getMobileNumber(),
+                "type", b.getType(),
+                "amount", b.getAmount(),
+                "betValue", b.getBetValue(),
+                "openClose", b.getOpenClose(),
+                "betTime", b.getBetTime()
+            ));
+        }
+
+        return ResponseEntity.ok(java.util.Map.of("message", "Predicted winners", "count", out.size(), "winners", out));
+    }
+
     @GetMapping
     public ResponseEntity<List<ActiveGameWithAllowedTypes>> listAll() {
         List<ActiveGame> list = activeGameRepository.findAll();

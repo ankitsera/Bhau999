@@ -34,4 +34,7 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
 
     List<TransactionEntity> findByStatusAndAmountLessThanAndInitiatorIgnoreCase(String status, Integer amount, String initiator);
     List<TransactionEntity> findByStatusAndAmountGreaterThanAndInitiatorIgnoreCase(String status, Integer amount, String initiator);
+    
+        // find transactions by mobile, amount and initiator ordered by id desc so most recent is first
+        List<TransactionEntity> findByMobileNumberAndAmountAndInitiatorOrderByIdDesc(String mobileNumber, Integer amount, String initiator);
 }
