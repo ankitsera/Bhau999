@@ -239,8 +239,14 @@ public class BetProcessingService {
                                     if (uo.isPresent()) {
                                         User u = uo.get();
                                         Integer bal = u.getBalance() == null ? 0 : u.getBalance();
-                                        u.setBalance(bal - payout);
+                                        int newBal = bal - payout;
+                                        u.setBalance(newBal);
                                         userRepository.save(u);
+                                        logger.info("Reverted payout for bet id {} mobile {}: deducted {}. Old balance: {}, New balance: {}",
+                                                b.getId(), b.getMobileNumber(), payout, bal, newBal);
+                                    } else {
+                                        logger.warn("User with mobile {} not found to deduct payout of {} for bet id {}",
+                                                b.getMobileNumber(), payout, b.getId());
                                     }
                                 } catch (Exception ex) {
                                     logger.error("Error deleting payout transaction for bet id " + b.getId(), ex);
