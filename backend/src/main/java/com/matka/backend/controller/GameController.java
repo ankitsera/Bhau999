@@ -2,6 +2,8 @@ package com.matka.backend.controller;
 
 import com.matka.backend.Game;
 import com.matka.backend.repository.GameRepository;
+import com.matka.backend.ActiveGame;
+import com.matka.backend.repository.ActiveGameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,8 @@ public class GameController {
 
     @Autowired
     private GameRepository gameRepository;
+    @Autowired
+    private ActiveGameRepository activeGameRepository;
 
 
     // Create or update a game. Normalize name to upper-case to avoid duplicates.
@@ -30,8 +34,10 @@ public class GameController {
         // normalize name
         String normalized = game.getName().trim().toUpperCase();
 
-        // Load existing or create new so updates don't wipe other fields unintentionally
-        Game entity = gameRepository.findById(normalized).orElseGet(() -> new Game());
+    // Detect whether this will be a new game (create) or an update
+    boolean isNew = !gameRepository.existsById(normalized);
+    // Load existing or create new so updates don't wipe other fields unintentionally
+    Game entity = gameRepository.findById(normalized).orElseGet(() -> new Game());
         entity.setName(normalized);
 
         // Set open/close times from incoming object if provided (same approach as name)
@@ -50,6 +56,19 @@ public class GameController {
         }
 
         Game saved = gameRepository.save(entity);
+        // If this was a new Game, ensure there is a corresponding ActiveGame entry
+        if (isNew) {
+            try {
+                if (!activeGameRepository.existsById(saved.getName())) {
+                    ActiveGame ag = new ActiveGame();
+                    ag.setGameName(saved.getName());
+                    activeGameRepository.save(ag);
+                    log.info("Created ActiveGame entry for new game {}", saved.getName());
+                }
+            } catch (Exception ex) {
+                log.error("Failed to create ActiveGame for game {}", saved.getName(), ex);
+            }
+        }
         log.info("Saved game name={} openTime={} closeTime={} saturday={} sunday={}", saved.getName(), saved.getOpenTime(), saved.getCloseTime(), saved.getSaturday(), saved.getSunday());
         return ResponseEntity.ok(saved);
     }
