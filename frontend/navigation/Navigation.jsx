@@ -17,6 +17,8 @@ import Funds from "../screens/Sidebar/Funds";
 import Notifications from "../screens/Sidebar/Notifications";
 import BankDetails from "../screens/BankDetails";
 import Charts from "../screens/Sidebar/Charts";
+import MatkaChart from "../screens/MatkaChart";
+import GameChartPanel from "../screens/GameChartPanel";
 import GameRate from "../screens/Sidebar/GameRate";
 import TimeTable from "../screens/Sidebar/TimeTable";
 import NoticeBoard from "../screens/Sidebar/NoticeBoard";
@@ -92,7 +94,7 @@ const Navigation = ({ navigationRef }) => {
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color="#3FA16C" />
+        <ActivityIndicator size="large" color="#336952" />
       </View>
     );
   }
@@ -123,6 +125,8 @@ const Navigation = ({ navigationRef }) => {
         <Stack.Screen name="Notifications" component={Notifications} options={{ headerShown: false }} /> 
         <Stack.Screen name="Bank Details" component={BankDetails} options={{ headerShown: false }} />
         <Stack.Screen name="Charts" component={Charts} options={{ headerShown: false }} />
+        <Stack.Screen name="Matka Chart" component={MatkaChart} options={{ headerShown: false }} />
+        <Stack.Screen name="GameChartPanel" component={GameChartPanel} options={{ headerShown: false }} />
         <Stack.Screen name="Game Rate" component={GameRate} options={{ headerShown: false }} />
         <Stack.Screen name="Time Table" component={TimeTable} options={{ headerShown: false }} /> 
         <Stack.Screen name="Notice board / Rules" component={NoticeBoard} options={{ headerShown: false }} />

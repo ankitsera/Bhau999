@@ -49,7 +49,7 @@ const DigitBasedJodi = ({ route }) => {
     return `${dd}-${mm}-${yyyy}`;
   })();
 
-  const [selectedType, setSelectedType] = useState(allowedTypes[0] || "OPEN");
+  const [selectedType, setSelectedType] = useState('OPEN');
   const [points, setPoints] = useState("");
   const [bets, setBets] = useState([]); // { id, digit, points, type }
 

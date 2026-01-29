@@ -249,9 +249,10 @@ export const getMinimumDepositAmount = async (options = {}) =>
 export const getMinimumWithdrawalAmount = async (options = {}) =>
   Number(
     await fetchConfigValue("minimum_withdrawal_amount", {
-      defaultValue: "1",
+      defaultValue: "10",
       ...options,
-      critical: false,
+      critical: true,
+      forceRefresh: true,
     })
   );
 

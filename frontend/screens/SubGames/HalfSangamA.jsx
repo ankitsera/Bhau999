@@ -146,7 +146,7 @@ const HalfSangamA = ({ route }) => {
         mobileNumber,
         gameName,
         type: 'Half Sangam',
-        openClose: 'CLOSE',
+        openClose: 'OPEN',
         amount: Number(b.points) || 0,
         betValue: b.sangam, // "openPana-closeAnk"
       }),

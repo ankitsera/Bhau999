@@ -114,7 +114,7 @@ export const getBidHistoryByUser = async (mobileNumber) => {
  * - mobileNumber
  * - gameName
  * - type           (NOW: sub-game key like "Single Pana", "Jodi", "Sp Motor" etc)
- * - open_close     ("OPEN" | "CLOSE")
+ * - openClose     ("OPEN" | "CLOSE")
  * - amount
  * - betValue
  */
@@ -163,8 +163,8 @@ export const makeBet = ({
     mobileNumber: String(mobileNumber || ""),
     gameName: String(gameName || ""),
     type: String(type || "").trim(), // you now store "Single Pana" style, so keep as-is
-    open_close: String(openClose || "").trim(), // "Open"/"Close"
+    openClose: String(openClose || "").trim(), // "Open"/"Close"
     amount: Number(amount) || 0,
-    betValue: betValue === null || betValue === undefined ? null : Number(betValue),
+    betValue: String(betValue || "").trim(),
   };
 };

@@ -1,60 +1,83 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from "react-native";
 import GreenHeader from "../../components/GreenHeader";
+import EmptyState from "../../components/EmptyState";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
-const GREEN = "#3FA16C";
+const GREEN = "#336952";
 
 const ROWS = [
   {
-    id: "matka",
+    id: "Matka Chart",
     title: "Matka Chart",
     subtitle: "Jodi and Panel chart Result",
     icon: "chart-areaspline",
   },
-  {
-    id: "starline",
-    title: "Starline Chart",
-    subtitle: "Starline Chart Date Time wise",
-    icon: "star-outline",
-  },
-  {
-    id: "jackpot",
-    title: "Jackpot Chart",
-    subtitle: "Jackpot Chart Date Time wise",
-    icon: "trophy-variant-outline",
-  },
+  // {
+  //   id: "Starline Chart",
+  //   title: "Starline Chart",
+  //   subtitle: "Starline Chart Date Time wise",
+  //   icon: "star-outline",
+  // },
+  // {
+  //   id: "Jackpot Chart",
+  //   title: "Jackpot Chart",
+  //   subtitle: "Jackpot Chart Date Time wise",
+  //   icon: "trophy-variant-outline",
+  // },
 ];
 
-const Row = ({ item, onPress }) => (
-  <TouchableOpacity activeOpacity={0.85} style={styles.card} onPress={() => onPress(item.id)}>
-    <View style={styles.leftIconWrap}>
-      <MaterialCommunityIcons name={item.icon} size={24} color="#fff" />
-    </View>
-    <View style={{ flex: 1 }}>
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.subtitle}>{item.subtitle}</Text>
-    </View>
-    <View style={styles.chevWrap}>
-      <MaterialCommunityIcons name="chevron-right" size={26} color="#444" />
-    </View>
-  </TouchableOpacity>
-);
+const Row = ({ item, navigation }) => {
+  const handlePress = () => {
+    if (item.id && navigation) {
+      try {
+        navigation.navigate(item.id, { name: item.id });
+      } catch (error) {
+        // Navigation failed - handle gracefully
+        console.warn(`Navigation to ${item.id} failed:`, error);
+      }
+    }
+  };
+
+  return (
+    <TouchableOpacity activeOpacity={0.85} style={styles.card} onPress={handlePress}>
+      <View style={styles.leftIconWrap}>
+        <MaterialCommunityIcons name={item.icon} size={24} color="#fff" />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.subtitle}>{item.subtitle}</Text>
+      </View>
+      <View style={styles.chevWrap}>
+        <MaterialCommunityIcons name="chevron-right" size={26} color="#444" />
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 const Charts = ({ navigation }) => {
+  const [selectedId, setSelectedId] = useState(null);
+
   return (
     <View style={styles.container}>
       <GreenHeader title="Game Chart" />
-      <FlatList
-        data={ROWS}
-        keyExtractor={(it) => it.id}
-        contentContainerStyle={{ padding: 12, paddingBottom: 24 }}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        renderItem={({ item }) => (
-          <Row item={item} onPress={() => {}} />
-        )}
-        showsVerticalScrollIndicator={false}
-      />
+      {selectedId ? (
+        <EmptyState
+          icon="folder-alert-outline"
+          message={`No chart available for ${selectedId}`}
+        />
+      ) : (
+        <FlatList
+          data={ROWS}
+          keyExtractor={(it) => it.id}
+          contentContainerStyle={{ padding: 12, paddingBottom: 24 }}
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          renderItem={({ item }) => (
+            <Row item={item} navigation={navigation} />
+          )}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </View>
   );
 };

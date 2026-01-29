@@ -77,7 +77,10 @@ function normalizeUpiResult(nativeRes) {
     status,
     txnId: merged?.txnId || merged?.TxnId || null,
     approvalRefNo:
-      merged?.ApprovalRefNo || merged?.approvalRefNo || merged?.approvalrefno || null,
+      merged?.ApprovalRefNo ||
+      merged?.approvalRefNo ||
+      merged?.approvalrefno ||
+      null,
     rrn: merged?.RRN || merged?.rrn || null,
     responseCode: merged?.responseCode || merged?.ResponseCode || null,
     // keep everything for debugging / backend logging if you want
@@ -196,9 +199,30 @@ export const submitTransaction = async (payload) => {
 
   return {
     ok: true,
-    data: body,        // ← actual API response (saved entity)
+    data: body, // ← actual API response (saved entity)
   };
 };
+
+// ✅ NEW: normalize list responses (backend may return { sum, list } now)
+function normalizeTxnList(body) {
+  if (Array.isArray(body)) return body;
+
+  // If backend returns { sum: X, list: [...] } (or any similar wrapper),
+  // unwrap the array so screens keep receiving plain lists.
+  if (body && typeof body === "object") {
+    const maybe =
+      body.list ||
+      body.transactions ||
+      body.items ||
+      body.data ||
+      body.result ||
+      body.content;
+
+    if (Array.isArray(maybe)) return maybe;
+  }
+
+  return [];
+}
 
 /**
  * POST /transaction/by-user
@@ -221,7 +245,7 @@ export const listTransactionsByUser = async (mobileNumber) => {
   const body = await readBody(res);
   if (!res.ok) fail(res, body, "Failed to load transactions");
 
-  return Array.isArray(body) ? body : [];
+  return normalizeTxnList(body);
 };
 
 /**
@@ -245,7 +269,7 @@ export const listWithdrawalsByUser = async (mobileNumber) => {
   const body = await readBody(res);
   if (!res.ok) fail(res, body, "Failed to load withdrawals");
 
-  return Array.isArray(body) ? body : [];
+  return normalizeTxnList(body);
 };
 
 /**
@@ -269,5 +293,5 @@ export const listDepositsByUser = async (mobileNumber) => {
   const body = await readBody(res);
   if (!res.ok) fail(res, body, "Failed to load deposits");
 
-  return Array.isArray(body) ? body : [];
+  return normalizeTxnList(body);
 };
