@@ -88,15 +88,34 @@ public class RateController {
             minBet = 1.0;
         }
 
-        // return a copy of rates with rate multiplied by minBet for display
+        // return rates in a specific order and multiplied by minBet for display
+        String[] orderedTypes = new String[] {
+                "Single Digit",
+                "Jodi",
+                "Single Pana",
+                "Double Pana",
+                "Triple Pana",
+                "Half Sangam",
+                "Full Sangam"
+        };
+
         List<Rate> out = new java.util.ArrayList<>();
-        for (Rate r : list) {
-            Rate copy = new Rate();
-            copy.setType(r.getType());
-            Double stored = r.getRate() == null ? 0.0 : r.getRate();
-            copy.setRate(stored * minBet);
-            out.add(copy);
+        for (String t : orderedTypes) {
+            try {
+                java.util.Optional<Rate> ro = rateRepository.findById(t);
+                if (ro.isPresent()) {
+                    Rate r = ro.get();
+                    Rate copy = new Rate();
+                    copy.setType(r.getType());
+                    Double stored = r.getRate() == null ? 0.0 : r.getRate();
+                    copy.setRate(stored * minBet);
+                    out.add(copy);
+                }
+            } catch (Exception ex) {
+                log.warn("Error loading rate for type {}", t, ex);
+            }
         }
+
         return ResponseEntity.ok(out);
     }
 }
