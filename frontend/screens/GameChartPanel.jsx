@@ -15,7 +15,7 @@ import GreenHeader from "../components/GreenHeader";
 import EmptyState from "../components/EmptyState";
 import { API_URL } from "../env-vars";
 
-const GREEN = "#336952";
+const GREEN = "#3FA16C";
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 

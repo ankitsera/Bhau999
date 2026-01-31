@@ -29,6 +29,43 @@ export const getGameRates = async () => {
 };
 
 /**
+ * GET /api/game  ->  `${API_URL}/game`
+ *
+ * Backend returns List<Game>:
+ * {
+ *   name: string,          // PK (normalized uppercase)
+ *   openTime: string|null, // LocalTime -> "HH:mm:ss"
+ *   closeTime: string|null,// LocalTime -> "HH:mm:ss"
+ *   saturday: boolean|null,
+ *   sunday: boolean|null
+ * }
+ */
+export const getAllGames = async () => {
+  const res = await fetch(`${API_URL}/game`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  let body = null;
+  try {
+    body = await res.json();
+  } catch (e) {
+    body = null;
+  }
+
+  if (res.ok) {
+    return Array.isArray(body) ? body : [];
+  }
+
+  const msg = body?.message || `Failed to load games (status ${res.status})`;
+  const err = new Error(msg);
+  err.status = res.status;
+  throw err;
+};
+
+/**
  * GET /api/active-games  ->  `${API_URL}/active-games`
  *
  * Backend returns a list of ActiveGameWithAllowedTypes:
@@ -82,8 +119,8 @@ export const getBidHistoryByUser = async (mobileNumber) => {
   const res = await fetch(
     `${API_URL}/bets/user/${encodeURIComponent(mob)}`,
     {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
     }
   );
 

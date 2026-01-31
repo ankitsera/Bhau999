@@ -11,13 +11,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import DynamicHeader from "../../components/DynamicHeader";
 import BottomBetBar from "../../components/games/BottomBetBar";
-import GameTypePicker from "../../components/games/GameTypePicker";
 import EasyModeTable from "../../components/games/EasyModeTable";
 
 import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
 import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
+import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
 const GREEN = "#3FA16C";
 
@@ -28,17 +28,22 @@ const JodiBulk = ({ route }) => {
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
-  const [selectedType, setSelectedType] = useState("OPEN");
-
-  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+  const { showClosedModal, closeClosedModal, guard } = useBettingGuard({
     gameName,
-    selectedType,
-    setSelectedType,
   });
 
   const [points, setPoints] = useState("");
   const [jodiDigit, setJodiDigit] = useState("");
   const [pointsError, setPointsError] = useState(false);
+  const [minAmount, setMinAmount] = useState(10);
+  const [maxAmount, setMaxAmount] = useState(10000);
+
+  React.useEffect(() => {
+    fetchBetLimits().then(({ minAmount, maxAmount }) => {
+      setMinAmount(minAmount);
+      setMaxAmount(maxAmount);
+    });
+  }, []);
 
   // { id, digit, points, type }
   const [bets, setBets] = useState([]);
@@ -52,7 +57,7 @@ const JodiBulk = ({ route }) => {
 
   const isPointsValid = () => {
     const val = Number(points);
-    return !!val && val > 0;
+    return validateAndAlertBetAmount(val, minAmount, maxAmount);
   };
 
   const addBet = (digitToUse) => {
@@ -67,7 +72,7 @@ const JodiBulk = ({ route }) => {
       id: Date.now().toString(),
       digit: digitToUse,
       points: Number(points),
-      type: selectedType.toLowerCase(), // open/close
+      type: 'CLOSE',
     };
 
     setBets((prev) => [...prev, newBet]);
@@ -131,7 +136,7 @@ const JodiBulk = ({ route }) => {
         mobileNumber,
         gameName,
         type: "Jodi",
-        openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(),
+        openClose: "CLOSE",
         amount: Number(b.points) || 0,
         betValue: b.digit,
       })
@@ -161,15 +166,6 @@ const JodiBulk = ({ route }) => {
         <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
-          {/* Game type selector like other screens */}
-          <GameTypePicker
-            label="Select Game Type:"
-            value={selectedType}
-            options={pickerOptions}
-            onChange={setSelectedType}
-            containerStyle={{ marginBottom: 12 }}
-          />
-
           {/* Points row */}
           <View style={styles.pointInputRow}>
             <Text style={styles.label}>Enter Points:</Text>

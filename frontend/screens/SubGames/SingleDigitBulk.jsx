@@ -21,6 +21,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
 import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
+import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
 const DIGITS = ["1","2","3","4","5","6","7","8","9","0"];
 const GREEN = "#3FA16C";
@@ -42,6 +43,15 @@ const SingleDigitBulk = ({ route }) => {
 
   // points input at top
   const [pointInput, setPointInput] = useState("");
+  const [minAmount, setMinAmount] = useState(10);
+  const [maxAmount, setMaxAmount] = useState(10000);
+
+  React.useEffect(() => {
+    fetchBetLimits().then(({ minAmount, maxAmount }) => {
+      setMinAmount(minAmount);
+      setMaxAmount(maxAmount);
+    });
+  }, []);
 
   // digit -> points map
   const [pointsByDigit, setPointsByDigit] = useState(() =>
@@ -67,8 +77,7 @@ const SingleDigitBulk = ({ route }) => {
 
   const handlePressDigit = (digit) => {
     const pts = Number(pointInput);
-    if (!pts || pts <= 0) {
-      Alert.alert("Validation", "Enter valid points first.");
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
       return;
     }
 

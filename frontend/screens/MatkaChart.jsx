@@ -15,7 +15,7 @@ import GreenHeader from '../components/GreenHeader';
 import EmptyState from '../components/EmptyState';
 import { GameContext } from '../contexts/GameContext';
 
-const GREEN = '#336952';
+const GREEN = '#3FA16C';
 
 const Row = ({ name, onPanel }) => {
   return (

@@ -24,6 +24,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 import { placeBets, makeBet } from '../../utils/GameService';
 import BettingClosedModal from '../../components/BettingClosedModal';
 import { useBettingGuard } from '../../utils/BettingGuard';
+import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
 
 const GREEN = '#3FA16C';
 
@@ -54,6 +55,15 @@ const SpMotor = ({ route }) => {
   const [points, setPoints] = useState('');
   const [bets, setBets] = useState([]); // {id, digit(pana), points, type}
   const [digitsError, setDigitsError] = useState(false);
+  const [minAmount, setMinAmount] = useState(10);
+  const [maxAmount, setMaxAmount] = useState(10000);
+
+  React.useEffect(() => {
+    fetchBetLimits().then(({ minAmount, maxAmount }) => {
+      setMinAmount(minAmount);
+      setMaxAmount(maxAmount);
+    });
+  }, []);
 
   const totals = useMemo(() => {
     const bids = bets.length;
@@ -65,26 +75,35 @@ const SpMotor = ({ route }) => {
   }, [bets]);
 
   const handleChangeDigits = (txt) => {
+    // Always treat input text as source of truth (prevents vanish/ghost behavior)
     const clean = String(txt || "").replace(/[^0-9]/g, "");
 
-    const seen = new Set();
-    let out = "";
-    let hasDuplicate = false;
-
-    for (const ch of clean) {
-      if (out.length >= 6) break;
-
-      if (seen.has(ch)) {
-        hasDuplicate = true;
-        continue;
-      }
-
-      seen.add(ch);
-      out += ch;
+    // Allow user to clear input freely
+    if (!clean) {
+      setDigits("");
+      setDigitsError(false);
+      return;
     }
 
-    setDigits(out);
-    setDigitsError(hasDuplicate);
+    // max 6 digits
+    const next = clean.slice(0, 6);
+
+    // Check duplicates
+    const seen = new Set();
+    for (let i = 0; i < next.length; i++) {
+      const ch = next[i];
+      if (seen.has(ch)) {
+        // Duplicate detected -> BLOCK this change completely
+        // keep previous digits so UI doesn't jump / vanish
+        setDigitsError(true);
+        return;
+      }
+      seen.add(ch);
+    }
+
+    // No duplicates -> accept
+    setDigits(next);
+    setDigitsError(false);
   };
 
   const handleAdd = () => {
@@ -97,8 +116,7 @@ const SpMotor = ({ route }) => {
     }
 
     const pts = Number(points);
-    if (!pts || pts <= 0) {
-      Alert.alert('Validation', 'Please enter valid points.');
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
       return;
     }
 

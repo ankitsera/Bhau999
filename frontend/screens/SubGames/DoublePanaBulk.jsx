@@ -21,6 +21,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 import { placeBets, makeBet } from '../../utils/GameService';
 import BettingClosedModal from '../../components/BettingClosedModal';
 import { useBettingGuard } from '../../utils/BettingGuard';
+import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
 
 const GREEN = '#3FA16C';
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']; // increasing order
@@ -42,6 +43,15 @@ const DoublePanaBulk = ({ route }) => {
 
   const [points, setPoints] = useState('');
   const [pointsError, setPointsError] = useState(false);
+  const [minAmount, setMinAmount] = useState(10);
+  const [maxAmount, setMaxAmount] = useState(10000);
+
+  React.useEffect(() => {
+    fetchBetLimits().then(({ minAmount, maxAmount }) => {
+      setMinAmount(minAmount);
+      setMaxAmount(maxAmount);
+    });
+  }, []);
 
   const [bets, setBets] = useState([]); // { id, pana, points, type }
 
@@ -63,15 +73,16 @@ const DoublePanaBulk = ({ route }) => {
   };
 
   const addBetsForDigit = digitKey => {
-    if (!isPointsValid()) {
+    const pts = Number(points);
+    if (!pts || pts <= minAmount - 1 || pts > maxAmount) {
       setPointsError(true);
       return;
     }
+    setPointsError(false);
 
     const panaList = DOUBLE_PANA_BY_RESULT_DIGIT[digitKey] || [];
     if (panaList.length === 0) return;
 
-    const pts = Number(points);
     const typeLower = selectedType.toLowerCase();
 
     setBets(prev => {

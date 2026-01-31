@@ -17,6 +17,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
 import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
+import { isValidBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
 const GREEN = "#3FA16C";
 
@@ -49,12 +50,8 @@ const RedJodi = ({ route }) => {
     return `${dd}-${mm}-${yyyy}`;
   })();
 
-  const [selectedType, setSelectedType] = useState("OPEN");
-
-  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+  const { showClosedModal, closeClosedModal, guard } = useBettingGuard({
     gameName,
-    selectedType,
-    setSelectedType,
   });
 
   // points keyed by jodi number
@@ -64,6 +61,15 @@ const RedJodi = ({ route }) => {
       return acc;
     }, {})
   );
+  const [minAmount, setMinAmount] = useState(10);
+  const [maxAmount, setMaxAmount] = useState(10000);
+
+  React.useEffect(() => {
+    fetchBetLimits().then(({ minAmount, maxAmount }) => {
+      setMinAmount(minAmount);
+      setMaxAmount(maxAmount);
+    });
+  }, []);
 
   const totals = useMemo(() => {
     let bids = 0;
@@ -108,15 +114,26 @@ const RedJodi = ({ route }) => {
     const list = [];
     RED_JODI_NUMBERS.forEach((j) => {
       const p = Number(pointsByJodi[j] || 0);
-      if (p > 0) list.push({ jodi: j, points: p });
+      if (p > 0) {
+        if (!isValidBetAmount(p, minAmount, maxAmount)) {
+          Alert.alert('Invalid Bet Amount', `Bet amount must be between ₹${minAmount} and ₹${maxAmount}`);
+          return;
+        }
+        list.push({ jodi: j, points: p });
+      }
     });
+
+    if (list.length === 0) {
+      Alert.alert("No bets", "Please enter points for at least one Red Jodi.");
+      return;
+    }
 
     const betsToSend = list.map((b) =>
       makeBet({
         mobileNumber,
         gameName,
         type: "Jodi",
-        openClose: selectedType, // "OPEN"/"CLOSE"
+        openClose: "CLOSE",
         amount: Number(b.points) || 0,
         betValue: b.jodi,
       })
@@ -156,13 +173,6 @@ const RedJodi = ({ route }) => {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
-            <GameDateTypeRow
-              dateLabel={todayLabel}
-              gameTypeValue={selectedType}
-              gameTypeOptions={pickerOptions}
-              onChangeGameType={setSelectedType}
-            />
-
             <SpecialModeGrid
               digits={RED_JODI_NUMBERS}
               pointsByDigit={pointsByJodi}

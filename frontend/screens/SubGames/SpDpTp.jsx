@@ -25,6 +25,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
 import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
+import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
 const GREEN = "#3FA16C";
 
@@ -65,6 +66,15 @@ const SpDpTp = ({ route }) => {
 
   const [digit, setDigit] = useState("");
   const [points, setPoints] = useState("");
+  const [minAmount, setMinAmount] = useState(10);
+  const [maxAmount, setMaxAmount] = useState(10000);
+
+  React.useEffect(() => {
+    fetchBetLimits().then(({ minAmount, maxAmount }) => {
+      setMinAmount(minAmount);
+      setMaxAmount(maxAmount);
+    });
+  }, []);
 
   // EasyModeTable expects: { id, digit, points, type }
   const [bets, setBets] = useState([]);
@@ -130,8 +140,7 @@ const SpDpTp = ({ route }) => {
     }
 
     const pts = Number(points);
-    if (!pts || pts <= 0) {
-      Alert.alert("Validation", "Please enter valid points.");
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
       return;
     }
 

@@ -4,7 +4,7 @@ import GreenHeader from "../../components/GreenHeader";
 import EmptyState from "../../components/EmptyState";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
-const GREEN = "#336952";
+const GREEN = "#3FA16C";
 
 const ROWS = [
   {

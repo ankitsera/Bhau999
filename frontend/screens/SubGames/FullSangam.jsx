@@ -19,6 +19,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
 import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
+import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
 const GREEN = "#3FA16C";
 
@@ -36,17 +37,22 @@ const FullSangam = ({ route }) => {
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
-  const [selectedType, setSelectedType] = useState("OPEN");
-
-  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+  const { showClosedModal, closeClosedModal, guard } = useBettingGuard({
     gameName,
-    selectedType,
-    setSelectedType,
   });
 
   const [openPana, setOpenPana] = useState("");
   const [closePana, setClosePana] = useState("");
   const [points, setPoints] = useState("");
+  const [minAmount, setMinAmount] = useState(10);
+  const [maxAmount, setMaxAmount] = useState(10000);
+
+  React.useEffect(() => {
+    fetchBetLimits().then(({ minAmount, maxAmount }) => {
+      setMinAmount(minAmount);
+      setMaxAmount(maxAmount);
+    });
+  }, []);
 
   const [focusedField, setFocusedField] = useState(null); // "OPEN" | "CLOSE" | null
   const [bets, setBets] = useState([]); // { id, sangam, points }
@@ -99,8 +105,7 @@ const FullSangam = ({ route }) => {
     }
 
     const pts = Number(points);
-    if (!pts || pts <= 0) {
-      Alert.alert("Validation", "Enter a valid point amount.");
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
       return;
     }
 
@@ -109,6 +114,7 @@ const FullSangam = ({ route }) => {
       id: sangam, // stable id => prevents duplicates (same pair)
       sangam,
       points: pts,
+      type: 'CLOSE',
     };
 
     setBets((prev) => {
@@ -161,6 +167,7 @@ const FullSangam = ({ route }) => {
     );
 
     try {
+      console.log("Bets to send:", betsToSend);
       const res = await placeBets(betsToSend);
       Alert.alert("Success", "Bets placed successfully!");
 

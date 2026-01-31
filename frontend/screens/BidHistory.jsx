@@ -26,7 +26,7 @@ import PaginationBar from '../components/PaginationBar';
 import { AuthContext } from '../contexts/AuthContext';
 import { GameContext } from '../contexts/GameContext';
 
-const GREEN = '#336952';
+const GREEN = '#3FA16C';
 const PAGE_SIZE = 8;
 
 const parseLocalDateTime = val => {
@@ -672,7 +672,7 @@ const styles = StyleSheet.create({
   },
 
   cardTop: {
-    backgroundColor: '#336952',
+    backgroundColor: '#3FA16C',
     paddingVertical: 14,
     paddingHorizontal: 10,
     alignItems: 'center',

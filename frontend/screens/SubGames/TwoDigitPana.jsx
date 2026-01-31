@@ -26,6 +26,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
 import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
+import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
 const GREEN = "#3FA16C";
 
@@ -92,6 +93,15 @@ const TwoDigitPana = ({ route }) => {
 
   const [digit, setDigit] = useState(""); // 2-digit input
   const [points, setPoints] = useState("");
+  const [minAmount, setMinAmount] = useState(10);
+  const [maxAmount, setMaxAmount] = useState(10000);
+
+  React.useEffect(() => {
+    fetchBetLimits().then(({ minAmount, maxAmount }) => {
+      setMinAmount(minAmount);
+      setMaxAmount(maxAmount);
+    });
+  }, []);
   const [bets, setBets] = useState([]); // { id, digit(pana), points, type }
 
   const totals = useMemo(() => {
@@ -117,8 +127,7 @@ const TwoDigitPana = ({ route }) => {
     }
 
     const pts = Number(points);
-    if (!pts || pts <= 0) {
-      Alert.alert("Validation", "Please enter a valid point amount.");
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
       return;
     }
 

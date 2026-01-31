@@ -15,7 +15,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import DynamicHeader from '../../components/DynamicHeader';
 import BottomBetBar from '../../components/games/BottomBetBar';
-import GameTypePicker from '../../components/games/GameTypePicker';
 import GameDateTypeRow from '../../components/games/GameDateTypeRow';
 
 import EasyModeTable from '../../components/games/EasyModeTable';
@@ -25,6 +24,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 import { placeBets, makeBet } from '../../utils/GameService';
 import BettingClosedModal from '../../components/BettingClosedModal';
 import { useBettingGuard } from '../../utils/BettingGuard';
+import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
 
 const GREEN = '#3FA16C';
 const BLACK = '#000';
@@ -60,12 +60,18 @@ const Jodi = ({ route }) => {
   })();
 
   const [mode, setMode] = useState('EASY'); // EASY | SPECIAL
-  const [selectedType, setSelectedType] = useState('OPEN');
+  const [minAmount, setMinAmount] = useState(10);
+  const [maxAmount, setMaxAmount] = useState(10000);
 
-  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
+  React.useEffect(() => {
+    fetchBetLimits().then(({ minAmount, maxAmount }) => {
+      setMinAmount(minAmount);
+      setMaxAmount(maxAmount);
+    });
+  }, []);
+
+  const { showClosedModal, closeClosedModal, guard } = useBettingGuard({
     gameName,
-    selectedType,
-    setSelectedType,
   });
 
   // easy mode
@@ -116,8 +122,7 @@ const Jodi = ({ route }) => {
     }
 
     const pts = Number(easyPoints);
-    if (!pts || pts <= 0) {
-      Alert.alert('Validation', 'Please enter a valid point amount.');
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
       return;
     }
 
@@ -125,7 +130,7 @@ const Jodi = ({ route }) => {
       id: Date.now().toString(),
       digit: clean,
       points: pts,
-      type: selectedType.toLowerCase(), // open/close
+      type: 'CLOSE',
     };
 
     setEasyBets(prev => [...prev, newBet]);
@@ -172,7 +177,7 @@ const Jodi = ({ route }) => {
           mobileNumber,
           gameName,
           type: 'JODI',
-          openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(),
+          openClose: 'CLOSE',
           amount: Number(b.points) || 0,
           betValue: b.digit,
         }),
@@ -189,7 +194,7 @@ const Jodi = ({ route }) => {
           mobileNumber,
           gameName,
           type: 'Jodi',
-          openClose: selectedType,
+          openClose: 'CLOSE',
           amount: Number(x.points) || 0,
           betValue: x.jodi,
         }),
@@ -244,14 +249,6 @@ const Jodi = ({ route }) => {
 
           {mode === 'EASY' && (
             <>
-              <GameTypePicker
-                label="Select Game Type:"
-                value={selectedType}
-                options={pickerOptions}
-                onChange={setSelectedType}
-                containerStyle={{ marginBottom: 12 }}
-              />
-
               <JodiEasyForm
                 jodi={jodiDigit}
                 onChangeJodi={setJodiDigit}
@@ -275,13 +272,6 @@ const Jodi = ({ route }) => {
 
           {mode === 'SPECIAL' && (
             <>
-              <GameDateTypeRow
-                dateLabel={todayLabel}
-                gameTypeValue={selectedType}
-                gameTypeOptions={pickerOptions}
-                onChangeGameType={setSelectedType}
-              />
-
               <View style={styles.specialArea}>
                 <ScrollView
                   showsVerticalScrollIndicator={false}

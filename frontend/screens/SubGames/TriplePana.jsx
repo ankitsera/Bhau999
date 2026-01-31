@@ -19,6 +19,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
 import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
+import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
 const GREEN = "#3FA16C";
 
@@ -37,8 +38,15 @@ const TriplePana = ({ route }) => {
     return `${dd}-${mm}-${yyyy}`;
   })();
 
-  const [selectedType, setSelectedType] = useState("OPEN");
+  const [selectedType, setSelectedType] = useState("OPEN");  const [minAmount, setMinAmount] = useState(10);
+  const [maxAmount, setMaxAmount] = useState(10000);
 
+  React.useEffect(() => {
+    fetchBetLimits().then(({ minAmount, maxAmount }) => {
+      setMinAmount(minAmount);
+      setMaxAmount(maxAmount);
+    });
+  }, []);
   const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
     gameName,
     selectedType,
@@ -97,6 +105,9 @@ const TriplePana = ({ route }) => {
     ALL_TRIPLE_PANA.forEach((p) => {
       const pts = Number(pointsByPana[p] || 0);
       if (pts > 0) {
+        if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
+          return;
+        }
         betsToSend.push(
           makeBet({
             mobileNumber,

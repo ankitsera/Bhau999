@@ -11,7 +11,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import DynamicHeader from "../../components/DynamicHeader";
-import GameDateTypeRow from "../../components/games/GameDateTypeRow";
 import BottomBetBar from "../../components/games/BottomBetBar";
 import EasyModeTable from "../../components/games/EasyModeTable";
 
@@ -19,6 +18,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
 import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
+import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
 const GREEN = "#3FA16C";
 
@@ -30,28 +30,24 @@ const DIGIT_ROWS = [
 const DigitBasedJodi = ({ route }) => {
   const gameName = route?.params?.gameName || "GAME";
 
-  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
-    gameName,
-    selectedType,
-    setSelectedType,
-    onClosed: () => navigation.goBack(),
-  });
-
   const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
-  const todayLabel = (() => {
-    const d = new Date();
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const yyyy = d.getFullYear();
-    return `${dd}-${mm}-${yyyy}`;
-  })();
-
-  const [selectedType, setSelectedType] = useState('OPEN');
+  const { showClosedModal, closeClosedModal, guard } = useBettingGuard({
+    gameName,
+  });
   const [points, setPoints] = useState("");
   const [bets, setBets] = useState([]); // { id, digit, points, type }
+  const [minAmount, setMinAmount] = useState(10);
+  const [maxAmount, setMaxAmount] = useState(10000);
+
+  React.useEffect(() => {
+    fetchBetLimits().then(({ minAmount, maxAmount }) => {
+      setMinAmount(minAmount);
+      setMaxAmount(maxAmount);
+    });
+  }, []);
 
   const totals = useMemo(() => {
     const bids = bets.length;
@@ -68,19 +64,17 @@ const DigitBasedJodi = ({ route }) => {
   const handlePressDigit = (d) => {
     const pts = Number(points);
 
-    if (!points || Number.isNaN(pts) || pts <= 0) {
-      Alert.alert("Validation", "Enter points first.");
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
       return;
     }
 
     const group = buildJodisForDigit(d);
-    const typeLower = selectedType.toLowerCase();
 
     setBets((prev) => {
       const map = new Map(prev.map((b) => [b.id, b]));
 
       group.forEach((jodi) => {
-        const id = `${typeLower}-${jodi}`;
+        const id = `close-${jodi}`;
         if (map.has(id)) {
           map.set(id, { ...map.get(id), points: pts });
         } else {
@@ -88,7 +82,7 @@ const DigitBasedJodi = ({ route }) => {
             id,
             digit: jodi,
             points: pts,
-            type: typeLower,
+            type: 'CLOSE',
           });
         }
       });
@@ -128,7 +122,7 @@ const DigitBasedJodi = ({ route }) => {
         mobileNumber,
         gameName,
         type: 'Jodi',
-        openClose: String(b.type).toUpperCase(),
+        openClose: 'CLOSE',
         amount: Number(b.points) || 0,
         betValue: b.digit,
       })
@@ -162,13 +156,6 @@ const DigitBasedJodi = ({ route }) => {
         {/* MAIN CONTENT (no ScrollView) */}
         <View style={styles.content}>
           {/* Top controls (fixed) */}
-          <GameDateTypeRow
-            dateLabel={todayLabel}
-            gameTypeValue={selectedType}
-            gameTypeOptions={pickerOptions}
-            onChangeGameType={setSelectedType}
-          />
-
           <View style={styles.pointRow}>
             <Text style={styles.label}>Enter Points:</Text>
             <TextInput

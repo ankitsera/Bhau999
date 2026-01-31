@@ -12,6 +12,7 @@ import Snackbar from "react-native-snackbar";
 import {
   getGameRates as getGameRatesAPI,
   getActiveGames as getActiveGamesAPI,
+  getAllGames as getAllGamesAPI,
   getBidHistoryByUser as getBidHistoryByUserAPI,
 } from "../utils/GameService";
 
@@ -22,6 +23,10 @@ const initialState = {
   // rates
   rates: [],
   isLoadingRates: false,
+
+  // all games (raw) from /api/game
+  allGames: [],
+  isLoadingAllGames: false,
 
   // active games (raw)
   activeGames: [],
@@ -40,6 +45,11 @@ const TYPES = {
   FETCH_RATES_START: "FETCH_RATES_START",
   FETCH_RATES_SUCCESS: "FETCH_RATES_SUCCESS",
   FETCH_RATES_FAILURE: "FETCH_RATES_FAILURE",
+
+  // all games
+  FETCH_ALL_GAMES_START: "FETCH_ALL_GAMES_START",
+  FETCH_ALL_GAMES_SUCCESS: "FETCH_ALL_GAMES_SUCCESS",
+  FETCH_ALL_GAMES_FAILURE: "FETCH_ALL_GAMES_FAILURE",
 
   // active games
   FETCH_ACTIVE_GAMES_START: "FETCH_ACTIVE_GAMES_START",
@@ -69,6 +79,19 @@ function gameReducer(state, action) {
       };
     case TYPES.FETCH_RATES_FAILURE:
       return { ...state, isLoadingRates: false, error: action.error || null };
+
+    // ✅ ALL GAMES
+    case TYPES.FETCH_ALL_GAMES_START:
+      return { ...state, isLoadingAllGames: true, error: null };
+    case TYPES.FETCH_ALL_GAMES_SUCCESS:
+      return {
+        ...state,
+        isLoadingAllGames: false,
+        allGames: action.allGames || [],
+        error: null,
+      };
+    case TYPES.FETCH_ALL_GAMES_FAILURE:
+      return { ...state, isLoadingAllGames: false, error: action.error || null };
 
     // ACTIVE GAMES
     case TYPES.FETCH_ACTIVE_GAMES_START:
@@ -127,6 +150,37 @@ const formatTime12h = (t) => {
   if (h === 0) h = 12;
 
   return `${String(h).padStart(2, "0")}:${String(mm).padStart(2, "0")} ${ampm}`;
+};
+
+// parse "09:10 AM" -> minutes for sorting
+const time12hToMinutes = (t) => {
+  const s = String(t || "").trim().toUpperCase();
+  if (!s || s === "--:--") return Number.POSITIVE_INFINITY;
+
+  const parts = s.split(" ");
+  const hhmm = parts[0] || "";
+  const ampm = parts[1] || "";
+
+  const [hhRaw, mmRaw] = hhmm.split(":");
+  const hh = Number(hhRaw);
+  const mm = Number(mmRaw);
+
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return Number.POSITIVE_INFINITY;
+
+  // if AM/PM missing, treat as 24h (fallback)
+  if (ampm !== "AM" && ampm !== "PM") {
+    return hh * 60 + mm;
+  }
+
+  let h = hh;
+  if (ampm === "AM") {
+    if (h === 12) h = 0;
+  } else {
+    // PM
+    if (h !== 12) h += 12;
+  }
+
+  return h * 60 + mm;
 };
 
 const sumDigitsMod10 = (val) => {
@@ -203,11 +257,24 @@ const toActiveGameUi = (g) => {
   };
 };
 
+//UI model for /api/game (Game entity)
+const toGameUi = (g) => {
+  // backend uses "name" for game name
+  const name = g?.name ?? g?.gameName ?? "Unknown";
+  return {
+    raw: g,
+    gameName: name,
+    openTimeText: formatTime12h(g?.openTime),
+    closeTimeText: formatTime12h(g?.closeTime),
+  };
+};
+
 export const GameContext = createContext({
   ...initialState,
 
   // derived UI data
   activeGamesUi: [],
+  allGamesUi: [],
 
   // selectors
   getGameRawByName: () => null,
@@ -215,6 +282,7 @@ export const GameContext = createContext({
 
   // actions
   loadGameRates: async () => {},
+  loadAllGames: async () => {},
   loadActiveGames: async () => {},
   loadBidHistoryByUser: async () => {},
   clearGameError: () => {},
@@ -226,8 +294,13 @@ export const GameProvider = ({ children }) => {
   const {
     rates,
     isLoadingRates,
+
+    allGames,
+    isLoadingAllGames,
+
     activeGames,
     isLoadingActiveGames,
+
     bidHistory,
     isLoadingBidHistory,
     error,
@@ -242,6 +315,22 @@ export const GameProvider = ({ children }) => {
       dispatch({ type: TYPES.FETCH_RATES_FAILURE, error: err });
       Snackbar.show({
         text: err?.message || "Failed to load game rates",
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: "#d32f2f",
+      });
+    }
+  }, []);
+
+  // load all games (/api/game)
+  const loadAllGames = useCallback(async () => {
+    try {
+      dispatch({ type: TYPES.FETCH_ALL_GAMES_START });
+      const data = await getAllGamesAPI();
+      dispatch({ type: TYPES.FETCH_ALL_GAMES_SUCCESS, allGames: data });
+    } catch (err) {
+      dispatch({ type: TYPES.FETCH_ALL_GAMES_FAILURE, error: err });
+      Snackbar.show({
+        text: err?.message || "Failed to load games",
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
@@ -282,13 +371,39 @@ export const GameProvider = ({ children }) => {
     dispatch({ type: TYPES.CLEAR_ERROR });
   }, []);
 
-  // derived UI list
+  // derived UI list (ACTIVE games)
   const activeGamesUi = useMemo(() => {
     const list = Array.isArray(activeGames) ? activeGames : [];
-    return list.map(toActiveGameUi);
+
+    // map -> sort by open time (earliest first)
+    return list
+      .map(toActiveGameUi)
+      .sort((a, b) => {
+        const ta = time12hToMinutes(a?.openTimeText);
+        const tb = time12hToMinutes(b?.openTimeText);
+        if (ta !== tb) return ta - tb;
+
+        // tie-breaker: name
+        return String(a?.gameName || "").localeCompare(String(b?.gameName || ""));
+      });
   }, [activeGames]);
 
-  // maps for instant lookup
+  // (ALL games from /api/game)
+  const allGamesUi = useMemo(() => {
+    const list = Array.isArray(allGames) ? allGames : [];
+
+    return list
+      .map(toGameUi)
+      .sort((a, b) => {
+        const ta = time12hToMinutes(a?.openTimeText);
+        const tb = time12hToMinutes(b?.openTimeText);
+        if (ta !== tb) return ta - tb;
+
+        return String(a?.gameName || "").localeCompare(String(b?.gameName || ""));
+      });
+  }, [allGames]);
+
+  // maps for instant lookup (ACTIVE games)
   const activeGamesRawMap = useMemo(() => {
     const m = new Map();
     (Array.isArray(activeGames) ? activeGames : []).forEach((g) => {
@@ -322,7 +437,7 @@ export const GameProvider = ({ children }) => {
   const appStateRef = useRef(AppState.currentState);
 
   useEffect(() => {
-    // initial fetch
+    // initial fetch (keep existing behavior)
     loadActiveGames?.();
 
     const start = () => {
@@ -364,6 +479,10 @@ export const GameProvider = ({ children }) => {
       rates,
       isLoadingRates,
 
+      allGames,
+      allGamesUi,
+      isLoadingAllGames,
+
       activeGames,
       activeGamesUi,
       isLoadingActiveGames,
@@ -377,6 +496,7 @@ export const GameProvider = ({ children }) => {
       getGameUiByName,
 
       loadGameRates,
+      loadAllGames,
       loadActiveGames,
       loadBidHistoryByUser,
       clearGameError,
@@ -384,15 +504,25 @@ export const GameProvider = ({ children }) => {
     [
       rates,
       isLoadingRates,
+
+      allGames,
+      allGamesUi,
+      isLoadingAllGames,
+
       activeGames,
       activeGamesUi,
       isLoadingActiveGames,
+
       bidHistory,
       isLoadingBidHistory,
+
       error,
+
       getGameRawByName,
       getGameUiByName,
+
       loadGameRates,
+      loadAllGames,
       loadActiveGames,
       loadBidHistoryByUser,
       clearGameError,

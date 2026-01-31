@@ -21,6 +21,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 import { placeBets, makeBet } from '../../utils/GameService';
 import BettingClosedModal from '../../components/BettingClosedModal';
 import { useBettingGuard } from '../../utils/BettingGuard';
+import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
 
 const GREEN = '#3FA16C';
 
@@ -35,15 +36,23 @@ const SpCommon = ({ route }) => {
   const mobileNumber = user?.mobileNumber;
 
   const [selectedType, setSelectedType] = useState('OPEN');
+  const [points, setPoints] = useState('');
+  const [pointsError, setPointsError] = useState(false);
+  const [minAmount, setMinAmount] = useState(10);
+  const [maxAmount, setMaxAmount] = useState(10000);
+
+  React.useEffect(() => {
+    fetchBetLimits().then(({ minAmount, maxAmount }) => {
+      setMinAmount(minAmount);
+      setMaxAmount(maxAmount);
+    });
+  }, []);
 
   const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
     gameName,
     selectedType,
     setSelectedType,
   });
-
-  const [points, setPoints] = useState('');
-  const [pointsError, setPointsError] = useState(false);
 
   // EasyModeTable expects {id, digit, points, type}
   // We'll store pana in `digit`
@@ -63,11 +72,9 @@ const SpCommon = ({ route }) => {
   const addCommonForDigit = digit => {
     const pts = Number(points);
 
-    if (!pts || pts <= 0) {
-      setPointsError(true);
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
       return;
     }
-    setPointsError(false);
 
     const panas = getSinglePanaCommonDigitPanas(digit);
     if (!panas.length) return;

@@ -32,6 +32,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 import { placeBets, makeBet } from '../../utils/GameService';
 import BettingClosedModal from '../../components/BettingClosedModal';
 import { useBettingGuard } from '../../utils/BettingGuard';
+import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
 
 const GREEN = '#3FA16C';
 const BLACK = '#000';
@@ -58,6 +59,15 @@ const DoublePana = ({ route }) => {
   // -------- STATE --------
   const [mode, setMode] = useState('EASY'); // "EASY" | "SPECIAL"
   const [selectedType, setSelectedType] = useState('OPEN');
+  const [minAmount, setMinAmount] = useState(10);
+  const [maxAmount, setMaxAmount] = useState(10000);
+
+  React.useEffect(() => {
+    fetchBetLimits().then(({ minAmount, maxAmount }) => {
+      setMinAmount(minAmount);
+      setMaxAmount(maxAmount);
+    });
+  }, []);
 
   const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
     gameName,
@@ -113,8 +123,7 @@ const DoublePana = ({ route }) => {
     }
 
     const pts = Number(easyPoints);
-    if (!pts || pts <= 0) {
-      Alert.alert('Validation', 'Please enter a valid point amount.');
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
       return;
     }
 

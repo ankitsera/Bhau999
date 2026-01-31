@@ -103,9 +103,23 @@ const UserCheck = ({ navigation }) => {
             placeholderTextColor="#777"
             value={mobileNumber}
             onChangeText={(text) => {
-              // Allow only numbers and limit to 10 digits
-              const sanitized = text.replace(/[^0-9]/g, "").slice(0, 10);
-              setMobileNumber(sanitized);
+              const digits = String(text || "").replace(/[^0-9]/g, "");
+
+              // Handle common India paste formats cleanly:
+              // 1) +91XXXXXXXXXX or 91XXXXXXXXXX (12 digits) => keep XXXXXXXXXX
+              if (digits.length === 12 && digits.startsWith("91")) {
+                setMobileNumber(digits.slice(2));
+                return;
+              }
+
+              // 2) 0XXXXXXXXXX (11 digits) => keep XXXXXXXXXX
+              if (digits.length === 11 && digits.startsWith("0")) {
+                setMobileNumber(digits.slice(1));
+                return;
+              }
+
+              // Normal typing: keep first 10 digits (extra accidental digit is ignored)
+              setMobileNumber(digits.slice(0, 10));
             }}
           />
         </View>
