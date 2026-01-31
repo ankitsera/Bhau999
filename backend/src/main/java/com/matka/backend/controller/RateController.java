@@ -1,7 +1,9 @@
 package com.matka.backend.controller;
 
 import com.matka.backend.Rate;
+import com.matka.backend.Properties;
 import com.matka.backend.repository.RateRepository;
+import com.matka.backend.repository.PropertiesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +21,8 @@ public class RateController {
 
     @Autowired
     private RateRepository rateRepository;
+    @Autowired
+    private PropertiesRepository propertiesRepository;
 
     // Create or update a rate
     @PostMapping
@@ -26,7 +30,29 @@ public class RateController {
         if (rate == null || rate.getType() == null) {
             return ResponseEntity.badRequest().body("Missing rate payload or type");
         }
-        Rate saved = rateRepository.save(rate);
+        // read min_bet_amount from properties; default to 1
+        double minBet = 1.0;
+        try {
+            java.util.Optional<Properties> po = propertiesRepository.findById("min_bet_amount");
+            if (po.isPresent()) {
+                String val = po.get().getValue();
+                if (val != null) {
+                    minBet = Double.parseDouble(val.trim());
+                    if (minBet == 0) minBet = 1.0;
+                }
+            }
+        } catch (Exception ex) {
+            log.warn("Unable to read min_bet_amount property, defaulting to 1", ex);
+            minBet = 1.0;
+        }
+
+        // divide incoming rate by minBet before saving to DB
+        Double incoming = rate.getRate() == null ? 0.0 : rate.getRate();
+        Rate toSave = new Rate();
+        toSave.setType(rate.getType());
+        toSave.setRate(incoming / minBet);
+
+        Rate saved = rateRepository.save(toSave);
         log.info("Saved rate type={} value={}", saved.getType(), saved.getRate());
         return ResponseEntity.ok(saved);
     }
@@ -47,6 +73,49 @@ public class RateController {
     @GetMapping
     public ResponseEntity<List<Rate>> listAll() {
         List<Rate> list = rateRepository.findAll();
-        return ResponseEntity.ok(list);
+        double minBet = 1.0;
+        try {
+            java.util.Optional<Properties> po = propertiesRepository.findById("min_bet_amount");
+            if (po.isPresent()) {
+                String val = po.get().getValue();
+                if (val != null) {
+                    minBet = Double.parseDouble(val.trim());
+                    if (minBet == 0) minBet = 1.0;
+                }
+            }
+        } catch (Exception ex) {
+            log.warn("Unable to read min_bet_amount property, defaulting to 1", ex);
+            minBet = 1.0;
+        }
+
+        // return rates in a specific order and multiplied by minBet for display
+        String[] orderedTypes = new String[] {
+                "Single Digit",
+                "Jodi",
+                "Single Pana",
+                "Double Pana",
+                "Triple Pana",
+                "Half Sangam",
+                "Full Sangam"
+        };
+
+        List<Rate> out = new java.util.ArrayList<>();
+        for (String t : orderedTypes) {
+            try {
+                java.util.Optional<Rate> ro = rateRepository.findById(t);
+                if (ro.isPresent()) {
+                    Rate r = ro.get();
+                    Rate copy = new Rate();
+                    copy.setType(r.getType());
+                    Double stored = r.getRate() == null ? 0.0 : r.getRate();
+                    copy.setRate(stored * minBet);
+                    out.add(copy);
+                }
+            } catch (Exception ex) {
+                log.warn("Error loading rate for type {}", t, ex);
+            }
+        }
+
+        return ResponseEntity.ok(out);
     }
 }
