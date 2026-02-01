@@ -92,18 +92,25 @@ public class ActiveGameController {
             }
 
             java.util.List<String> allowed;
-            if (openTime != null && now.isBefore(openTime)) {
-                allowed = java.util.List.of("Open", "Close");
-            } else if (closeTime != null && now.isAfter(closeTime)) {
+            java.lang.Boolean runningToday = active.getRunningToday();
+            if (runningToday != null && Boolean.FALSE.equals(runningToday)) {
+                // not running today -> no allowed types
                 allowed = java.util.Collections.emptyList();
             } else {
-                allowed = java.util.List.of("Close");
+                if (openTime != null && now.isBefore(openTime)) {
+                    allowed = java.util.List.of("Open", "Close");
+                } else if (closeTime != null && now.isAfter(closeTime)) {
+                    allowed = java.util.Collections.emptyList();
+                } else {
+                    allowed = java.util.List.of("Close");
+                }
             }
 
             ActiveGameWithAllowedTypes dto = new ActiveGameWithAllowedTypes();
             dto.setGameName(active.getGameName());
             dto.setOpenPana(active.getOpenPana());
             dto.setClosePana(active.getClosePana());
+            dto.setRunningToday(active.getRunningToday());
             dto.setOpenTime(openTime);
             dto.setCloseTime(closeTime);
             dto.setAllowed_types(allowed);
@@ -184,6 +191,7 @@ public class ActiveGameController {
     private java.time.LocalTime openTime;
     private java.time.LocalTime closeTime;
     private java.util.List<String> allowed_types;
+    private Boolean runningToday;
 
         public String getGameName() { return gameName; }
         public void setGameName(String gameName) { this.gameName = gameName; }
@@ -204,6 +212,8 @@ public class ActiveGameController {
 
         public java.util.List<String> getAllowed_types() { return allowed_types; }
         public void setAllowed_types(java.util.List<String> allowed_types) { this.allowed_types = allowed_types; }
+        public Boolean getRunningToday() { return runningToday; }
+        public void setRunningToday(Boolean runningToday) { this.runningToday = runningToday; }
     }
 
     public static class DeclareResultRequest {

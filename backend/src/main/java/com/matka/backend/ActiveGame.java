@@ -16,6 +16,9 @@ public class ActiveGame {
     @Column(name = "close")
     private Integer closePana;
 
+    @Column(name = "running_today")
+    private Boolean runningToday;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "game_name", referencedColumnName = "name", insertable = false, updatable = false)
     private Game game;
@@ -28,6 +31,9 @@ public class ActiveGame {
 
     public Integer getClosePana() { return closePana; }
     public void setClosePana(Integer closePana) { this.closePana = closePana; }
+
+    public Boolean getRunningToday() { return runningToday; }
+    public void setRunningToday(Boolean runningToday) { this.runningToday = runningToday; }
 
     @JsonIgnore
     public Game getGame() { return game; }

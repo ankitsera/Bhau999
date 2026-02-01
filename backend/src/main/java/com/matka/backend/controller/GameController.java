@@ -62,8 +62,21 @@ public class GameController {
                 if (!activeGameRepository.existsById(saved.getName())) {
                     ActiveGame ag = new ActiveGame();
                     ag.setGameName(saved.getName());
+                    ag.setOpenPana(null);
+                    ag.setClosePana(null);
+                    // determine runningToday based on current day and game's flags
+                    java.time.DayOfWeek dow = java.time.LocalDate.now().getDayOfWeek();
+                    boolean isSat = dow == java.time.DayOfWeek.SATURDAY;
+                    boolean isSun = dow == java.time.DayOfWeek.SUNDAY;
+                    if (isSat) {
+                        ag.setRunningToday(Boolean.TRUE.equals(saved.getSaturday()));
+                    } else if (isSun) {
+                        ag.setRunningToday(Boolean.TRUE.equals(saved.getSunday()));
+                    } else {
+                        ag.setRunningToday(true);
+                    }
                     activeGameRepository.save(ag);
-                    log.info("Created ActiveGame entry for new game {}", saved.getName());
+                    log.info("Created ActiveGame entry for new game {} (runningToday={})", saved.getName(), ag.getRunningToday());
                 }
             } catch (Exception ex) {
                 log.error("Failed to create ActiveGame for game {}", saved.getName(), ex);
