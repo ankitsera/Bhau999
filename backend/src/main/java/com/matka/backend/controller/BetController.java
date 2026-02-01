@@ -32,6 +32,7 @@ public class BetController {
         public String gameName;
         public String type;
         public Integer amount;
+        public Integer winAmount;
             public String betValue;
         public String openClose;
         public java.time.LocalDateTime betTime;
@@ -45,6 +46,7 @@ public class BetController {
             this.gameName = b.getGameName();
             this.type = b.getType();
             this.amount = b.getAmount();
+            this.winAmount = b.getWinAmount();
             this.betValue = b.getBetValue();
             this.openClose = b.getOpenClose();
             this.betTime = b.getBetTime();
@@ -57,6 +59,7 @@ public class BetController {
             this.gameName = b.getGameName();
             this.type = b.getType();
             this.amount = b.getAmount();
+            this.winAmount = b.getWinAmount();
             this.betValue = b.getBetValue();
             this.openClose = b.getOpenClose();
             this.betTime = b.getBetTime();
@@ -129,6 +132,8 @@ public class BetController {
 
             // set bet time to current datetime
             bet.setBetTime(LocalDateTime.now());
+            // initialize win amount
+            bet.setWinAmount(0);
 
             // record transaction for the bet (negative amount)
             TransactionEntity tx = new TransactionEntity();
@@ -168,17 +173,53 @@ public class BetController {
     }
 
     // GET /api/bets/user/{mobileNumber} -> fetch bets for a user from both bets and bets_history
+    // Optional request param: date=yyyy-MM-dd to filter by betTime date
     @GetMapping("/bets/user/{mobileNumber}")
-    public ResponseEntity<List<BetResponse>> listByUser(@PathVariable String mobileNumber) {
+    public ResponseEntity<?> listByUser(@PathVariable String mobileNumber, @RequestParam(name = "date", required = false) String dateStr) {
         if (mobileNumber == null || mobileNumber.isBlank()) {
-            return ResponseEntity.badRequest().body(new ArrayList<>());
+            return ResponseEntity.badRequest().body(java.util.Map.of("sum", 0L, "bets", new ArrayList<>()));
         }
+
+        java.time.LocalDate filterDate = null;
+        if (dateStr != null && !dateStr.isBlank()) {
+            try {
+                filterDate = java.time.LocalDate.parse(dateStr.trim());
+            } catch (Exception ex) {
+                return ResponseEntity.badRequest().body(java.util.Map.of("message", "Invalid date format; expected yyyy-MM-dd"));
+            }
+        }
+
+        List<BetResponse> combined = new ArrayList<>();
+        long sum = 0L;
+
         List<Bet> fromBets = betRepository.findByMobileNumber(mobileNumber);
         List<com.matka.backend.BetHistory> fromHistory = betHistoryRepository.findByMobileNumber(mobileNumber);
-        List<BetResponse> combined = new ArrayList<>();
-        if (fromBets != null) for (Bet b : fromBets) combined.add(new BetResponse(b));
-        if (fromHistory != null) for (com.matka.backend.BetHistory b : fromHistory) combined.add(new BetResponse(b));
-        return ResponseEntity.ok(combined);
+
+        if (fromBets != null) {
+            for (Bet b : fromBets) {
+                if (b == null) continue;
+                if (filterDate != null) {
+                    if (b.getBetTime() == null) continue;
+                    if (!filterDate.equals(b.getBetTime().toLocalDate())) continue;
+                }
+                combined.add(new BetResponse(b));
+                if (b.getWinAmount() != null) sum += (long) b.getWinAmount();
+            }
+        }
+
+        if (fromHistory != null) {
+            for (com.matka.backend.BetHistory b : fromHistory) {
+                if (b == null) continue;
+                if (filterDate != null) {
+                    if (b.getBetTime() == null) continue;
+                    if (!filterDate.equals(b.getBetTime().toLocalDate())) continue;
+                }
+                combined.add(new BetResponse(b));
+                if (b.getWinAmount() != null) sum += (long) b.getWinAmount();
+            }
+        }
+
+        return ResponseEntity.ok(java.util.Map.of("sum", sum, "bets", combined));
     }
 
     // GET /api/bets/game/{gameName}/all -> fetch bets for a game from both bets and bets_history
@@ -207,5 +248,158 @@ public class BetController {
         List<BetResponse> out = new ArrayList<>();
         if (fromBets != null) for (Bet b : fromBets) out.add(new BetResponse(b));
         return ResponseEntity.ok(out);
+    }
+
+    // POST /api/bets/won -> returns list of bets with result='Won' from both bets and bets_history and the sum of amounts
+    // Request body: { "mobileNumber": "...", "date": "yyyy-MM-dd" } — both fields optional
+    @PostMapping("/bets/won")
+    public ResponseEntity<?> listWonBets(@RequestBody WonBetsRequest req) {
+        String mobile = req == null ? null : req.getMobileNumber();
+        String dateStr = req == null ? null : req.getDate();
+        java.time.LocalDate filterDate = null;
+        if (dateStr != null && !dateStr.isBlank()) {
+            try {
+                filterDate = java.time.LocalDate.parse(dateStr.trim());
+            } catch (Exception ex) {
+                return ResponseEntity.badRequest().body(java.util.Map.of("message", "Invalid date format; expected yyyy-MM-dd"));
+            }
+        }
+
+        java.util.List<BetResponse> out = new java.util.ArrayList<>();
+        long sum = 0L;
+
+        // fetch from active bets
+        java.util.List<Bet> fromBets;
+        if (mobile != null && !mobile.isBlank()) {
+            fromBets = betRepository.findByMobileNumber(mobile.trim());
+        } else {
+            fromBets = betRepository.findAll();
+        }
+
+        if (fromBets != null) {
+            for (Bet b : fromBets) {
+                try {
+                    if (b == null) continue;
+                    if (b.getResult() == null) continue;
+                    if (!"won".equalsIgnoreCase(b.getResult())) continue;
+                    if (filterDate != null) {
+                        if (b.getBetTime() == null) continue;
+                        if (!filterDate.equals(b.getBetTime().toLocalDate())) continue;
+                    }
+                    out.add(new BetResponse(b));
+                    if (b.getWinAmount() != null) sum += (long) b.getWinAmount();
+                } catch (Exception ex) {
+                    log.warn("Error processing bet id {}", b == null ? null : b.getId(), ex);
+                }
+            }
+        }
+
+        // fetch from history
+        java.util.List<com.matka.backend.BetHistory> fromHistory;
+        if (mobile != null && !mobile.isBlank()) {
+            fromHistory = betHistoryRepository.findByMobileNumber(mobile.trim());
+        } else {
+            fromHistory = betHistoryRepository.findAll();
+        }
+
+        if (fromHistory != null) {
+            for (com.matka.backend.BetHistory b : fromHistory) {
+                try {
+                    if (b == null) continue;
+                    if (b.getResult() == null) continue;
+                    if (!"won".equalsIgnoreCase(b.getResult())) continue;
+                    if (filterDate != null) {
+                        if (b.getBetTime() == null) continue;
+                        if (!filterDate.equals(b.getBetTime().toLocalDate())) continue;
+                    }
+                    out.add(new BetResponse(b));
+                    if (b.getWinAmount() != null) sum += (long) b.getWinAmount();
+                } catch (Exception ex) {
+                    log.warn("Error processing betHistory id {}", b == null ? null : b.getId(), ex);
+                }
+            }
+        }
+
+        return ResponseEntity.ok(java.util.Map.of("sum", sum, "bets", out));
+    }
+
+    public static class WonBetsRequest {
+        private String mobileNumber;
+        private String date;
+
+        public String getMobileNumber() { return mobileNumber; }
+        public void setMobileNumber(String mobileNumber) { this.mobileNumber = mobileNumber; }
+
+        public String getDate() { return date; }
+        public void setDate(String date) { this.date = date; }
+    }
+
+    // POST /api/bets/all -> returns list of bets from bets and bets_history and sum of amount
+    // Request body: { "mobileNumber": "...", "date": "yyyy-MM-dd" } — both optional
+    @PostMapping("/bets/all")
+    public ResponseEntity<?> listAllBets(@RequestBody WonBetsRequest req) {
+        String mobile = req == null ? null : req.getMobileNumber();
+        String dateStr = req == null ? null : req.getDate();
+        java.time.LocalDate filterDate = null;
+        if (dateStr != null && !dateStr.isBlank()) {
+            try {
+                filterDate = java.time.LocalDate.parse(dateStr.trim());
+            } catch (Exception ex) {
+                return ResponseEntity.badRequest().body(java.util.Map.of("message", "Invalid date format; expected yyyy-MM-dd"));
+            }
+        }
+
+        java.util.List<BetResponse> out = new java.util.ArrayList<>();
+        long sum = 0L;
+
+        // fetch from active bets
+        java.util.List<Bet> fromBets;
+        if (mobile != null && !mobile.isBlank()) {
+            fromBets = betRepository.findByMobileNumber(mobile.trim());
+        } else {
+            fromBets = betRepository.findAll();
+        }
+
+        if (fromBets != null) {
+            for (Bet b : fromBets) {
+                try {
+                    if (b == null) continue;
+                    if (filterDate != null) {
+                        if (b.getBetTime() == null) continue;
+                        if (!filterDate.equals(b.getBetTime().toLocalDate())) continue;
+                    }
+                    out.add(new BetResponse(b));
+                    if (b.getAmount() != null) sum += (long) b.getAmount();
+                } catch (Exception ex) {
+                    log.warn("Error processing bet id {}", b == null ? null : b.getId(), ex);
+                }
+            }
+        }
+
+        // fetch from history
+        java.util.List<com.matka.backend.BetHistory> fromHistory;
+        if (mobile != null && !mobile.isBlank()) {
+            fromHistory = betHistoryRepository.findByMobileNumber(mobile.trim());
+        } else {
+            fromHistory = betHistoryRepository.findAll();
+        }
+
+        if (fromHistory != null) {
+            for (com.matka.backend.BetHistory b : fromHistory) {
+                try {
+                    if (b == null) continue;
+                    if (filterDate != null) {
+                        if (b.getBetTime() == null) continue;
+                        if (!filterDate.equals(b.getBetTime().toLocalDate())) continue;
+                    }
+                    out.add(new BetResponse(b));
+                    if (b.getAmount() != null) sum += (long) b.getAmount();
+                } catch (Exception ex) {
+                    log.warn("Error processing betHistory id {}", b == null ? null : b.getId(), ex);
+                }
+            }
+        }
+
+        return ResponseEntity.ok(java.util.Map.of("sum", sum, "bets", out));
     }
 }

@@ -35,6 +35,9 @@ public class Bet {
     @Column(name = "result", length = 4)
     private String result; // null, "Won", or "Lost"
 
+    @Column(name = "win_amount")
+    private Integer winAmount; // amount credited/expected on win
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mobile_number", referencedColumnName = "mobile_number", insertable = false, updatable = false)
     private User user;
@@ -75,6 +78,9 @@ public class Bet {
 
     public String getResult() { return result; }
     public void setResult(String result) { this.result = result; }
+
+    public Integer getWinAmount() { return winAmount; }
+    public void setWinAmount(Integer winAmount) { this.winAmount = winAmount; }
 
     public User getUser() { return user; }
     public Game getGame() { return game; }

@@ -111,6 +111,7 @@ public class DailyRollupService {
                     // preserve type/amount/betValue/openClose and betTime/result in the copied row
                     bh.setType(b.getType());
                     bh.setAmount(b.getAmount());
+                    bh.setWinAmount(b.getWinAmount());
                     bh.setBetValue(b.getBetValue());
                     bh.setOpenClose(b.getOpenClose());
                     bh.setBetTime(b.getBetTime());
