@@ -22,6 +22,9 @@ public class Game {
     @Column(name = "sunday")
     private Boolean sunday;
 
+    @Column(name = "enabled")
+    private Boolean enabled;
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -36,4 +39,7 @@ public class Game {
 
     public Boolean getSunday() { return sunday; }
     public void setSunday(Boolean sunday) { this.sunday = sunday; }
+
+    public Boolean getEnabled() { return enabled; }
+    public void setEnabled(Boolean enabled) { this.enabled = enabled; }
 }

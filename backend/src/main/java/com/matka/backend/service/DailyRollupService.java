@@ -80,6 +80,12 @@ public class DailyRollupService {
             boolean isSat = todayDow == java.time.DayOfWeek.SATURDAY;
             boolean isSun = todayDow == java.time.DayOfWeek.SUNDAY;
             for (Game g : games) {
+                // Skip games that are explicitly disabled
+                if (Boolean.FALSE.equals(g.getEnabled())) {
+                    log.info("Skipping disabled game '{}' when repopulating active_games", g.getName());
+                    continue;
+                }
+
                 ActiveGame ag = new ActiveGame();
                 ag.setGameName(g.getName());
                 ag.setOpenPana(null);
