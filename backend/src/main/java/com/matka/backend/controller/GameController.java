@@ -54,16 +54,40 @@ public class GameController {
         if (game.getSunday() != null) {
             entity.setSunday(game.getSunday());
         }
+        // set enabled flag: if provided use it, else default to true for new games
+        if (game.getEnabled() != null) {
+            entity.setEnabled(game.getEnabled());
+        } else if (isNew) {
+            entity.setEnabled(true);
+        }
 
         Game saved = gameRepository.save(entity);
         // If this was a new Game, ensure there is a corresponding ActiveGame entry
         if (isNew) {
             try {
-                if (!activeGameRepository.existsById(saved.getName())) {
-                    ActiveGame ag = new ActiveGame();
-                    ag.setGameName(saved.getName());
-                    activeGameRepository.save(ag);
-                    log.info("Created ActiveGame entry for new game {}", saved.getName());
+                // Do not create ActiveGame rows for games that are disabled
+                if (Boolean.FALSE.equals(saved.getEnabled())) {
+                    log.info("New game '{}' is disabled; skipping creation of ActiveGame entry", saved.getName());
+                } else {
+                    if (!activeGameRepository.existsById(saved.getName())) {
+                        ActiveGame ag = new ActiveGame();
+                        ag.setGameName(saved.getName());
+                        ag.setOpenPana(null);
+                        ag.setClosePana(null);
+                        // determine runningToday based on current day and game's flags
+                        java.time.DayOfWeek dow = java.time.LocalDate.now().getDayOfWeek();
+                        boolean isSat = dow == java.time.DayOfWeek.SATURDAY;
+                        boolean isSun = dow == java.time.DayOfWeek.SUNDAY;
+                        if (isSat) {
+                            ag.setRunningToday(Boolean.TRUE.equals(saved.getSaturday()));
+                        } else if (isSun) {
+                            ag.setRunningToday(Boolean.TRUE.equals(saved.getSunday()));
+                        } else {
+                            ag.setRunningToday(true);
+                        }
+                        activeGameRepository.save(ag);
+                        log.info("Created ActiveGame entry for new game {} (runningToday={})", saved.getName(), ag.getRunningToday());
+                    }
                 }
             } catch (Exception ex) {
                 log.error("Failed to create ActiveGame for game {}", saved.getName(), ex);
@@ -90,7 +114,48 @@ public class GameController {
     // List all games
     @GetMapping
     public ResponseEntity<List<Game>> listAll() {
+        // only return enabled games
         List<Game> list = gameRepository.findAll();
-        return ResponseEntity.ok(list);
+        List<Game> out = new java.util.ArrayList<>();
+        if (list != null) {
+            for (Game g : list) {
+                if (g == null) continue;
+                if (Boolean.TRUE.equals(g.getEnabled())) out.add(g);
+            }
+        }
+        return ResponseEntity.ok(out);
+    }
+
+    // List disabled games
+    @GetMapping("/disabled")
+    public ResponseEntity<List<Game>> listDisabled() {
+        List<Game> list = gameRepository.findAll();
+        List<Game> out = new java.util.ArrayList<>();
+        if (list != null) {
+            for (Game g : list) {
+                if (g == null) continue;
+                if (Boolean.FALSE.equals(g.getEnabled())) out.add(g);
+            }
+        }
+        return ResponseEntity.ok(out);
+    }
+
+    // Enable/disable a game by name. Request body: { "enabled": true }
+    @PostMapping("/{name}/enable")
+    public ResponseEntity<?> setEnabled(@PathVariable("name") String name, @RequestBody java.util.Map<String, Object> body) {
+        if (name == null || name.isBlank()) return ResponseEntity.badRequest().body("Missing name");
+        Optional<Game> gopt = gameRepository.findById(name.trim().toUpperCase());
+        if (gopt.isEmpty()) return ResponseEntity.status(404).body("Game not found");
+        Game g = gopt.get();
+        Object v = body == null ? null : body.get("enabled");
+        if (v == null) return ResponseEntity.badRequest().body(Map.of("message","enabled field required"));
+        boolean en = false;
+        if (v instanceof Boolean) en = (Boolean) v;
+        else {
+            try { en = Boolean.parseBoolean(String.valueOf(v)); } catch (Exception ex) { return ResponseEntity.badRequest().body(Map.of("message","enabled must be boolean")); }
+        }
+        g.setEnabled(en);
+        gameRepository.save(g);
+        return ResponseEntity.ok(Map.of("message","Game updated","name",g.getName(),"enabled",g.getEnabled()));
     }
 }

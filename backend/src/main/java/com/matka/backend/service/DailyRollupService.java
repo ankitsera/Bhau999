@@ -80,17 +80,24 @@ public class DailyRollupService {
             boolean isSat = todayDow == java.time.DayOfWeek.SATURDAY;
             boolean isSun = todayDow == java.time.DayOfWeek.SUNDAY;
             for (Game g : games) {
-                // If today is Saturday or Sunday, only include games enabled for that day
-                if (isSat) {
-                    if (!Boolean.TRUE.equals(g.getSaturday())) continue;
-                } else if (isSun) {
-                    if (!Boolean.TRUE.equals(g.getSunday())) continue;
+                // Skip games that are explicitly disabled
+                if (Boolean.FALSE.equals(g.getEnabled())) {
+                    log.info("Skipping disabled game '{}' when repopulating active_games", g.getName());
+                    continue;
                 }
 
                 ActiveGame ag = new ActiveGame();
                 ag.setGameName(g.getName());
                 ag.setOpenPana(null);
                 ag.setClosePana(null);
+                // determine runningToday: if weekend and game not enabled for that day, set false
+                if (isSat) {
+                    ag.setRunningToday(Boolean.TRUE.equals(g.getSaturday()));
+                } else if (isSun) {
+                    ag.setRunningToday(Boolean.TRUE.equals(g.getSunday()));
+                } else {
+                    ag.setRunningToday(true);
+                }
                 newActive.add(ag);
             }
             if (!newActive.isEmpty()) {
@@ -111,6 +118,7 @@ public class DailyRollupService {
                     // preserve type/amount/betValue/openClose and betTime/result in the copied row
                     bh.setType(b.getType());
                     bh.setAmount(b.getAmount());
+                    bh.setWinAmount(b.getWinAmount());
                     bh.setBetValue(b.getBetValue());
                     bh.setOpenClose(b.getOpenClose());
                     bh.setBetTime(b.getBetTime());

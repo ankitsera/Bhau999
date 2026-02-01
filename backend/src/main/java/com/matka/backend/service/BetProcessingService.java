@@ -244,6 +244,13 @@ public class BetProcessingService {
                                         userRepository.save(u);
                                         logger.info("Reverted payout for bet id {} mobile {}: deducted {}. Old balance: {}, New balance: {}",
                                                 b.getId(), b.getMobileNumber(), payout, bal, newBal);
+                                        // clear winAmount on the bet and persist
+                                        try {
+                                            b.setWinAmount(0);
+                                            betRepository.save(b);
+                                        } catch (Exception ex2) {
+                                            logger.warn("Failed to clear winAmount for bet id {}", b.getId(), ex2);
+                                        }
                                     } else {
                                         logger.warn("User with mobile {} not found to deduct payout of {} for bet id {}",
                                                 b.getMobileNumber(), payout, b.getId());
@@ -311,6 +318,13 @@ public class BetProcessingService {
                 Integer bal = u.getBalance() == null ? 0 : u.getBalance();
                 u.setBalance(bal + payout);
                 userRepository.save(u);
+                // record win amount on the bet and persist
+                try {
+                    b.setWinAmount(payout);
+                    betRepository.save(b);
+                } catch (Exception ex2) {
+                    logger.warn("Failed to set winAmount for bet id {}", b.getId(), ex2);
+                }
             }
         } catch (Exception ex) {
             logger.error("Error creating payout transaction for bet id " + b.getId(), ex);

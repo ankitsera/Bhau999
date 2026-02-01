@@ -92,18 +92,25 @@ public class ActiveGameController {
             }
 
             java.util.List<String> allowed;
-            if (openTime != null && now.isBefore(openTime)) {
-                allowed = java.util.List.of("Open", "Close");
-            } else if (closeTime != null && now.isAfter(closeTime)) {
+            java.lang.Boolean runningToday = active.getRunningToday();
+            if (runningToday != null && Boolean.FALSE.equals(runningToday)) {
+                // not running today -> no allowed types
                 allowed = java.util.Collections.emptyList();
             } else {
-                allowed = java.util.List.of("Close");
+                if (openTime != null && now.isBefore(openTime)) {
+                    allowed = java.util.List.of("Open", "Close");
+                } else if (closeTime != null && now.isAfter(closeTime)) {
+                    allowed = java.util.Collections.emptyList();
+                } else {
+                    allowed = java.util.List.of("Close");
+                }
             }
 
             ActiveGameWithAllowedTypes dto = new ActiveGameWithAllowedTypes();
             dto.setGameName(active.getGameName());
             dto.setOpenPana(active.getOpenPana());
             dto.setClosePana(active.getClosePana());
+            dto.setRunningToday(active.getRunningToday());
             dto.setOpenTime(openTime);
             dto.setCloseTime(closeTime);
             dto.setAllowed_types(allowed);
@@ -111,6 +118,69 @@ public class ActiveGameController {
         }
 
         return ResponseEntity.ok(out);
+    }
+
+    // Start or stop a game running for today. Request body: { "runningToday": true }
+    @PostMapping("/{name}/running")
+    public ResponseEntity<?> setRunningToday(@PathVariable("name") String name, @RequestBody java.util.Map<String,Object> body) {
+        if (name == null || name.isBlank()) return ResponseEntity.badRequest().body(Map.of("message","Missing name"));
+        String normalized = name.trim().toUpperCase();
+        Optional<ActiveGame> aopt = activeGameRepository.findById(normalized);
+        if (aopt.isEmpty()) return ResponseEntity.status(404).body(Map.of("message","Active game not found: " + normalized));
+        ActiveGame ag = aopt.get();
+
+        Object v = body == null ? null : body.get("runningToday");
+        if (v == null) return ResponseEntity.badRequest().body(Map.of("message","runningToday field required"));
+        boolean run = false;
+        if (v instanceof Boolean) run = (Boolean) v;
+        else {
+            try { run = Boolean.parseBoolean(String.valueOf(v)); } catch (Exception ex) { return ResponseEntity.badRequest().body(Map.of("message","runningToday must be boolean")); }
+        }
+
+        // Fetch game to read open/close times when starting
+        Optional<Game> gopt = gameRepository.findById(ag.getGameName());
+        java.time.LocalTime now = java.time.LocalTime.now();
+
+        java.util.List<String> allowed;
+        if (!run) {
+            // stop the game for today: clear allowed types
+            ag.setRunningToday(false);
+            activeGameRepository.save(ag);
+            allowed = java.util.Collections.emptyList();
+        } else {
+            // start the game for today: compute allowed types based on open/close times
+            if (gopt.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of("message","Game not found for active game: " + ag.getGameName()));
+            }
+            Game g = gopt.get();
+            java.time.LocalTime openTime = g.getOpenTime();
+            java.time.LocalTime closeTime = g.getCloseTime();
+
+            if (openTime != null && now.isBefore(openTime)) {
+                allowed = java.util.List.of("Open", "Close");
+            } else if (closeTime != null && now.isAfter(closeTime)) {
+                allowed = java.util.Collections.emptyList();
+            } else {
+                allowed = java.util.List.of("Close");
+            }
+            ag.setRunningToday(true);
+            activeGameRepository.save(ag);
+        }
+
+        // Build response DTO
+        ActiveGameWithAllowedTypes dto = new ActiveGameWithAllowedTypes();
+        dto.setGameName(ag.getGameName());
+        dto.setOpenPana(ag.getOpenPana());
+        dto.setClosePana(ag.getClosePana());
+        dto.setRunningToday(ag.getRunningToday());
+        // include times if game present
+        if (gopt.isPresent()) {
+            dto.setOpenTime(gopt.get().getOpenTime());
+            dto.setCloseTime(gopt.get().getCloseTime());
+        }
+        dto.setAllowed_types(allowed);
+
+        return ResponseEntity.ok(Map.of("message","runningToday updated","activeGame", dto));
     }
 
     /**
@@ -184,6 +254,7 @@ public class ActiveGameController {
     private java.time.LocalTime openTime;
     private java.time.LocalTime closeTime;
     private java.util.List<String> allowed_types;
+    private Boolean runningToday;
 
         public String getGameName() { return gameName; }
         public void setGameName(String gameName) { this.gameName = gameName; }
@@ -204,6 +275,8 @@ public class ActiveGameController {
 
         public java.util.List<String> getAllowed_types() { return allowed_types; }
         public void setAllowed_types(java.util.List<String> allowed_types) { this.allowed_types = allowed_types; }
+        public Boolean getRunningToday() { return runningToday; }
+        public void setRunningToday(Boolean runningToday) { this.runningToday = runningToday; }
     }
 
     public static class DeclareResultRequest {

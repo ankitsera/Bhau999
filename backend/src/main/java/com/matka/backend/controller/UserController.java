@@ -47,8 +47,10 @@ public class UserController {
     // Store password as-is (plain text) — NOT recommended for production
     // NOTE: this stores the password exactly as provided in the DB
     user.setPassword(user.getPassword());
-        // set signup date
-        user.setDateSignup(LocalDateTime.now());
+    // set signup date
+    user.setDateSignup(LocalDateTime.now());
+    // mark approval as Approved by default
+    user.setApprovalStatus("Approved");
         userRepository.save(user);
         log.info("Signup successful for mobile='{}'", user.getMobileNumber());
         return ResponseEntity.ok(Map.of("message", "Signup successful"));
@@ -72,7 +74,8 @@ public class UserController {
                     u.getAccountHolderName(),
                     u.getAccountNumber(),
                     u.getIfscCode(),
-                    u.getUpiId()
+                    u.getUpiId(),
+                    u.getApprovalStatus()
                 );
                 return ResponseEntity.ok(resp);
                 } else {
@@ -215,8 +218,9 @@ public class UserController {
         private String accountNumber;
         private String ifscCode;
         private String upiId;
+        private String approvalStatus;
 
-        public UserResponse(String mobileNumber, String username, LocalDateTime dateSignup, Integer balance, String accountHolderName, String accountNumber, String ifscCode, String upiId) {
+        public UserResponse(String mobileNumber, String username, LocalDateTime dateSignup, Integer balance, String accountHolderName, String accountNumber, String ifscCode, String upiId, String approvalStatus) {
             this.mobileNumber = mobileNumber;
             this.username = username;
             this.dateSignup = dateSignup;
@@ -225,6 +229,7 @@ public class UserController {
             this.accountNumber = accountNumber;
             this.ifscCode = ifscCode;
             this.upiId = upiId;
+            this.approvalStatus = approvalStatus;
         }
 
         public String getMobileNumber() { return mobileNumber; }
@@ -235,6 +240,7 @@ public class UserController {
         public String getAccountNumber() { return accountNumber; }
         public String getIfscCode() { return ifscCode; }
         public String getUpiId() { return upiId; }
+        public String getApprovalStatus() { return approvalStatus; }
     }
 
     // API to update bank details (partial update: only non-null fields are updated)

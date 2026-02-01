@@ -34,6 +34,9 @@ public class BetHistory {
     @Column(name = "result", length = 4)
     private String result;
 
+    @Column(name = "win_amount")
+    private Integer winAmount;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -60,4 +63,7 @@ public class BetHistory {
 
     public String getResult() { return result; }
     public void setResult(String result) { this.result = result; }
+
+    public Integer getWinAmount() { return winAmount; }
+    public void setWinAmount(Integer winAmount) { this.winAmount = winAmount; }
 }
