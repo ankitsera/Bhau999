@@ -36,8 +36,6 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
     closeSidebar();
     if(menu === 'Logout'){
       logout(navigation);
-    } else if(menu === 'Share App'){
-      // Implement share functionality here
     } else {
       navigation.navigate(menu);
     }

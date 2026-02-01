@@ -1,26 +1,78 @@
-import {
-  SafeAreaProvider,
-} from 'react-native-safe-area-context';
-import Navigation from './navigation/Navigation';
-import { AuthProvider } from './contexts/AuthContext';
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import Navigation from "./navigation/Navigation";
+import { AuthProvider, AuthContext } from "./contexts/AuthContext";
 import { PaymentsProvider } from "./contexts/PaymentsContext";
-import { ThemeProvider } from '@react-navigation/native';
-import { useRef } from 'react';
-import { GameProvider } from './contexts/GameContext';
-import { AppConfigProvider } from './contexts/AppConfigContext';
+import { ThemeProvider } from "@react-navigation/native";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { GameProvider } from "./contexts/GameContext";
+import { AppConfigProvider } from "./contexts/AppConfigContext";
+import { AppState } from "react-native";
+
+import { checkUpdateIfDue } from "./utils/UpdateService";
+import UpdateGate from "./components/UpdateGate";
+import BlockedGate from "./components/BlockedGate";
+
+function AppInner() {
+  const navigationRef = useRef(null);
+  const { isBlocked } = useContext(AuthContext);
+
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [compulsoryUpdate, setCompulsoryUpdate] = useState(false);
+  const [optionalDismissed, setOptionalDismissed] = useState(false);
+
+  const runCheck = async () => {
+    // priority to blocked gate
+    if (isBlocked) return;
+
+    try {
+      const res = await checkUpdateIfDue({ force: false });
+      if (res?.skipped) return;
+
+      setUpdateAvailable(!!res.updateAvailable);
+      setCompulsoryUpdate(!!res.compulsoryUpdate);
+
+      // reset dismissal when a fresh check happens
+      setOptionalDismissed(false);
+    } catch (e) {
+      console.log("Update check error:", e?.message);
+    }
+  };
+
+  const showUpdateGate = !isBlocked && (compulsoryUpdate || (updateAvailable && !optionalDismissed));
+
+  useEffect(() => {
+    runCheck();
+    const sub = AppState.addEventListener("change", (s) => {
+      if (s === "active") runCheck();
+    });
+    return () => sub.remove();
+  }, [isBlocked]);
+
+  return (
+    <ThemeProvider>
+      <Navigation navigationRef={navigationRef} />
+
+      {/* Blocked gate takes priority */}
+      <BlockedGate visible={isBlocked} navigationRef={navigationRef} />
+
+      {/* Only show update gate if not blocked */}
+      <UpdateGate
+        visible={showUpdateGate}
+        compulsory={compulsoryUpdate}
+        onDismiss={() => setOptionalDismissed(true)}
+      />
+    </ThemeProvider>
+  );
+}
 
 function App() {
-  const navigationRef = useRef(null);
-
   return (
     <SafeAreaProvider>
       <AuthProvider>
         <PaymentsProvider>
           <GameProvider>
             <AppConfigProvider>
-              <ThemeProvider>
-                <Navigation navigationRef={navigationRef} />
-              </ThemeProvider>
+              <AppInner />
             </AppConfigProvider>
           </GameProvider>
         </PaymentsProvider>

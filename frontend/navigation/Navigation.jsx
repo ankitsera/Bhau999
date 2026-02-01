@@ -24,6 +24,7 @@ import TimeTable from "../screens/Sidebar/TimeTable";
 import NoticeBoard from "../screens/Sidebar/NoticeBoard";
 import Settings from "../screens/Sidebar/Settings";
 import HowToPlay from "../screens/Sidebar/HowToPlay";
+import ShareApp from "../screens/Sidebar/ShareApp";
 
 //Fund History Screens
 import Passbook from "../screens/Sidebar/Passbook";
@@ -133,7 +134,8 @@ const Navigation = ({ navigationRef }) => {
         <Stack.Screen name="Settings" component={Settings} options={{ headerShown: false }} />
         <Stack.Screen name="How to Play" component={HowToPlay} options={{ headerShown: false }} />
         <Stack.Screen name="Games Sub Types" component={GamesSubTypes} options={{ headerShown: false }} />
-
+        <Stack.Screen name="Share App" component={ShareApp} options={{ headerShown: false }} />
+        
         {/* Fund History Screens */}
         <Stack.Screen name="Passbook" component={Passbook} options={{ headerShown: false }} />
         <Stack.Screen name="Add Fund History" component={AddFundHistory} options={{ headerShown: false }} /> 

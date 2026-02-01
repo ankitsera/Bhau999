@@ -167,7 +167,6 @@ const FullSangam = ({ route }) => {
     );
 
     try {
-      console.log("Bets to send:", betsToSend);
       const res = await placeBets(betsToSend);
       Alert.alert("Success", "Bets placed successfully!");
 

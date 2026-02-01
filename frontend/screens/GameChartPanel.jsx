@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useCallback, useState } from "react";
+import React, { useEffect, useMemo, useCallback, useState, useContext } from "react";
 import {
   View,
   Text,
@@ -13,20 +13,11 @@ import { useRoute } from "@react-navigation/native";
 
 import GreenHeader from "../components/GreenHeader";
 import EmptyState from "../components/EmptyState";
-import { API_URL } from "../env-vars";
+import { GameContext } from "../contexts/GameContext";
 
 const GREEN = "#3FA16C";
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
-
-// read body safely even if empty
-async function readBody(res) {
-  try {
-    return await res.json();
-  } catch {
-    return null;
-  }
-}
 
 function sumDigitsMod10(val) {
   if (val === null || val === undefined) return null;
@@ -126,28 +117,15 @@ const GameChartPanel = () => {
   const route = useRoute();
   const gameName = String(route?.params?.gameName || "").toUpperCase();
 
-  const [loading, setLoading] = useState(false);
+  const { gameHistory, isLoadingGameHistory, loadGameHistory } =
+    useContext(GameContext);
+
   const [refreshing, setRefreshing] = useState(false);
-  const [raw, setRaw] = useState([]); // raw api list
 
   const fetchHistory = useCallback(async () => {
     if (!gameName) return;
-
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/game-history`, { method: "GET" });
-      const body = await readBody(res);
-
-      if (!res.ok) {
-        throw new Error(body?.message || `Failed to load game history (${res.status})`);
-      }
-
-      const list = Array.isArray(body) ? body : [];
-      setRaw(list);
-    } finally {
-      setLoading(false);
-    }
-  }, [gameName]);
+    await loadGameHistory?.();
+  }, [gameName, loadGameHistory]);
 
   useEffect(() => {
     fetchHistory?.();
@@ -164,9 +142,13 @@ const GameChartPanel = () => {
 
   // ✅ filter to selected game and normalize fields
   const filtered = useMemo(() => {
-    const arr = Array.isArray(raw) ? raw : [];
+    const arr = Array.isArray(gameHistory) ? gameHistory : [];
     return arr
-      .filter((x) => String(x?.gameName || x?.game_name || "").toUpperCase() === gameName)
+      .filter(
+        (x) =>
+          String(x?.gameName || x?.game_name || "")
+            .toUpperCase() === gameName
+      )
       .map((x) => {
         const dt = parseLocalDate(x?.histDate || x?.hist_date);
         return {
@@ -177,7 +159,7 @@ const GameChartPanel = () => {
         };
       })
       .filter((x) => x.histDate instanceof Date);
-  }, [raw, gameName]);
+  }, [gameHistory, gameName]);
 
   // ✅ group by week (Mon-Sun) and build chart cells
   const weeks = useMemo(() => {
@@ -186,7 +168,10 @@ const GameChartPanel = () => {
     // sort by date asc so grouping is stable
     const sorted = filtered
       .slice()
-      .sort((a, b) => (a.histDate?.getTime?.() || 0) - (b.histDate?.getTime?.() || 0));
+      .sort(
+        (a, b) =>
+          (a.histDate?.getTime?.() || 0) - (b.histDate?.getTime?.() || 0)
+      );
 
     const map = new Map();
 
@@ -225,7 +210,7 @@ const GameChartPanel = () => {
       <GreenHeader title={`${gameName || "GAME"} CHART`} />
 
       <View style={styles.body}>
-        {loading && weeks.length === 0 ? (
+        {isLoadingGameHistory && weeks.length === 0 ? (
           <View style={styles.loaderWrap}>
             <ActivityIndicator size="small" color={GREEN} />
             <Text style={styles.loaderText}>Loading...</Text>

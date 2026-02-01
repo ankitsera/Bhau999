@@ -27,34 +27,34 @@ const ITEMS = [
     icon: { lib: "MaterialCommunityIcons", name: "history" },
     onPress: (nav) => nav.navigate("Game Results"),
   },
-  {
-    id: "ls-bid",
-    title: "Lucky Starline Bid History",
-    subtitle: "You can view starline history",
-    icon: { lib: "MaterialCommunityIcons", name: "bank-transfer" },
-    onPress: (nav) => nav.navigate("LuckyStarline Bid History"),
-  },
-  {
-    id: "ls-result",
-    title: "Lucky Starline Result History",
-    subtitle: "You can view starline result",
-    icon: { lib: "MaterialCommunityIcons", name: "history" },
-    onPress: (nav) => nav.navigate("LuckyStarline Result History"),
-  },
-  {
-    id: "lj-bid",
-    title: "Lucky Jackpot Bid History",
-    subtitle: "You can view Jackpot history",
-    icon: { lib: "MaterialCommunityIcons", name: "bank-transfer" },
-    onPress: (nav) => nav.navigate("LuckyJackpot Bid History"),
-  },
-  {
-    id: "lj-result",
-    title: "Lucky Jackpot Result History",
-    subtitle: "You can view Jackpot result",
-    icon: { lib: "MaterialCommunityIcons", name: "history" },
-    onPress: (nav) => nav.navigate("LuckyJackpot Result History"),
-  },
+  // {
+  //   id: "ls-bid",
+  //   title: "Lucky Starline Bid History",
+  //   subtitle: "You can view starline history",
+  //   icon: { lib: "MaterialCommunityIcons", name: "bank-transfer" },
+  //   onPress: (nav) => nav.navigate("LuckyStarline Bid History"),
+  // },
+  // {
+  //   id: "ls-result",
+  //   title: "Lucky Starline Result History",
+  //   subtitle: "You can view starline result",
+  //   icon: { lib: "MaterialCommunityIcons", name: "history" },
+  //   onPress: (nav) => nav.navigate("LuckyStarline Result History"),
+  // },
+  // {
+  //   id: "lj-bid",
+  //   title: "Lucky Jackpot Bid History",
+  //   subtitle: "You can view Jackpot history",
+  //   icon: { lib: "MaterialCommunityIcons", name: "bank-transfer" },
+  //   onPress: (nav) => nav.navigate("LuckyJackpot Bid History"),
+  // },
+  // {
+  //   id: "lj-result",
+  //   title: "Lucky Jackpot Result History",
+  //   subtitle: "You can view Jackpot result",
+  //   icon: { lib: "MaterialCommunityIcons", name: "history" },
+  //   onPress: (nav) => nav.navigate("LuckyJackpot Result History"),
+  // },
 ];
 
 const TileIcon = ({ name }) => (

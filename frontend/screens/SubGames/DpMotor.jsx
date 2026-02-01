@@ -22,9 +22,23 @@ import { AuthContext } from '../../contexts/AuthContext';
 import { placeBets, makeBet } from '../../utils/GameService';
 import BettingClosedModal from '../../components/BettingClosedModal';
 import { useBettingGuard } from '../../utils/BettingGuard';
-import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
+import {
+  validateAndAlertBetAmount,
+  fetchBetLimits,
+} from '../../utils/BetValidationService';
 
 const GREEN = '#3FA16C';
+
+const hasDuplicateDigits = s => {
+  const str = String(s || '');
+  const seen = new Set();
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+    if (seen.has(ch)) return true;
+    seen.add(ch);
+  }
+  return false;
+};
 
 const DpMotor = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
@@ -42,7 +56,7 @@ const DpMotor = ({ route }) => {
   })();
 
   const [selectedType, setSelectedType] = useState('OPEN');
-  const [digits, setDigits] = useState(''); // 4..6 unique digits
+  const [digits, setDigits] = useState(''); // 4..6 digits (we allow duplicates while typing, but block Add)
   const [points, setPoints] = useState('');
   const [bets, setBets] = useState([]);
   const [digitsError, setDigitsError] = useState(false);
@@ -56,11 +70,12 @@ const DpMotor = ({ route }) => {
     });
   }, []);
 
-  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
-    gameName,
-    selectedType,
-    setSelectedType,
-  });
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } =
+    useBettingGuard({
+      gameName,
+      selectedType,
+      setSelectedType,
+    });
 
   const totals = useMemo(() => {
     const bids = bets.length;
@@ -71,44 +86,48 @@ const DpMotor = ({ route }) => {
     return { bids, points: totalPoints };
   }, [bets]);
 
-  const handleChangeDigits = (txt) => {
-    // Always treat input text as source of truth (prevents vanish/ghost behavior)
-    const clean = String(txt || "").replace(/[^0-9]/g, "");
-
-    // Allow user to clear input freely
-    if (!clean) {
-      setDigits("");
-      setDigitsError(false);
-      return;
-    }
-
-    // max 6 digits
-    const next = clean.slice(0, 6);
-
-    // Check duplicates
-    const seen = new Set();
-    for (let i = 0; i < next.length; i++) {
-      const ch = next[i];
-      if (seen.has(ch)) {
-        // Duplicate detected -> BLOCK this change completely
-        // keep previous digits so UI doesn't jump / vanish
-        setDigitsError(true);
-        return;
-      }
-      seen.add(ch);
-    }
-
-    // No duplicates -> accept
-    setDigits(next);
-    setDigitsError(false);
+  // ✅ Don’t block duplicates while typing (prevents flicker on physical device)
+  // Only keep digits-only + max 6, and show error if duplicates exist.
+  const handleChangeDigits = txt => {
+    const clean = String(txt || '').replace(/[^0-9]/g, '').slice(0, 6);
+    setDigits(clean);
+    setDigitsError(hasDuplicateDigits(clean));
   };
 
+  // ✅ Auto-sanitize only when typing is “done” (blur/end edit)
+  const handleDigitsBlur = () => {
+    const uniq = sanitizeMotorDigits(digits, 6);
+    if (uniq !== digits) setDigits(uniq);
+    setDigitsError(hasDuplicateDigits(uniq));
+  };
+
+  const ptsNum = Number(points || 0);
+
+  // ✅ block Add if invalid digits/points (UX + prevents bad requests)
+  const canAdd = useMemo(() => {
+    if (!digits) return false;
+    if (digits.length < 4 || digits.length > 6) return false;
+    if (digitsError) return false;
+    if (!ptsNum || ptsNum <= 0) return false;
+    if (ptsNum < minAmount || ptsNum > maxAmount) return false;
+    return true;
+  }, [digits, digitsError, ptsNum, minAmount, maxAmount]);
+
   const handleAdd = () => {
-    if (digits.length < 4 || digits.length > 6) {
+    const uniqDigits = sanitizeMotorDigits(digits, 6);
+
+    if (uniqDigits.length < 4 || uniqDigits.length > 6) {
       Alert.alert(
         'Validation',
         'Please enter minimum 4 and maximum 6 unique digits.',
       );
+      return;
+    }
+
+    // if duplicates were present, stop and let user see error
+    if (hasDuplicateDigits(digits)) {
+      setDigitsError(true);
+      Alert.alert('Validation', 'Please enter unique digits (no duplicates).');
       return;
     }
 
@@ -117,7 +136,7 @@ const DpMotor = ({ route }) => {
       return;
     }
 
-    const panas = getDoublePanaMotorPanas(digits);
+    const panas = getDoublePanaMotorPanas(uniqDigits);
 
     if (panas.length === 0) {
       Alert.alert('No match', 'No Double Pana found for these digits.');
@@ -125,22 +144,21 @@ const DpMotor = ({ route }) => {
     }
 
     setBets(prev => {
-      const existing = new Set(prev.map(b => b.digit));
       const merged = [...prev];
+      const existing = new Set(prev.map(b => b.id)); // stable id is best here
 
       panas.forEach(p => {
-        if (!existing.has(p)) {
+        const id = `${selectedType.toLowerCase()}-${p}`;
+        if (!existing.has(id)) {
           merged.push({
-            id: `${selectedType.toLowerCase()}-${p}`, // stable id => avoid duplicates
+            id, // stable id => avoid duplicates
             digit: p,
             points: pts,
             type: selectedType.toLowerCase(),
           });
         } else {
           // if already present, update points to latest entered
-          const idx = merged.findIndex(
-            x => x.digit === p && x.type === selectedType.toLowerCase(),
-          );
+          const idx = merged.findIndex(x => x.id === id);
           if (idx >= 0) merged[idx] = { ...merged[idx], points: pts };
         }
       });
@@ -186,7 +204,7 @@ const DpMotor = ({ route }) => {
     );
 
     try {
-      const res = await placeBets(betsToSend);
+      await placeBets(betsToSend);
       Alert.alert('Success', 'Bets placed successfully!');
 
       // Update balance safely
@@ -197,6 +215,7 @@ const DpMotor = ({ route }) => {
       setBets([]);
       setDigits('');
       setPoints('');
+      setDigitsError(false);
     } catch (e) {
       console.error(e);
       Alert.alert('Error', e?.message || 'Failed to place bets.');
@@ -220,15 +239,22 @@ const DpMotor = ({ route }) => {
           <View style={styles.form}>
             <View style={styles.pointInputRow}>
               <Text style={styles.label}>Enter Digit:</Text>
-              <TextInput
-                style={[styles.input, digitsError && styles.errorInput]}
-                keyboardType="number-pad"
-                value={digits}
-                onChangeText={handleChangeDigits}
-                placeholder="Number"
-                maxLength={6}
-                placeholderTextColor="#999"
-              />
+
+              <View style={{ alignItems: 'flex-end' }}>
+                <TextInput
+                  style={[styles.input, digitsError && styles.errorInput]}
+                  keyboardType="number-pad"
+                  value={digits}
+                  onChangeText={handleChangeDigits}
+                  onEndEditing={handleDigitsBlur}
+                  placeholder="Number"
+                  maxLength={6}
+                  placeholderTextColor="#999"
+                />
+                {digitsError ? (
+                  <Text style={styles.errorText}>Please enter unique digits</Text>
+                ) : null}
+              </View>
             </View>
 
             <View style={styles.pointInputRow}>
@@ -246,9 +272,10 @@ const DpMotor = ({ route }) => {
             </View>
 
             <TouchableOpacity
-              style={styles.addButton}
+              style={[styles.addButton, !canAdd && styles.addButtonDisabled]}
               onPress={handleAdd}
               activeOpacity={0.85}
+              disabled={!canAdd}
             >
               <Text style={styles.addText}>Add</Text>
             </TouchableOpacity>
@@ -316,8 +343,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   errorInput: {
-    borderColor: "#E53935",
+    borderColor: '#E53935',
     borderWidth: 2,
+  },
+  errorText: {
+    marginTop: 6,
+    color: '#E53935',
+    fontWeight: '700',
+    fontSize: 12,
   },
   addButton: {
     height: 44,
@@ -329,6 +362,9 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     marginTop: 4,
   },
+  addButtonDisabled: {
+    opacity: 0.55,
+  },
   addText: {
     color: '#FFF',
     fontSize: 16,
@@ -338,4 +374,4 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingBottom: 10,
   },
-})
+});

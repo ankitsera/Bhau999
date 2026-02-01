@@ -9,7 +9,7 @@ import {
   Linking,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 
 // ✅ AppConfig helpers (defaults already inside these)
 import {
@@ -105,11 +105,11 @@ const TopStrip = ({ navigation }) => {
 
   // Button handlers
   const handleLuckyStarline = () => {
-    navigation.navigate("LuckyStarline");
+    navigation.navigate("Add Money");
   };
 
   const handleLuckyJackpot = () => {
-    navigation.navigate("LuckyJackpot");
+    navigation.navigate("Withdraw Money");
   };
 
   return (
@@ -151,9 +151,9 @@ const TopStrip = ({ navigation }) => {
           onPress={handleLuckyStarline}
         >
           <View style={styles.pillIcon}>
-            <Ionicons name="play" size={20} color={GREEN} />
+            <FontAwesome6 name="money-bill-1-wave" size={20} color={GREEN} />
           </View>
-          <Text style={styles.pillText}>Lucky Starline</Text>
+          <Text style={styles.pillText}>Add Fund</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -162,9 +162,9 @@ const TopStrip = ({ navigation }) => {
           onPress={handleLuckyJackpot}
         >
           <View style={styles.pillIcon}>
-            <Ionicons name="play" size={20} color={GREEN} />
+            <FontAwesome6 name="money-check" size={20} color={GREEN} />
           </View>
-          <Text style={styles.pillText}>Lucky Jackpot</Text>
+          <Text style={styles.pillText}>Withdraw Fund</Text>
         </TouchableOpacity>
       </View>
 

@@ -14,6 +14,7 @@ import {
   getActiveGames as getActiveGamesAPI,
   getAllGames as getAllGamesAPI,
   getBidHistoryByUser as getBidHistoryByUserAPI,
+  getGameHistory as getGameHistoryAPI,
 } from "../utils/GameService";
 
 const GREEN = "#3FA16C";
@@ -35,6 +36,10 @@ const initialState = {
   // bid history
   bidHistory: [],
   isLoadingBidHistory: false,
+
+  // game history (raw) from /api/game-history
+  gameHistory: [],
+  isLoadingGameHistory: false,
 
   // common
   error: null,
@@ -61,6 +66,11 @@ const TYPES = {
   FETCH_BID_HISTORY_SUCCESS: "FETCH_BID_HISTORY_SUCCESS",
   FETCH_BID_HISTORY_FAILURE: "FETCH_BID_HISTORY_FAILURE",
 
+  // game history
+  FETCH_GAME_HISTORY_START: "FETCH_GAME_HISTORY_START",
+  FETCH_GAME_HISTORY_SUCCESS: "FETCH_GAME_HISTORY_SUCCESS",
+  FETCH_GAME_HISTORY_FAILURE: "FETCH_GAME_HISTORY_FAILURE",
+
   // common
   CLEAR_ERROR: "CLEAR_ERROR",
 };
@@ -80,7 +90,7 @@ function gameReducer(state, action) {
     case TYPES.FETCH_RATES_FAILURE:
       return { ...state, isLoadingRates: false, error: action.error || null };
 
-    // ✅ ALL GAMES
+    // ALL GAMES
     case TYPES.FETCH_ALL_GAMES_START:
       return { ...state, isLoadingAllGames: true, error: null };
     case TYPES.FETCH_ALL_GAMES_SUCCESS:
@@ -124,6 +134,23 @@ function gameReducer(state, action) {
       return {
         ...state,
         isLoadingBidHistory: false,
+        error: action.error || null,
+      };
+
+    // GAME HISTORY
+    case TYPES.FETCH_GAME_HISTORY_START:
+      return { ...state, isLoadingGameHistory: true, error: null };
+    case TYPES.FETCH_GAME_HISTORY_SUCCESS:
+      return {
+        ...state,
+        isLoadingGameHistory: false,
+        gameHistory: action.gameHistory || [],
+        error: null,
+      };
+    case TYPES.FETCH_GAME_HISTORY_FAILURE:
+      return {
+        ...state,
+        isLoadingGameHistory: false,
         error: action.error || null,
       };
 
@@ -285,6 +312,7 @@ export const GameContext = createContext({
   loadAllGames: async () => {},
   loadActiveGames: async () => {},
   loadBidHistoryByUser: async () => {},
+  loadGameHistory: async () => {}, // NEW
   clearGameError: () => {},
 });
 
@@ -303,6 +331,10 @@ export const GameProvider = ({ children }) => {
 
     bidHistory,
     isLoadingBidHistory,
+
+    gameHistory, // NEW
+    isLoadingGameHistory, // NEW
+
     error,
   } = state;
 
@@ -361,6 +393,22 @@ export const GameProvider = ({ children }) => {
       dispatch({ type: TYPES.FETCH_BID_HISTORY_FAILURE, error: err });
       Snackbar.show({
         text: err?.message || "Failed to load bid history",
+        duration: Snackbar.LENGTH_SHORT,
+        backgroundColor: "#d32f2f",
+      });
+    }
+  }, []);
+
+  // NEW: load game history (/api/game-history)
+  const loadGameHistory = useCallback(async () => {
+    try {
+      dispatch({ type: TYPES.FETCH_GAME_HISTORY_START });
+      const data = await getGameHistoryAPI();
+      dispatch({ type: TYPES.FETCH_GAME_HISTORY_SUCCESS, gameHistory: data });
+    } catch (err) {
+      dispatch({ type: TYPES.FETCH_GAME_HISTORY_FAILURE, error: err });
+      Snackbar.show({
+        text: err?.message || "Failed to load game history",
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
@@ -490,6 +538,10 @@ export const GameProvider = ({ children }) => {
       bidHistory,
       isLoadingBidHistory,
 
+      // NEW
+      gameHistory,
+      isLoadingGameHistory,
+
       error,
 
       getGameRawByName,
@@ -499,6 +551,7 @@ export const GameProvider = ({ children }) => {
       loadAllGames,
       loadActiveGames,
       loadBidHistoryByUser,
+      loadGameHistory, // NEW
       clearGameError,
     }),
     [
@@ -516,6 +569,9 @@ export const GameProvider = ({ children }) => {
       bidHistory,
       isLoadingBidHistory,
 
+      gameHistory,
+      isLoadingGameHistory,
+
       error,
 
       getGameRawByName,
@@ -525,6 +581,7 @@ export const GameProvider = ({ children }) => {
       loadAllGames,
       loadActiveGames,
       loadBidHistoryByUser,
+      loadGameHistory,
       clearGameError,
     ]
   );

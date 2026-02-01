@@ -1,5 +1,33 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {API_URL} from "../env-vars";
+import { API_URL } from "../env-vars";
+
+const CREDS_KEY = "@auth_creds";
+
+export const saveAuthCreds = async (mobileNumber, password) => {
+  await AsyncStorage.setItem(
+    CREDS_KEY,
+    JSON.stringify({
+      mobileNumber: String(mobileNumber || ""),
+      password: String(password || ""),
+    })
+  );
+};
+
+export const loadAuthCreds = async () => {
+  const raw = await AsyncStorage.getItem(CREDS_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed?.mobileNumber || !parsed?.password) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+export const clearAuthCreds = async () => {
+  await AsyncStorage.removeItem(CREDS_KEY);
+};
 
 export const signup = async (mobileNumber, username, password) => {
   const res = await fetch(`${API_URL}/auth/signup`, {
@@ -8,20 +36,17 @@ export const signup = async (mobileNumber, username, password) => {
     body: JSON.stringify({ mobileNumber, username, password }),
   });
 
-  // read body only once (safe if body is empty or non-JSON)
   let body = null;
   try {
     body = await res.json();
-  } catch (e) {
+  } catch {
     body = null;
   }
 
   if (res.ok) {
-    // return the parsed response (e.g. { message: "Signup successful" })
     return body ?? { message: "Signup successful" };
   }
 
-  // non-2xx -> throw Error with server message (if any)
   const msg = body?.message || `Signup failed (status ${res.status})`;
   const err = new Error(msg);
   err.status = res.status;
@@ -43,13 +68,8 @@ export const login = async (mobileNumber, password) => {
   }
 
   if (res.status === 200) {
-    const user = body ?? {};
-    try {
-      await AsyncStorage.setItem("@user", JSON.stringify(user));
-    } catch (e) {
-      console.warn("Failed to persist user locally:", e);
-    }
-    return user;
+    // return user only (NO persistence here)
+    return body ?? {};
   }
 
   if (res.status === 401) {
@@ -59,7 +79,6 @@ export const login = async (mobileNumber, password) => {
     throw err;
   }
 
-  // other statuses
   const msg = body?.message || `Login failed (status ${res.status})`;
   const err = new Error(msg);
   err.status = res.status;
@@ -74,17 +93,9 @@ export const userCheck = async (mobileNumber) => {
       body: JSON.stringify({ mobileNumber }),
     });
 
-    if (res.status === 200) {
-      // optional: const body = await res.json(); // body.message === "User exists"
-      return true;
-    }
+    if (res.status === 200) return true;
+    if (res.status === 404) return false;
 
-    if (res.status === 404) {
-      // optional: const body = await res.json(); // body.message === "User not found"
-      return false;
-    }
-
-    // For any other response (400, 500, etc.) try to surface server message
     const errBody = await res.json().catch(() => null);
     const msg = errBody?.message || `User check failed (status ${res.status})`;
     const err = new Error(msg);
@@ -96,15 +107,13 @@ export const userCheck = async (mobileNumber) => {
   }
 };
 
-
 export const logOut = async () => {
-  await AsyncStorage.removeItem("@user");
+  // only clear creds now
+  await clearAuthCreds();
 };
 
 export const restoreUserState = async () => {
-  const user = await AsyncStorage.getItem("@user");
-  if (user) {
-    return { user: JSON.parse(user) };
-  }
-  return null;
+  // return creds
+  const creds = await loadAuthCreds();
+  return creds ? { creds } : null;
 };

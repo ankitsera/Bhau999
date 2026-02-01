@@ -66,6 +66,43 @@ export const getAllGames = async () => {
 };
 
 /**
+ * GET /api/game-history  ->  `${API_URL}/game-history`
+ *
+ * Backend returns List<GameHistory>:
+ * {
+ *   id: number,
+ *   gameName: string,
+ *   histDate: string,   // LocalDate -> "YYYY-MM-DD"
+ *   openPana: number|null (or "open"),
+ *   closePana: number|null (or "close")
+ * }
+ */
+export const getGameHistory = async () => {
+  const res = await fetch(`${API_URL}/game-history`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  let body = null;
+  try {
+    body = await res.json();
+  } catch (e) {
+    body = null;
+  }
+
+  if (res.ok) {
+    return Array.isArray(body) ? body : [];
+  }
+
+  const msg =
+    body?.message || `Failed to load game history (status ${res.status})`;
+  const err = new Error(msg);
+  err.status = res.status;
+  err.body = body;
+  throw err;
+};
+
+/**
  * GET /api/active-games  ->  `${API_URL}/active-games`
  *
  * Backend returns a list of ActiveGameWithAllowedTypes:
@@ -132,7 +169,8 @@ export const getBidHistoryByUser = async (mobileNumber) => {
   }
 
   if (res.ok) {
-    return Array.isArray(body) ? body : [];
+    const list = body?.bets;
+    return Array.isArray(list) ? list : [];
   }
 
   const msg =

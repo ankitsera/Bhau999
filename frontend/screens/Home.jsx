@@ -14,6 +14,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { AuthContext } from '../contexts/AuthContext';
+import { GameContext } from '../contexts/GameContext';
 import SideBarNavigation from '../components/SideBarNavigation';
 import Footer from '../components/Footer';
 import TopStrip from '../components/TopStrip';
@@ -118,6 +119,9 @@ const Home = ({ navigation }) => {
   // User refresh handler should be added in AuthContext as `refreshUser`
   const { refreshUser } = useContext(AuthContext);
 
+  // Manual refresh of active games
+  const { loadActiveGames } = useContext(GameContext);
+
   const loadSupportConfig = useCallback(async (options = {}) => {
     try {
       const [call, wa, tg] = await Promise.all([
@@ -144,12 +148,23 @@ const Home = ({ navigation }) => {
       // Refresh user (balance etc.)
       await refreshUser?.();
 
+      // ✅ manual pull should also refresh active games (apart from polling)
+      await loadActiveGames?.();
+
       // Refresh important config values on manual pull
       await loadSupportConfig({ forceRefresh: true });
     } finally {
       setRefreshing(false);
     }
-  }, [refreshUser, loadSupportConfig]);
+  }, [refreshUser, loadActiveGames, loadSupportConfig]);
+
+  // dismiss modal before exiting so it doesn't show again on resume
+  const confirmQuit = useCallback(() => {
+    setQuitVisible(false);
+    setTimeout(() => {
+      BackHandler.exitApp();
+    }, 0);
+  }, []);
 
   // Ensure the back override ONLY applies when Home is focused
   useFocusEffect(
@@ -298,7 +313,7 @@ const Home = ({ navigation }) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.quitBtn, styles.quitBtnSolid]}
-                onPress={() => BackHandler.exitApp()}
+                onPress={confirmQuit}
               >
                 <Text style={[styles.quitBtnText, { color: '#fff' }]}>Yes</Text>
               </TouchableOpacity>
