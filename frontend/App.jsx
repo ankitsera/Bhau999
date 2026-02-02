@@ -20,6 +20,8 @@ function AppInner() {
   const [compulsoryUpdate, setCompulsoryUpdate] = useState(false);
   const [optionalDismissed, setOptionalDismissed] = useState(false);
 
+  const [apkUrl, setApkUrl] = useState(null);
+
   const runCheck = async () => {
     // priority to blocked gate
     if (isBlocked) return;
@@ -30,6 +32,7 @@ function AppInner() {
 
       setUpdateAvailable(!!res.updateAvailable);
       setCompulsoryUpdate(!!res.compulsoryUpdate);
+      setApkUrl(res?.apkUrl || null);
 
       // reset dismissal when a fresh check happens
       setOptionalDismissed(false);
@@ -60,6 +63,7 @@ function AppInner() {
         visible={showUpdateGate}
         compulsory={compulsoryUpdate}
         onDismiss={() => setOptionalDismissed(true)}
+        apkUrl={apkUrl}
       />
     </ThemeProvider>
   );

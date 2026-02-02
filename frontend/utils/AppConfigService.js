@@ -186,7 +186,7 @@ export const getHeadline = async (options = {}) =>
   String(
     await fetchConfigValue("headline", {
       defaultValue:
-        "Play Daily - Win Big! ₹1Cr+ Winnings Everyday 💸 A1 Online : Safe ✅ Fast⚡Real Results हर दिन ₹1Cr+ जीतनेका मौका – सिर्फ A1 Online पर!",
+        "Play Daily - Win Big! ₹1Cr+ Winnings Everyday 💸 MG Matka : Safe ✅ Fast⚡Real Results हर दिन ₹1Cr+ जीतनेका मौका – सिर्फ MG Matka पर!",
       ...options,
       critical: false,
     })
@@ -195,7 +195,7 @@ export const getHeadline = async (options = {}) =>
 export const getBankingName = async (options = {}) =>
   String(
     await fetchConfigValue("banking_name", {
-      defaultValue: "A1Online",
+      defaultValue: "mgmatka",
       ...options,
       critical: false,
     })
@@ -260,6 +260,25 @@ export const getTelegramChannel = async (options = {}) =>
   String(
     await fetchConfigValue("telegram_channel", {
       defaultValue: "https://t.me/asonline_support",
+      ...options,
+      critical: false,
+    })
+  );
+
+export const getShareUrl = async (options = {}) =>
+  String(
+    await fetchConfigValue("share_url", {
+      defaultValue: "https://mgmatka.com/", // safe fallback
+      ...options,
+      critical: false,
+    })
+  );
+
+// direct APK file url for DownloadManager
+export const getApkUrl = async (options = {}) =>
+  String(
+    await fetchConfigValue("APK_URL", {
+      defaultValue: "http://mgadmin.online/apk/app-release.apk", // fallback
       ...options,
       critical: false,
     })

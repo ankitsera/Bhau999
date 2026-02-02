@@ -10,6 +10,10 @@ import {
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { AuthContext } from '../contexts/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Share, Alert } from 'react-native';
+import { getShareUrl } from '../utils/AppConfigService';
+
+const GREEN = '#3FA16C';
 
 const SideBarNavigation = ({ navigation, closeSidebar }) => {
   const { user, logout } = useContext(AuthContext);
@@ -27,18 +31,45 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
     { name: 'Time Table', icon: 'access-time' },
     { name: 'Notice board / Rules', icon: 'rule' },
     { name: 'Settings', icon: 'settings' },
-    { name: 'How to Play', icon: 'help-outline' },
     { name: 'Share App', icon: 'share' },
     { name: 'Logout', icon: 'logout' },
   ];
 
-  const handleSidebarClick = menu => {
+  const shareApp = async () => {
+    try {
+      // If you want to always get latest from backend once in a while:
+      // const url = await getShareUrl({ forceRefresh: true });
+      const url = await getShareUrl();
+
+      const link = String(url || "").trim();
+      if (!link) {
+        Alert.alert("Share failed", "Share link is missing. Please try again later.");
+        return;
+      }
+
+      const message =
+        `Download the latest A1 Online app from here:\n${link}\n\n` +
+        `Then tap Download and install.\nIf it asks, allow “Install unknown apps”.`;
+
+      await Share.share({ message });
+    } catch (e) {
+      Alert.alert("Share failed", e?.message || "Something went wrong");
+    }
+  };
+
+  const handleSidebarClick = async menu => {
     closeSidebar();
     if(menu === 'Logout'){
       logout(navigation);
-    } else {
-      navigation.navigate(menu);
+      return;
     }
+    
+    if (menu === 'Share App') {
+      await shareApp();
+      return;
+    }
+    
+    navigation.navigate(menu);
   };
 
   const renderMenuItem = ({ item }) => (
@@ -124,7 +155,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 30,
-    backgroundColor: '#66bf6aff',
+    backgroundColor: GREEN,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -133,7 +164,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#66bf6aff',
+    backgroundColor: GREEN,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,

@@ -300,42 +300,46 @@ const SinglePana = ({ route }) => {
           ) : (
             <>
               <View style={styles.specialArea}>
-                <ScrollView
-                  showsVerticalScrollIndicator={false}
-                  keyboardShouldPersistTaps="handled"
-                  nestedScrollEnabled
-                  contentContainerStyle={styles.specialScrollContent}
-                >
-                  {/* GROUPED SPECIAL MODE GRID */}
-                  <View style={styles.groupsWrapper}>
-                    {GROUP_KEYS.map((key) => {
-                      const panas = SINGLE_PANA_BY_RESULT_DIGIT[key];
-                      return (
-                        <View key={key} style={styles.groupSection}>
-                          <View style={styles.groupHeaderPill}>
-                            <Text style={styles.groupHeaderText}>{key}</Text>
+                {/* scrollable grid */}
+                <View style={styles.specialScrollWrap}>
+                  <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    nestedScrollEnabled
+                    contentContainerStyle={styles.specialScrollContent}
+                  >
+                    {/* GROUPED SPECIAL MODE GRID */}
+                    <View style={styles.groupsWrapper}>
+                      {GROUP_KEYS.map((key) => {
+                        const panas = SINGLE_PANA_BY_RESULT_DIGIT[key];
+                        return (
+                          <View key={key} style={styles.groupSection}>
+                            <View style={styles.groupHeaderPill}>
+                              <Text style={styles.groupHeaderText}>{key}</Text>
+                            </View>
+
+                            <SpecialModeGrid
+                              digits={panas}
+                              pointsByDigit={specialPointsByPana}
+                              onChangePoint={handleChangeSpecialPoint}
+                            />
                           </View>
+                        );
+                      })}
+                    </View>
+                  </ScrollView>
+                </View>
 
-                          <SpecialModeGrid
-                            digits={panas}
-                            pointsByDigit={specialPointsByPana}
-                            onChangePoint={handleChangeSpecialPoint}
-                          />
-                        </View>
-                      );
-                    })}
-                  </View>
-
-                  <View style={styles.specialSubmitWrapper}>
-                    <TouchableOpacity
-                      style={styles.specialSubmitButton}
-                      onPress={handleSubmit}
-                      activeOpacity={0.85}
-                    >
-                      <Text style={styles.specialSubmitText}>Submit</Text>
-                    </TouchableOpacity>
-                  </View>
-                </ScrollView>
+                {/* ✅ Sticky submit bar */}
+                <View style={styles.specialStickyBar}>
+                  <TouchableOpacity
+                    style={styles.specialSubmitButton}
+                    onPress={handleSubmit}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.specialSubmitText}>Submit</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </>
           )}
@@ -490,8 +494,35 @@ const styles = StyleSheet.create({
   specialArea: {
     flex: 1,
   },
+
+  specialScrollWrap: {
+    flex: 1,
+  },
+
   specialScrollContent: {
-    paddingBottom: 12,
+    paddingBottom: 90, // ✅ space so last grid isn’t hidden behind sticky bar
+  },
+
+  // ✅ sticky bottom container
+  specialStickyBar: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#F3F3F3",
+    borderTopWidth: 1,
+    borderTopColor: "#E6E6E6",
+  },
+
+  specialSubmitButton: {
+    backgroundColor: GREEN,
+    borderRadius: 6,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+
+  specialSubmitText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
   },
 
   groupsWrapper: {
@@ -517,21 +548,6 @@ const styles = StyleSheet.create({
   groupHeaderText: {
     color: "#FFFFFF",
     fontSize: 18,
-    fontWeight: "700",
-  },
-  specialSubmitWrapper: {
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  specialSubmitButton: {
-    backgroundColor: GREEN,
-    borderRadius: 6,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  specialSubmitText: {
-    color: "#FFFFFF",
-    fontSize: 16,
     fontWeight: "700",
   },
 });
