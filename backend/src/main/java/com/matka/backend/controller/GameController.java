@@ -2,6 +2,7 @@ package com.matka.backend.controller;
 
 import com.matka.backend.Game;
 import com.matka.backend.repository.GameRepository;
+import com.matka.backend.repository.BetRepository;
 import com.matka.backend.ActiveGame;
 import com.matka.backend.repository.ActiveGameRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,8 @@ public class GameController {
     private GameRepository gameRepository;
     @Autowired
     private ActiveGameRepository activeGameRepository;
+    @Autowired
+    private BetRepository betRepository;
 
 
     // Create or update a game. Normalize name to upper-case to avoid duplicates.
@@ -144,7 +147,8 @@ public class GameController {
     @PostMapping("/{name}/enable")
     public ResponseEntity<?> setEnabled(@PathVariable("name") String name, @RequestBody java.util.Map<String, Object> body) {
         if (name == null || name.isBlank()) return ResponseEntity.badRequest().body("Missing name");
-        Optional<Game> gopt = gameRepository.findById(name.trim().toUpperCase());
+        String normalized = name.trim().toUpperCase();
+        Optional<Game> gopt = gameRepository.findById(normalized);
         if (gopt.isEmpty()) return ResponseEntity.status(404).body("Game not found");
         Game g = gopt.get();
         Object v = body == null ? null : body.get("enabled");
@@ -156,6 +160,27 @@ public class GameController {
         }
         g.setEnabled(en);
         gameRepository.save(g);
+        // If game was disabled, remove it from active_games and delete any pending bets for that game
+        if (!en) {
+            try {
+                if (activeGameRepository.existsById(normalized)) {
+                    activeGameRepository.deleteById(normalized);
+                    log.info("Deleted ActiveGame entry for disabled game {}", normalized);
+                }
+            } catch (Exception ex) {
+                log.error("Error deleting ActiveGame for disabled game {}", normalized, ex);
+            }
+
+            try {
+                java.util.List<com.matka.backend.Bet> bets = betRepository.findByGameName(normalized);
+                if (bets != null && !bets.isEmpty()) {
+                    betRepository.deleteAll(bets);
+                    log.info("Deleted {} bets for disabled game {}", bets.size(), normalized);
+                }
+            } catch (Exception ex) {
+                log.error("Error deleting bets for disabled game {}", normalized, ex);
+            }
+        }
         return ResponseEntity.ok(Map.of("message","Game updated","name",g.getName(),"enabled",g.getEnabled()));
     }
 }
