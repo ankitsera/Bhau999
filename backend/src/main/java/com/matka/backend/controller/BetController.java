@@ -1,6 +1,7 @@
 package com.matka.backend.controller;
 
 import com.matka.backend.Bet;
+import com.matka.backend.Game;
 import com.matka.backend.repository.BetRepository;
 import com.matka.backend.repository.UserRepository;
 import com.matka.backend.repository.GameRepository;
@@ -111,13 +112,29 @@ public class BetController {
             }
 
             // validate game
-            if (gameRepository.findById(normalizedGame).isEmpty()) {
+            Optional<Game> gameOpt = gameRepository.findById(normalizedGame);
+            if (gameOpt.isEmpty()) {
                 return ResponseEntity.status(404).body(java.util.Map.of("message", "Game not found: " + normalizedGame));
             }
 
             // validate rate/type
             if (rateRepository.findById(bet.getType()).isEmpty()) {
                 return ResponseEntity.status(404).body(java.util.Map.of("message", "Rate/type not found: " + bet.getType()));
+            }
+
+            // enforce time-based acceptance rules:
+            // - if current time is after game's openTime, do not accept "Open" bets
+            // - if current time is after game's closeTime, do not accept any bets
+            Game game = gameOpt.get();
+            java.time.LocalTime now = java.time.LocalTime.now();
+            java.time.LocalTime openTime = game.getOpenTime();
+            java.time.LocalTime closeTime = game.getCloseTime();
+            String openClose = bet.getOpenClose();
+            if (closeTime != null && now.isAfter(closeTime)) {
+                return ResponseEntity.status(400).body(java.util.Map.of("message", "Betting closed for game: " + normalizedGame + " (after closeTime)"));
+            }
+            if (openTime != null && openClose != null && "open".equalsIgnoreCase(openClose) && now.isAfter(openTime)) {
+                return ResponseEntity.status(400).body(java.util.Map.of("message", "Too late to place 'Open' bets for game: " + normalizedGame + " (after openTime)"));
             }
 
             // deduct amount from user balance
