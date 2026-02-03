@@ -219,8 +219,12 @@ public class ActiveGameController {
             if (game.getOpenTime() == null) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Game open time not configured for: " + gameName));
             }
+            // allow declaration in post-midnight window (00:00 - 02:00) as it may be the next day
+            java.time.LocalTime twoAm = java.time.LocalTime.of(2,0);
             if (now.isBefore(game.getOpenTime())) {
-                return ResponseEntity.status(400).body(Map.of("message", "Too early to declare open result. Current time: " + now + ", openTime: " + game.getOpenTime()));
+                if (!now.isBefore(twoAm)) {
+                    return ResponseEntity.status(400).body(Map.of("message", "Too early to declare open result. Current time: " + now + ", openTime: " + game.getOpenTime()));
+                }
             }
             active.setOpenPana(result);
             activeGameRepository.save(active);
@@ -231,8 +235,12 @@ public class ActiveGameController {
             if (game.getCloseTime() == null) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Game close time not configured for: " + gameName));
             }
+            // allow declaration in post-midnight window (00:00 - 02:00) as it may be the next day
+            java.time.LocalTime twoAmClose = java.time.LocalTime.of(2,0);
             if (now.isBefore(game.getCloseTime())) {
-                return ResponseEntity.status(400).body(Map.of("message", "Too early to declare close result. Current time: " + now + ", closeTime: " + game.getCloseTime()));
+                if (!now.isBefore(twoAmClose)) {
+                    return ResponseEntity.status(400).body(Map.of("message", "Too early to declare close result. Current time: " + now + ", closeTime: " + game.getCloseTime()));
+                }
             }
             active.setClosePana(result);
             activeGameRepository.save(active);
