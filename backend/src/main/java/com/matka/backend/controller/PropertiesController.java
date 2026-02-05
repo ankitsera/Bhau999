@@ -123,7 +123,7 @@ public class PropertiesController {
                 if (res2 == null) {
                     // parse error -> keep default false
                 } else {
-                    if (res2 <= 0) {
+                    if (res2 < 0) {
                         updateAvailable = true;
                     } else {
                         updateAvailable = false;
