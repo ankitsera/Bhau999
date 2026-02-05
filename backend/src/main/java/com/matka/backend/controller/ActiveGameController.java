@@ -73,9 +73,11 @@ public class ActiveGameController {
     public ResponseEntity<List<ActiveGameWithAllowedTypes>> listAll() {
         List<ActiveGame> list = activeGameRepository.findAll();
 
-        java.time.LocalTime now = java.time.LocalTime.now();
+    java.time.LocalTime now = java.time.LocalTime.now();
+    // treat post-midnight window (00:00-02:00) as next-day: no allowed types should be returned
+    java.time.LocalTime twoAmWindow = java.time.LocalTime.of(2, 0);
 
-        List<ActiveGameWithAllowedTypes> out = new java.util.ArrayList<>();
+    List<ActiveGameWithAllowedTypes> out = new java.util.ArrayList<>();
         for (ActiveGame active : list) {
             // try to fetch game times; fallback to null if not present
             java.time.LocalTime openTime = null;
@@ -97,12 +99,17 @@ public class ActiveGameController {
                 // not running today -> no allowed types
                 allowed = java.util.Collections.emptyList();
             } else {
-                if (openTime != null && now.isBefore(openTime)) {
-                    allowed = java.util.List.of("Open", "Close");
-                } else if (closeTime != null && now.isAfter(closeTime)) {
+                // If current time is between 00:00 and 02:00 treat it as next-day and don't allow any types
+                if (now.isBefore(twoAmWindow)) {
                     allowed = java.util.Collections.emptyList();
                 } else {
-                    allowed = java.util.List.of("Close");
+                    if (openTime != null && now.isBefore(openTime)) {
+                        allowed = java.util.List.of("Open", "Close");
+                    } else if (closeTime != null && now.isAfter(closeTime)) {
+                        allowed = java.util.Collections.emptyList();
+                    } else {
+                        allowed = java.util.List.of("Close");
+                    }
                 }
             }
 

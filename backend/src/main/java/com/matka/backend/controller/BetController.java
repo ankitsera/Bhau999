@@ -127,6 +127,12 @@ public class BetController {
             // - if current time is after game's closeTime, do not accept any bets
             Game game = gameOpt.get();
             java.time.LocalTime now = java.time.LocalTime.now();
+            // Do not allow placing bets between 00:00 and 02:00 (post-midnight next-day window)
+            java.time.LocalTime twoAm = java.time.LocalTime.of(2, 0);
+            if (now.isBefore(twoAm)) {
+                return ResponseEntity.status(400).body(java.util.Map.of("message", "Betting not allowed between 00:00 and 02:00"));
+            }
+
             java.time.LocalTime openTime = game.getOpenTime();
             java.time.LocalTime closeTime = game.getCloseTime();
             String openClose = bet.getOpenClose();
