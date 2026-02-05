@@ -226,7 +226,7 @@ public class BetController {
                     if (!filterDate.equals(b.getBetTime().toLocalDate())) continue;
                 }
                 combined.add(new BetResponse(b));
-                if (b.getWinAmount() != null) sum += (long) b.getWinAmount();
+                if (b.getAmount() != null) sum += (long) b.getAmount();
             }
         }
 
@@ -238,7 +238,7 @@ public class BetController {
                     if (!filterDate.equals(b.getBetTime().toLocalDate())) continue;
                 }
                 combined.add(new BetResponse(b));
-                if (b.getWinAmount() != null) sum += (long) b.getWinAmount();
+                if (b.getAmount() != null) sum += (long) b.getAmount();
             }
         }
 
