@@ -151,6 +151,19 @@ public class GatewayPaymentController {
             payload.put("amount", amount);
             payload.put("mobileNumber", mobile);
             payload.put("custRefNum", custRef);
+            // additional fields required by primexpay
+            payload.put("custEmail", "anilsera500@gmail.com");
+            String custName = "unknown";
+            try {
+                var userOpt = userRepository.findByMobileNumber(mobile);
+                if (userOpt != null && userOpt.isPresent()) {
+                    var u = userOpt.get();
+                    if (u.getUsername() != null && !u.getUsername().isBlank()) custName = u.getUsername();
+                }
+            } catch (Exception ex) {
+                log.warn("Failed to fetch user for custName", ex);
+            }
+            payload.put("custName", custName);
             payload.put("apiKey", resolvedApiKey);
 
             HttpEntity<java.util.Map<String,Object>> entity = new HttpEntity<>(payload, headers);
