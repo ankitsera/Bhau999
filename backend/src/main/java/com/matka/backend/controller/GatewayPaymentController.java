@@ -56,19 +56,6 @@ public class GatewayPaymentController {
         return mobile + "-" + d + t;
     }
 
-    private int readMinBetAmount() {
-        try {
-            var prop = propertiesRepository.findById("min_bet_amount");
-            if (prop.isPresent()) {
-                String v = prop.get().getValue();
-                if (v != null && !v.isBlank()) return Integer.parseInt(v);
-            }
-        } catch (Exception ex) {
-            log.warn("Failed to read min_bet_amount property", ex);
-        }
-        return 1;
-    }
-
     private int readMinimumDepositAmount() {
         try {
             var prop = propertiesRepository.findById("minimum_deposit_amount");
@@ -92,11 +79,6 @@ public class GatewayPaymentController {
 
         if (mobile == null || mobile.isBlank() || amount == null) {
             return ResponseEntity.badRequest().body(Map.of("message","mobileNumber and amount are required"));
-        }
-
-        int min = readMinBetAmount();
-        if (amount < min) {
-            return ResponseEntity.badRequest().body(Map.of("message","Amount must be >= min_bet_amount","min_bet_amount",min));
         }
 
         int minDeposit = readMinimumDepositAmount();
@@ -194,7 +176,7 @@ public class GatewayPaymentController {
 
             if (sStatus != null && sStatus.equalsIgnoreCase("success")) {
                 gatewayPaymentRepository.save(gp);
-                return ResponseEntity.ok(Map.of("message",resp.get("message"),  "amount", rAmount, "upiIntentUrl", url));
+                return ResponseEntity.ok(Map.of("message",resp.get("message"), "custRefNum", custRef, "amount", rAmount, "upiIntentUrl", url));
             } else {
                 gp.setStatus("Fail");
                 gatewayPaymentRepository.save(gp);
@@ -303,5 +285,23 @@ public class GatewayPaymentController {
             gatewayPaymentRepository.save(gp);
             return ResponseEntity.ok(Map.of("message","Callback marked as Fail","status",gp.getStatus()));
         }
+    }
+
+    // Check payment status by custRefNum
+    // GET /api/gateway-payments/status/{custRef}
+    @GetMapping("/status/{custRef}")
+    public ResponseEntity<?> checkPaymentStatus(@PathVariable String custRef) {
+        if (custRef == null || custRef.isBlank()) return ResponseEntity.badRequest().body(Map.of("message","custRef required"));
+        var gpOpt = gatewayPaymentRepository.findById(custRef);
+        if (gpOpt.isEmpty()) return ResponseEntity.status(404).body(Map.of("message","GatewayPayment not found for custRefNum: "+custRef));
+        var gp = gpOpt.get();
+        return ResponseEntity.ok(Map.of(
+                "custRefNum", gp.getCustRefNum(),
+                "status", gp.getStatus(),
+                "amount", gp.getAmount(),
+                "mobileNumber", gp.getMobileNumber(),
+                "txDate", gp.getTxDate(),
+                "txTime", gp.getTxTime()
+        ));
     }
 }
