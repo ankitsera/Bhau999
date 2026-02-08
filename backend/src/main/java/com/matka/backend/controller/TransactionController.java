@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import com.matka.backend.repository.PropertiesRepository;
 
 @RestController
 @RequestMapping("/api/transaction")
@@ -52,6 +53,9 @@ public class TransactionController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PropertiesRepository propertiesRepository;
+
     @PostMapping
     @Transactional
     public ResponseEntity<?> create(@RequestBody TransactionEntity tx) {
@@ -73,8 +77,65 @@ public class TransactionController {
         var user = userOpt.get();
         Integer current = user.getBalance() == null ? 0 : user.getBalance();
         Integer newBalance = current + tx.getAmount();
-        // decide status: if this causes negative balance, mark pending
-        if (newBalance < 0) {
+
+        // withdrawals (amount < 0) initiated by user must meet min_withdrawl_amount
+        String initiator = tx.getInitiator();
+        if (initiator == null) initiator = INITIATOR_USER; // default to user if not supplied
+        if (tx.getAmount() != null && tx.getAmount() < 0 && INITIATOR_USER.equalsIgnoreCase(initiator)) {
+            // read min_withdrawl_amount from properties table (fallback to 1)
+            int minWithdraw = 1;
+            try {
+                var p = propertiesRepository.findById("minimim_withdrawl_amount");
+                if (p.isPresent() && p.get().getValue() != null && !p.get().getValue().isBlank()) {
+                    minWithdraw = Integer.parseInt(p.get().getValue());
+                }
+            } catch (Exception ex) {
+                // ignore and use default
+            }
+
+            if (Math.abs(tx.getAmount()) < minWithdraw) {
+                return ResponseEntity.status(400).body(java.util.Map.of("message", "Withdrawal amount must be >= min_withdrawl_amount", "min_withdrawl_amount", minWithdraw));
+            }
+
+            // check withdrawl_time_start and withdrawl_time_end (both stored in properties table)
+            try {
+                var startProp = propertiesRepository.findById("withdrawl_time_start");
+                var endProp = propertiesRepository.findById("withdrawl_time_end");
+                if (startProp.isPresent() && endProp.isPresent()
+                        && startProp.get().getValue() != null && !startProp.get().getValue().isBlank()
+                        && endProp.get().getValue() != null && !endProp.get().getValue().isBlank()) {
+
+                    LocalTime start = LocalTime.parse(startProp.get().getValue());
+                    LocalTime end = LocalTime.parse(endProp.get().getValue());
+                    LocalTime now = LocalTime.now();
+
+                    boolean allowed;
+                    if (start.equals(end)) {
+                        // same start and end => treat as allowed all day
+                        allowed = true;
+                    } else if (start.isBefore(end)) {
+                        // normal window within same day
+                        allowed = !now.isBefore(start) && !now.isAfter(end);
+                    } else {
+                        // window crosses midnight (e.g. 22:00 - 06:00)
+                        allowed = !now.isBefore(start) || !now.isAfter(end);
+                    }
+
+                    if (!allowed) {
+                        return ResponseEntity.status(400).body(java.util.Map.of(
+                                "message", "Withdrawals are allowed only between configured withdrawl_time_start and withdrawl_time_end",
+                                "withdrawl_time_start", start.toString(),
+                                "withdrawl_time_end", end.toString()
+                        ));
+                    }
+                }
+            } catch (Exception ex) {
+                log.warn("Failed to evaluate withdrawal time window, allowing by default: {}", ex.getMessage());
+            }
+        }
+
+        // decide status: only set Pending when initiator is user and balance would go negative
+        if (newBalance < 0 && INITIATOR_USER.equalsIgnoreCase(initiator)) {
             tx.setStatus("Pending");
         }
 
