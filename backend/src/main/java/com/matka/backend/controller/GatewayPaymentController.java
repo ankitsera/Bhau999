@@ -1,7 +1,10 @@
 package com.matka.backend.controller;
 
 import com.matka.backend.GatewayPayment;
+import com.matka.backend.TransactionEntity;
 import com.matka.backend.repository.GatewayPaymentRepository;
+import com.matka.backend.repository.TransactionRepository;
+import com.matka.backend.repository.UserRepository;
 import com.matka.backend.repository.PropertiesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +32,12 @@ public class GatewayPaymentController {
 
     @Autowired
     private PropertiesRepository propertiesRepository;
+
+    @Autowired
+    private TransactionRepository transactionRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Value("${payment.gateway.apikey:}")
     private String paymentGatewayApiKey;
@@ -60,6 +69,19 @@ public class GatewayPaymentController {
         return 1;
     }
 
+    private int readMinimumDepositAmount() {
+        try {
+            var prop = propertiesRepository.findById("minimum_deposit_amount");
+            if (prop.isPresent()) {
+                String v = prop.get().getValue();
+                if (v != null && !v.isBlank()) return Integer.parseInt(v);
+            }
+        } catch (Exception ex) {
+            log.warn("Failed to read minimum_deposit_amount property", ex);
+        }
+        return 1;
+    }
+
     // Request: { "mobileNumber": "...", "amount": 123, "txDate": "yyyy-MM-dd" (optional), "txTime": "HH:mm:ss" (optional) }
     @PostMapping
     public ResponseEntity<?> createAndInitiate(@RequestBody Map<String,Object> req) {
@@ -75,6 +97,11 @@ public class GatewayPaymentController {
         int min = readMinBetAmount();
         if (amount < min) {
             return ResponseEntity.badRequest().body(Map.of("message","Amount must be >= min_bet_amount","min_bet_amount",min));
+        }
+
+        int minDeposit = readMinimumDepositAmount();
+        if (amount < minDeposit) {
+            return ResponseEntity.badRequest().body(Map.of("message","Amount must be >= minimum_deposit_amount","minimum_deposit_amount",minDeposit));
         }
 
         // parse optional date/time
@@ -166,6 +193,102 @@ public class GatewayPaymentController {
             gp.setStatus("Fail");
             gatewayPaymentRepository.save(gp);
             return ResponseEntity.status(502).body(Map.of("message","Payment gateway call failed","error", ex.getMessage()));
+        }
+    }
+
+    // Callback endpoint for gateway to notify payment status
+    // Expected payload:
+    // {
+    //   "custRefNum": "REF1122334479688",
+    //   "status": "success",
+    //   "amount": 101.00,
+    //   "message": "Success",
+    //   "date": "2024-11-08T09:19:03.431Z"
+    // }
+    @PostMapping("/callback")
+    public ResponseEntity<?> callback(@RequestBody java.util.Map<String,Object> payload) {
+        if (payload == null) return ResponseEntity.badRequest().body(Map.of("message","Missing payload"));
+        String cust = payload.get("custRefNum") == null ? null : String.valueOf(payload.get("custRefNum"));
+        String status = payload.get("status") == null ? null : String.valueOf(payload.get("status"));
+        String dateStr = payload.get("date") == null ? null : String.valueOf(payload.get("date"));
+
+        Double amountD = null;
+        try { if (payload.get("amount") != null) amountD = Double.parseDouble(String.valueOf(payload.get("amount"))); } catch (Exception ex) { }
+
+        if (cust == null || cust.isBlank()) return ResponseEntity.badRequest().body(Map.of("message","custRefNum required"));
+
+        var gpOpt = gatewayPaymentRepository.findById(cust);
+        if (gpOpt.isEmpty()) return ResponseEntity.status(404).body(Map.of("message","GatewayPayment not found for custRefNum: "+cust));
+
+        GatewayPayment gp = gpOpt.get();
+
+        boolean success = status != null && status.equalsIgnoreCase("success");
+
+        // If this GatewayPayment is already marked Success, avoid re-processing
+        if (gp.getStatus() != null && gp.getStatus().equalsIgnoreCase("success")) {
+            log.info("Callback received for custRefNum={} but already processed as Success", cust);
+            return ResponseEntity.ok(Map.of("message","Already processed","status",gp.getStatus()));
+        }
+
+        int callbackAmount = amountD == null ? 0 : (int) Math.round(amountD.doubleValue());
+
+        if (success && callbackAmount == gp.getAmount()) {
+            gp.setStatus("Success");
+            gatewayPaymentRepository.save(gp);
+
+            // create transaction record and credit user's balance
+            try {
+                java.time.OffsetDateTime odt = null;
+                if (dateStr != null && !dateStr.isBlank()) {
+                    try { odt = java.time.OffsetDateTime.parse(dateStr); } catch (Exception ex) { odt = null; }
+                }
+
+                java.time.LocalDate txDate = odt == null ? LocalDate.now() : odt.toLocalDate();
+                java.time.LocalTime txTime = odt == null ? LocalTime.now() : odt.toLocalTime();
+
+                // avoid duplicate transaction: check if one exists with same mobile, amount and initiator
+                java.util.List<TransactionEntity> existing = transactionRepository.findByMobileNumberAndAmountAndInitiatorOrderByIdDesc(
+                        gp.getMobileNumber(), gp.getAmount(), "user"
+                );
+                boolean createTx = true;
+                if (existing != null && !existing.isEmpty()) {
+                    TransactionEntity last = existing.get(0);
+                    if (last.getTxDate() != null && last.getTxTime() != null && last.getTxDate().equals(txDate) && last.getTxTime().equals(txTime)) {
+                        createTx = false; // already recorded
+                    }
+                }
+
+                if (createTx) {
+                    TransactionEntity tx = new TransactionEntity();
+                    tx.setMobileNumber(gp.getMobileNumber());
+                    tx.setAmount(gp.getAmount());
+                    tx.setTxDate(txDate);
+                    tx.setTxTime(txTime);
+                    tx.setInitiator("user");
+                    tx.setStatus("Approved");
+                    tx.setRemarks(String.valueOf(payload.get("message")));
+
+                    transactionRepository.save(tx);
+
+                    // credit user's balance
+                    var userOpt = userRepository.findByMobileNumber(gp.getMobileNumber());
+                    if (userOpt.isPresent()) {
+                        var user = userOpt.get();
+                        Integer cur = user.getBalance() == null ? 0 : user.getBalance();
+                        user.setBalance(cur + gp.getAmount());
+                        userRepository.save(user);
+                    }
+                }
+
+                return ResponseEntity.ok(Map.of("message","Callback processed","status",gp.getStatus()));
+            } catch (Exception ex) {
+                log.error("Failed to process callback success actions", ex);
+                return ResponseEntity.status(500).body(Map.of("message","Failed to process callback","error", ex.getMessage()));
+            }
+        } else {
+            gp.setStatus("Fail");
+            gatewayPaymentRepository.save(gp);
+            return ResponseEntity.ok(Map.of("message","Callback marked as Fail","status",gp.getStatus()));
         }
     }
 }
