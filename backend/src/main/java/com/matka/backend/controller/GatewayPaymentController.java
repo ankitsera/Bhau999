@@ -46,6 +46,7 @@ public class GatewayPaymentController {
     private String paymentGatewayAuthEmail;
 
     private static final String PAYMENT_GATEWAY_URL = "https://primexpay.in/api/payments/create";
+    private static final String PAYMENT_CHECK_URL = "https://primexpay.in/api/merchant/check-payin-status";
 
     private String buildCustRef(String mobile, LocalDate date, LocalTime time) {
         if (mobile == null) mobile = "unknown";
@@ -67,6 +68,49 @@ public class GatewayPaymentController {
             log.warn("Failed to read minimum_deposit_amount property", ex);
         }
         return 1;
+    }
+
+    private int readPaymentWaitTimeSec() {
+        try {
+            var prop = propertiesRepository.findById("payment_wait_time_sec");
+            if (prop.isPresent()) {
+                String v = prop.get().getValue();
+                if (v != null && !v.isBlank()) return Integer.parseInt(v);
+            }
+        } catch (Exception ex) {
+            log.warn("Failed to read payment_wait_time_sec property", ex);
+        }
+        return 60;
+    }
+
+    // Call primexpay check-payin-status API
+    private java.util.Map<String,Object> callCheckPayinStatus(String custRef) {
+        String resolvedApiKey = paymentGatewayApiKey;
+        if (resolvedApiKey == null || resolvedApiKey.isBlank()) {
+            resolvedApiKey = System.getenv("PRIMEXPAY_API_KEY_SARA1234");
+        }
+        if (resolvedApiKey == null || resolvedApiKey.isBlank()) {
+            log.warn("Payment gateway API key not configured for check-payin-status");
+            return null;
+        }
+
+        try {
+            RestTemplate rest = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            java.util.Map<String,Object> payload = new java.util.HashMap<>();
+            payload.put("authEmail", paymentGatewayAuthEmail);
+            payload.put("apiKey", resolvedApiKey);
+            payload.put("custRefNo", custRef);
+
+            HttpEntity<java.util.Map<String,Object>> entity = new HttpEntity<>(payload, headers);
+            var resp = rest.postForObject(PAYMENT_CHECK_URL, entity, java.util.Map.class);
+            if (resp == null) return null;
+            return resp;
+        } catch (Exception ex) {
+            log.error("Failed to call check-payin-status for {}", custRef, ex);
+            return null;
+        }
     }
 
     // Request: { "mobileNumber": "...", "amount": 123, "txDate": "yyyy-MM-dd" (optional), "txTime": "HH:mm:ss" (optional) }
@@ -176,6 +220,97 @@ public class GatewayPaymentController {
 
             if (sStatus != null && sStatus.equalsIgnoreCase("success")) {
                 gatewayPaymentRepository.save(gp);
+
+                // start background checker that waits payment_wait_time_sec and then verifies final status
+                try {
+                    final String finalCust = custRef;
+                    new Thread(() -> {
+                        try {
+                            int waitSec = readPaymentWaitTimeSec();
+                            Thread.sleep((long)waitSec * 1000L);
+
+                            var checkResp = callCheckPayinStatus(finalCust);
+                            var gpOpt2 = gatewayPaymentRepository.findById(finalCust);
+                            if (gpOpt2.isEmpty()) return;
+                            var gp2 = gpOpt2.get();
+
+                            if (checkResp == null) {
+                                if (gp2.getStatus() == null || !gp2.getStatus().equalsIgnoreCase("success")) {
+                                    gp2.setStatus("Fail");
+                                    gatewayPaymentRepository.save(gp2);
+                                }
+                                return;
+                            }
+
+                            Object chStatusObj = checkResp.get("status");
+                            String chStatus = chStatusObj == null ? null : String.valueOf(chStatusObj);
+                            Object chAmountObj = checkResp.get("amount");
+                            Double chAmountD = null;
+                            try { if (chAmountObj != null) chAmountD = Double.parseDouble(String.valueOf(chAmountObj)); } catch (Exception ex) { }
+                            int chAmount = chAmountD == null ? 0 : (int) Math.round(chAmountD.doubleValue());
+
+                            if (chStatus != null && chStatus.equalsIgnoreCase("success") && chAmount == gp2.getAmount()) {
+                                // mark success and create transaction if not already created
+                                if (gp2.getStatus() == null || !gp2.getStatus().equalsIgnoreCase("success")) {
+                                    gp2.setStatus("Success");
+                                    gatewayPaymentRepository.save(gp2);
+
+                                    // attempt to create transaction (idempotent)
+                                    java.time.OffsetDateTime odt = null;
+                                    Object createdAtObj = checkResp.get("createdAt");
+                                    String createdAtStr = createdAtObj == null ? null : String.valueOf(createdAtObj);
+                                    if (createdAtStr != null) {
+                                        try { odt = java.time.OffsetDateTime.parse(createdAtStr); } catch (Exception ex) { odt = null; }
+                                    }
+                                    java.time.LocalDate txDate1 = odt == null ? java.time.LocalDate.now() : odt.toLocalDate();
+                                    java.time.LocalTime txTime1 = odt == null ? java.time.LocalTime.now() : odt.toLocalTime();
+
+                                    java.util.List<TransactionEntity> existing = transactionRepository.findByMobileNumberAndAmountAndInitiatorOrderByIdDesc(
+                                            gp2.getMobileNumber(), gp2.getAmount(), "user"
+                                    );
+                                    boolean createTx = true;
+                                    if (existing != null && !existing.isEmpty()) {
+                                        TransactionEntity last = existing.get(0);
+                                        if (last.getTxDate() != null && last.getTxTime() != null && last.getTxDate().equals(txDate1) && last.getTxTime().equals(txTime1)) {
+                                            createTx = false;
+                                        }
+                                    }
+
+                                    if (createTx) {
+                                        TransactionEntity tx = new TransactionEntity();
+                                        tx.setMobileNumber(gp2.getMobileNumber());
+                                        tx.setAmount(gp2.getAmount());
+                                        tx.setTxDate(txDate1);
+                                        tx.setTxTime(txTime1);
+                                        tx.setInitiator("user");
+                                        tx.setStatus("Approved");
+                                        tx.setRemarks(String.valueOf(checkResp.get("message")));
+                                        transactionRepository.save(tx);
+
+                                        // credit user's balance
+                                        var userOpt = userRepository.findByMobileNumber(gp2.getMobileNumber());
+                                        if (userOpt.isPresent()) {
+                                            var user = userOpt.get();
+                                            Integer cur = user.getBalance() == null ? 0 : user.getBalance();
+                                            user.setBalance(cur + gp2.getAmount());
+                                            userRepository.save(user);
+                                        }
+                                    }
+                                }
+                            } else {
+                                if (gp2.getStatus() == null || !gp2.getStatus().equalsIgnoreCase("success")) {
+                                    gp2.setStatus("Fail");
+                                    gatewayPaymentRepository.save(gp2);
+                                }
+                            }
+                        } catch (Exception ex) {
+                            log.warn("Background payment check failed for {}: {}", finalCust, ex.getMessage());
+                        }
+                    }).start();
+                } catch (Exception ex) {
+                    log.warn("Failed to start background payment checker for {}", custRef, ex);
+                }
+
                 return ResponseEntity.ok(Map.of("message",resp.get("message"), "custRefNum", custRef, "amount", rAmount, "upiIntentUrl", url));
             } else {
                 gp.setStatus("Fail");
