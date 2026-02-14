@@ -14,6 +14,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClientResponseException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +49,8 @@ public class GatewayPaymentController {
     private String paymentGatewayAuthEmail;
 
     private static final String PAYMENT_GATEWAY_URL = "https://primexpay.in/api/payments/create";
+    private static final String PAYMENT_CHECK_URL = "https://primexpay.in/api/merchant/check-payin-status";
+    private static final String PAYMENT_PAYOUT_URL = "https://primexpay.in/api/merchant/initiate-fund-transfer";
 
     private String buildCustRef(String mobile, LocalDate date, LocalTime time) {
         if (mobile == null) mobile = "unknown";
@@ -68,6 +73,51 @@ public class GatewayPaymentController {
         }
         return 1;
     }
+
+    private int readPaymentWaitTimeSec() {
+        try {
+            var prop = propertiesRepository.findById("payment_wait_time_sec");
+            if (prop.isPresent()) {
+                String v = prop.get().getValue();
+                if (v != null && !v.isBlank()) return Integer.parseInt(v);
+            }
+        } catch (Exception ex) {
+            log.warn("Failed to read payment_wait_time_sec property", ex);
+        }
+        return 60;
+    }
+
+    // Call primexpay check-payin-status API
+    private java.util.Map<String,Object> callCheckPayinStatus(String custRef) {
+        String resolvedApiKey = paymentGatewayApiKey;
+        if (resolvedApiKey == null || resolvedApiKey.isBlank()) {
+            resolvedApiKey = System.getenv("PRIMEXPAY_API_KEY_SARA1234");
+        }
+        if (resolvedApiKey == null || resolvedApiKey.isBlank()) {
+            log.warn("Payment gateway API key not configured for check-payin-status");
+            return null;
+        }
+
+        try {
+            RestTemplate rest = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            java.util.Map<String,Object> payload = new java.util.HashMap<>();
+            payload.put("authEmail", paymentGatewayAuthEmail);
+            payload.put("apiKey", resolvedApiKey);
+            payload.put("custRefNo", custRef);
+
+            HttpEntity<java.util.Map<String,Object>> entity = new HttpEntity<>(payload, headers);
+            var resp = rest.postForObject(PAYMENT_CHECK_URL, entity, java.util.Map.class);
+            if (resp == null) return null;
+            return resp;
+        } catch (Exception ex) {
+            log.error("Failed to call check-payin-status for {}", custRef, ex);
+            return null;
+        }
+    }
+
+    
 
     // Request: { "mobileNumber": "...", "amount": 123, "txDate": "yyyy-MM-dd" (optional), "txTime": "HH:mm:ss" (optional) }
     @PostMapping
@@ -176,6 +226,103 @@ public class GatewayPaymentController {
 
             if (sStatus != null && sStatus.equalsIgnoreCase("success")) {
                 gatewayPaymentRepository.save(gp);
+
+                // start background checker that waits payment_wait_time_sec and then verifies final status
+                try {
+                    final String finalCust = custRef;
+                    new Thread(() -> {
+                        try {
+                            int waitSec = readPaymentWaitTimeSec();
+                            Thread.sleep((long)waitSec * 1000L);
+
+                            var checkResp = callCheckPayinStatus(finalCust);
+                            var gpOpt2 = gatewayPaymentRepository.findById(finalCust);
+                            if (gpOpt2.isEmpty()) return;
+                            var gp2 = gpOpt2.get();
+
+                            if (checkResp == null) {
+                                if (gp2.getStatus() == null || !gp2.getStatus().equalsIgnoreCase("success")) {
+                                    gp2.setStatus("Fail");
+                                    gatewayPaymentRepository.save(gp2);
+                                }
+                                return;
+                            }
+
+                            Object chStatusObj = checkResp.get("status");
+                            String chStatus = chStatusObj == null ? null : String.valueOf(chStatusObj);
+                            Object chAmountObj = checkResp.get("amount");
+                            Double chAmountD = null;
+                            try { if (chAmountObj != null) chAmountD = Double.parseDouble(String.valueOf(chAmountObj)); } catch (Exception ex) { }
+                            int chAmount = chAmountD == null ? 0 : (int) Math.round(chAmountD.doubleValue());
+
+                            if (chStatus != null && chStatus.equalsIgnoreCase("success") && chAmount == gp2.getAmount()) {
+                                // mark success and create transaction if not already created
+                                if (gp2.getStatus() == null || !gp2.getStatus().equalsIgnoreCase("success")) {
+                                    gp2.setStatus("Success");
+                                    gatewayPaymentRepository.save(gp2);
+
+                                    // attempt to create transaction (idempotent)
+                                    java.time.OffsetDateTime odt = null;
+                                    Object createdAtObj = checkResp.get("createdAt");
+                                    String createdAtStr = createdAtObj == null ? null : String.valueOf(createdAtObj);
+                                    if (createdAtStr != null) {
+                                        try { odt = java.time.OffsetDateTime.parse(createdAtStr); } catch (Exception ex) { odt = null; }
+                                    }
+                                    java.time.LocalDate txDate1 = odt == null ? java.time.LocalDate.now() : odt.toLocalDate();
+                                    java.time.LocalTime txTime1 = odt == null ? java.time.LocalTime.now() : odt.toLocalTime();
+
+                                    java.util.List<TransactionEntity> existing = transactionRepository.findByMobileNumberAndAmountAndInitiatorOrderByIdDesc(
+                                            gp2.getMobileNumber(), gp2.getAmount(), "user"
+                                    );
+                                    boolean createTx = true;
+                                    if (existing != null && !existing.isEmpty()) {
+                                        TransactionEntity last = existing.get(0);
+                                        if (last.getTxDate() != null && last.getTxTime() != null && last.getTxDate().equals(txDate1) && last.getTxTime().equals(txTime1)) {
+                                            createTx = false;
+                                        }
+                                    }
+
+                                    if (createTx) {
+                                        TransactionEntity tx = new TransactionEntity();
+                                        tx.setMobileNumber(gp2.getMobileNumber());
+                                        tx.setAmount(gp2.getAmount());
+                                        tx.setTxDate(txDate1);
+                                        tx.setTxTime(txTime1);
+                                        tx.setInitiator("user");
+                                        tx.setStatus("Approved");
+                                        tx.setRemarks(String.valueOf(checkResp.get("message")));
+
+                                        TransactionEntity savedTx = transactionRepository.save(tx);
+                                        // store transaction id on gateway payment (link)
+                                        try {
+                                            gp2.setTransactionId(savedTx.getId());
+                                            gatewayPaymentRepository.save(gp2);
+                                        } catch (Exception ex) { /* ignore */ }
+
+                                        // credit user's balance
+                                        var userOpt = userRepository.findByMobileNumber(gp2.getMobileNumber());
+                                        if (userOpt.isPresent()) {
+                                            var user = userOpt.get();
+                                            Integer cur = user.getBalance() == null ? 0 : user.getBalance();
+                                            user.setBalance(cur + gp2.getAmount());
+                                            userRepository.save(user);
+                                        }
+                                    }
+                                }
+                            } else {
+                                if (gp2.getStatus() == null || !gp2.getStatus().equalsIgnoreCase("success")) {
+                                    gp2.setStatus("Fail");
+                                    gatewayPaymentRepository.save(gp2);
+                                }
+                            }
+                        } catch (Exception ex) {
+                            log.warn("Background payment check failed for {}: {}", finalCust, ex.getMessage());
+                        }
+                    }).start();
+                } catch (Exception ex) {
+                    log.warn("Failed to start background payment checker for {}", custRef, ex);
+                }
+
                 return ResponseEntity.ok(Map.of("message",resp.get("message"), "custRefNum", custRef, "amount", rAmount, "upiIntentUrl", url));
             } else {
                 gp.setStatus("Fail");
@@ -203,25 +350,44 @@ public class GatewayPaymentController {
     @PostMapping("/callback")
     public ResponseEntity<?> callback(@RequestBody java.util.Map<String,Object> payload) {
         if (payload == null) return ResponseEntity.badRequest().body(Map.of("message","Missing payload"));
-        String cust = payload.get("custRefNum") == null ? null : String.valueOf(payload.get("custRefNum"));
-        String status = payload.get("status") == null ? null : String.valueOf(payload.get("status"));
-        String dateStr = payload.get("date") == null ? null : String.valueOf(payload.get("date"));
 
-        Double amountD = null;
-        try { if (payload.get("amount") != null) amountD = Double.parseDouble(String.valueOf(payload.get("amount"))); } catch (Exception ex) { }
-
-        if (cust == null || cust.isBlank()) return ResponseEntity.badRequest().body(Map.of("message","custRefNum required"));
+        // support both keys custRefNum (payin) and custRefNo (payout)
+        String cust = null;
+        if (payload.get("custRefNum") != null) cust = String.valueOf(payload.get("custRefNum"));
+        if ((cust == null || cust.isBlank()) && payload.get("custRefNo") != null) cust = String.valueOf(payload.get("custRefNo"));
+        if (cust == null || cust.isBlank()) return ResponseEntity.badRequest().body(Map.of("message","custRef required"));
 
         var gpOpt = gatewayPaymentRepository.findById(cust);
         if (gpOpt.isEmpty()) return ResponseEntity.status(404).body(Map.of("message","GatewayPayment not found for custRefNum: "+cust));
 
         GatewayPayment gp = gpOpt.get();
 
+        // route to payin or payout handler based on amount sign
+        try {
+            if (gp.getAmount() != null && gp.getAmount() < 0) {
+                return payOutCallback(gp, payload);
+            } else {
+                return payInCallback(gp, payload);
+            }
+        } catch (Exception ex) {
+            log.error("Callback handling failed for custRef {}", cust, ex);
+            return ResponseEntity.status(500).body(Map.of("message","Callback handling failed","error",ex.getMessage()));
+        }
+    }
+
+    // Helper: handle pay-in callback logic (moved from the main callback endpoint)
+    private ResponseEntity<?> payInCallback(GatewayPayment gp, java.util.Map<String,Object> payload) {
+        String status = payload.get("status") == null ? null : String.valueOf(payload.get("status"));
+        String dateStr = payload.get("date") == null ? null : String.valueOf(payload.get("date"));
+
+        Double amountD = null;
+        try { if (payload.get("amount") != null) amountD = Double.parseDouble(String.valueOf(payload.get("amount"))); } catch (Exception ex) { }
+
         boolean success = status != null && status.equalsIgnoreCase("success");
 
         // If this GatewayPayment is already marked Success, avoid re-processing
         if (gp.getStatus() != null && gp.getStatus().equalsIgnoreCase("success")) {
-            log.info("Callback received for custRefNum={} but already processed as Success", cust);
+            log.info("Pay-in callback received for custRef={} but already processed as Success", gp.getCustRefNum());
             return ResponseEntity.ok(Map.of("message","Already processed","status",gp.getStatus()));
         }
 
@@ -263,7 +429,15 @@ public class GatewayPaymentController {
                     tx.setStatus("Approved");
                     tx.setRemarks(String.valueOf(payload.get("message")));
 
-                    transactionRepository.save(tx);
+                    TransactionEntity savedTx = transactionRepository.save(tx);
+
+                    // link transaction id to gateway payment and persist
+                    try {
+                        gp.setTransactionId(savedTx.getId());
+                        gatewayPaymentRepository.save(gp);
+                    } catch (Exception e) {
+                        log.warn("Failed to persist transactionId on GatewayPayment for custRef {}: {}", gp.getCustRefNum(), e.getMessage());
+                    }
 
                     // credit user's balance
                     var userOpt = userRepository.findByMobileNumber(gp.getMobileNumber());
@@ -273,17 +447,97 @@ public class GatewayPaymentController {
                         user.setBalance(cur + gp.getAmount());
                         userRepository.save(user);
                     }
+                } else {
+                    // If we didn't create a new transaction because one already exists, link that existing tx id to the gateway payment
+                    if (existing != null && !existing.isEmpty()) {
+                        try {
+                            TransactionEntity last = existing.get(0);
+                            if (last.getId() != null) {
+                                gp.setTransactionId(last.getId());
+                                gatewayPaymentRepository.save(gp);
+                            }
+                        } catch (Exception e) {
+                            log.warn("Failed to persist existing transactionId on GatewayPayment for custRef {}: {}", gp.getCustRefNum(), e.getMessage());
+                        }
+                    }
                 }
 
-                return ResponseEntity.ok(Map.of("message","Callback processed","status",gp.getStatus()));
+                return ResponseEntity.ok(Map.of("message","Pay-in callback processed","status",gp.getStatus()));
             } catch (Exception ex) {
-                log.error("Failed to process callback success actions", ex);
-                return ResponseEntity.status(500).body(Map.of("message","Failed to process callback","error", ex.getMessage()));
+                log.error("Failed to process pay-in callback success actions", ex);
+                return ResponseEntity.status(500).body(Map.of("message","Failed to process pay-in callback","error", ex.getMessage()));
             }
         } else {
             gp.setStatus("Fail");
             gatewayPaymentRepository.save(gp);
-            return ResponseEntity.ok(Map.of("message","Callback marked as Fail","status",gp.getStatus()));
+            return ResponseEntity.ok(Map.of("message","Pay-in callback marked as Fail","status",gp.getStatus()));
+        }
+    }
+
+    // Helper: handle pay-out (payout) callback logic
+    private ResponseEntity<?> payOutCallback(GatewayPayment gp, java.util.Map<String,Object> payload) {
+        // Expected payout webhook keys: custRefNo, status (Completed), amount (string), message, date, txnId, utrNumber
+        String status = payload.get("status") == null ? null : String.valueOf(payload.get("status"));
+        Object amountObj = payload.get("amount");
+        Double amountD = null;
+        try { if (amountObj != null) amountD = Double.parseDouble(String.valueOf(amountObj)); } catch (Exception ex) { }
+        int respAmount = amountD == null ? 0 : (int) Math.round(amountD.doubleValue());
+
+        boolean completed = status != null && status.equalsIgnoreCase("completed");
+
+        // If already Success, ignore
+        if (gp.getStatus() != null && gp.getStatus().equalsIgnoreCase("success")) {
+            log.info("Pay-out callback received for custRef={} but already processed as Success", gp.getCustRefNum());
+            return ResponseEntity.ok(Map.of("message","Already processed","status",gp.getStatus()));
+        }
+
+        // gp.amount is stored negative for payouts
+        int expected = Math.abs(gp.getAmount() == null ? 0 : gp.getAmount());
+
+        if (completed && respAmount == expected) {
+            gp.setStatus("Success");
+            try { gatewayPaymentRepository.save(gp); } catch (Exception e) { log.warn("Failed to save GatewayPayment status success for {}: {}", gp.getCustRefNum(), e.getMessage()); }
+
+            // update linked transaction (if any) to Success
+            try {
+                Long tid = gp.getTransactionId();
+                if (tid != null) {
+                    var txOpt = transactionRepository.findById(tid);
+                    if (txOpt.isPresent()) {
+                        var tx = txOpt.get();
+                        tx.setStatus("Success");
+                        transactionRepository.save(tx);
+                    } else {
+                        log.warn("No transaction found with id {} linked to gateway payment {}", tid, gp.getCustRefNum());
+                    }
+                } else {
+                    log.warn("GatewayPayment {} has no linked transactionId to update after payout success", gp.getCustRefNum());
+                }
+            } catch (Exception ex) {
+                log.error("Failed to update linked transaction after payout success for {}", gp.getCustRefNum(), ex);
+            }
+
+            return ResponseEntity.ok(Map.of("message","Pay-out callback processed","status",gp.getStatus()));
+        } else {
+            gp.setStatus("Fail");
+            try { gatewayPaymentRepository.save(gp); } catch (Exception e) { log.warn("Failed to save GatewayPayment status fail for {}: {}", gp.getCustRefNum(), e.getMessage()); }
+
+            // update transaction to Fail if linked
+            try {
+                Long tid = gp.getTransactionId();
+                if (tid != null) {
+                    var txOpt = transactionRepository.findById(tid);
+                    if (txOpt.isPresent()) {
+                        var tx = txOpt.get();
+                        tx.setStatus("Fail");
+                        transactionRepository.save(tx);
+                    }
+                }
+            } catch (Exception ex) {
+                log.error("Failed to update linked transaction after payout failure for {}", gp.getCustRefNum(), ex);
+            }
+
+            return ResponseEntity.ok(Map.of("message","Pay-out callback marked as Fail","status",gp.getStatus()));
         }
     }
 
@@ -303,5 +557,225 @@ public class GatewayPaymentController {
                 "txDate", gp.getTxDate(),
                 "txTime", gp.getTxTime()
         ));
+    }
+
+    // Create a payout for an approved transaction. This is NOT an API endpoint — it's a helper
+    // It will set the transaction status to Processing, create a negative GatewayPayment row,
+    // call the primexpay initiate-fund-transfer API with positive amount and beneficiary details
+    // from the user record. On success (response status Pending and amount matches) it will
+    // mark the GatewayPayment as Pending. On any failure it will mark both GatewayPayment and
+    // transaction as Fail.
+    public void createPayOut(TransactionEntity tx) {
+        if (tx == null) return;
+
+        log.info("createPayOut invoked for tx id={} mobile={} amount={}", tx == null ? null : tx.getId(), tx == null ? null : tx.getMobileNumber(), tx == null ? null : tx.getAmount());
+
+        try {
+
+            int amt = tx.getAmount() == null ? 0 : Math.abs(tx.getAmount());
+
+            // fetch user details
+            var userOpt = userRepository.findByMobileNumber(tx.getMobileNumber());
+            log.debug("Lookup user for mobile {} returned present={}", tx.getMobileNumber(), userOpt.isPresent());
+            if (userOpt.isEmpty()) {
+                log.warn("createPayOut: user not found for mobile {}", tx.getMobileNumber());
+                tx.setStatus("Fail");
+                transactionRepository.save(tx);
+                return;
+            }
+            var user = userOpt.get();
+
+            // required beneficiary fields: accountNumber, accountHolderName, ifscCode
+            log.debug("createPayOut: user bank details holder='{}' acct='{}' ifsc='{}'", user.getAccountHolderName(), user.getAccountNumber() == null ? "<null>" : "<redacted>", user.getIfscCode());
+            if (user.getAccountNumber() == null || user.getAccountNumber().isBlank()
+                    || user.getAccountHolderName() == null || user.getAccountHolderName().isBlank()
+                    || user.getIfscCode() == null || user.getIfscCode().isBlank()) {
+                // save gateway payment record as failed
+                GatewayPayment gpFail = new GatewayPayment();
+                java.time.LocalDate d = tx.getTxDate() == null ? java.time.LocalDate.now() : tx.getTxDate();
+                java.time.LocalTime t = tx.getTxTime() == null ? java.time.LocalTime.now() : tx.getTxTime();
+                String custRef = buildCustRef(tx.getMobileNumber(), d, t);
+                gpFail.setCustRefNum(custRef);
+                gpFail.setMobileNumber(tx.getMobileNumber());
+                gpFail.setAmount(-amt); // negative amount for payout record
+                gpFail.setTxDate(d);
+                gpFail.setTxTime(t);
+                gpFail.setStatus("Fail");
+                // link to existing transaction id
+                try { gpFail.setTransactionId(tx.getId()); } catch (Exception e) { /* ignore */ }
+                gatewayPaymentRepository.save(gpFail);
+                log.info("createPayOut: saved failed GatewayPayment custRef={} for tx={} because beneficiary missing", custRef, tx.getId());
+
+                tx.setStatus("Fail");
+                transactionRepository.save(tx);
+                return;
+            }
+
+            // create gateway payment record with negative amount (payout)
+            java.time.LocalDate d = tx.getTxDate() == null ? java.time.LocalDate.now() : tx.getTxDate();
+            java.time.LocalTime t = tx.getTxTime() == null ? java.time.LocalTime.now() : tx.getTxTime();
+            String custRef = buildCustRef(tx.getMobileNumber(), d, t);
+
+            GatewayPayment gp = new GatewayPayment();
+            gp.setCustRefNum(custRef);
+            gp.setMobileNumber(tx.getMobileNumber());
+            gp.setAmount(-amt); // negative to indicate payout
+            gp.setTxDate(d);
+            gp.setTxTime(t);
+            gp.setStatus("Processing");
+            // link gateway payment to the existing transaction id
+            try { gp.setTransactionId(tx.getId()); } catch (Exception e) { /* ignore */ }
+            gatewayPaymentRepository.save(gp);
+            log.info("createPayOut: created GatewayPayment custRef={} for tx={}", custRef, tx.getId());
+
+            // prepare payload for primexpay (send positive amount)
+            String resolvedApiKey = paymentGatewayApiKey;
+            if (resolvedApiKey == null || resolvedApiKey.isBlank()) resolvedApiKey = System.getenv("PRIMEXPAY_API_KEY_SARA1234");
+            if (resolvedApiKey == null || resolvedApiKey.isBlank()) {
+                gp.setStatus("Fail"); gatewayPaymentRepository.save(gp);
+                tx.setStatus("Fail"); transactionRepository.save(tx);
+                return;
+            }
+
+            // Attempt to resolve bank name from IFSC using Razorpay IFSC API
+            String bankName = null;
+            try {
+                String ifsc = user.getIfscCode() == null ? "" : user.getIfscCode().trim().toUpperCase();
+                log.debug("createPayOut: attempting IFSC lookup for {}", ifsc);
+                if (!ifsc.isBlank()) {
+                    RestTemplate rtIfsc = new RestTemplate();
+                    @SuppressWarnings("unchecked")
+                    java.util.Map<String,Object> ifscResp = rtIfsc.getForObject("https://ifsc.razorpay.com/" + ifsc, java.util.Map.class);
+                    if (ifscResp != null && ifscResp.get("BANK") != null) {
+                        bankName = String.valueOf(ifscResp.get("BANK"));
+                        log.debug("createPayOut: IFSC lookup result BANK='{}'", bankName);
+                    } else {
+                        log.debug("createPayOut: IFSC lookup returned empty or no BANK for {}", ifsc);
+                    }
+                }
+            } catch (Exception ex) {
+                log.warn("Failed to lookup bank name for IFSC {}: {}", user.getIfscCode(), ex.getMessage());
+            }
+
+            java.util.Map<String,Object> payload = new java.util.HashMap<>();
+            payload.put("authEmail", paymentGatewayAuthEmail);
+            payload.put("apiKey", resolvedApiKey);
+            // amount must be numeric (not a string) — send as integer
+            payload.put("amount", amt);
+            payload.put("custRefNo", custRef);
+            if (bankName != null) payload.put("bankName", bankName);
+
+            java.util.Map<String,Object> beneficiary = new java.util.HashMap<>();
+            beneficiary.put("name", user.getAccountHolderName());
+            beneficiary.put("accountNumber", user.getAccountNumber());
+            beneficiary.put("ifscCode", user.getIfscCode());
+            // include bankName inside beneficiary as primexpay requires it
+            beneficiary.put("bankName", bankName == null ? "" : bankName);
+
+            payload.put("beneficiary", beneficiary);
+
+            // call payout API
+            try {
+                RestTemplate rest = new RestTemplate();
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.setAccept(java.util.List.of(MediaType.APPLICATION_JSON));
+
+                // Serialize payload to JSON explicitly to avoid Jackson attempting to walk entity proxies
+                String jsonPayload = null;
+                try {
+                    ObjectMapper mapper = new ObjectMapper();
+                    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+                    jsonPayload = mapper.writeValueAsString(payload);
+                    log.debug("Payout JSON payload for custRef {}: {}", custRef, jsonPayload);
+                } catch (Exception se) {
+                    log.warn("Failed to serialize payout payload to JSON for custRef {}: {}", custRef, se.getMessage(), se);
+                }
+
+                HttpEntity<?> entity = (jsonPayload != null) ? new HttpEntity<>(jsonPayload, headers) : new HttpEntity<>(payload, headers);
+                log.info("Calling payout API for custRef {} (tx={})", custRef, tx.getId());
+                try {
+                    var resp = rest.postForObject(PAYMENT_PAYOUT_URL, entity, java.util.Map.class);
+                    log.debug("Payout API response for custRef {}: {}", custRef, resp);
+                    if (resp == null) {
+                        log.warn("Payout API returned empty response for custRef {}", custRef);
+                        gp.setStatus("Fail"); gatewayPaymentRepository.save(gp);
+                        tx.setStatus("Fail"); transactionRepository.save(tx);
+                        return;
+                    }
+
+                    Object successObj = resp.get("success");
+                    boolean succ = false;
+                    try { if (successObj != null) succ = Boolean.parseBoolean(String.valueOf(successObj)); } catch (Exception ex) { succ = false; }
+
+                    Object respStatusObj = resp.get("status");
+                    String respStatus = respStatusObj == null ? null : String.valueOf(respStatusObj);
+                    Object respAmountObj = resp.get("amount");
+                    Double respAmountD = null;
+                    try { if (respAmountObj != null) respAmountD = Double.parseDouble(String.valueOf(respAmountObj)); } catch (Exception ex) { }
+                    int respAmount = respAmountD == null ? 0 : (int) Math.round(respAmountD.doubleValue());
+
+                    Object respCustObj = resp.get("custRefNo");
+                    String respCust = respCustObj == null ? null : String.valueOf(respCustObj);
+
+                    if (succ && respAmount == amt && respCust != null && respCust.equals(custRef)) {
+                        log.info("Payout API accepted payout and returned Pending for custRef {}", custRef);
+                        gp.setStatus("Pending");
+                        try { gp.setTransactionId(tx.getId()); } catch (Exception e) { /* ignore */ }
+                        gatewayPaymentRepository.save(gp);
+                        // leave transaction as Processing (caller may update later)
+                        return;
+                    } else {
+                        Object respMessageObj = resp.get("message");
+                        String respMessage = respMessageObj == null ? "" : String.valueOf(respMessageObj);
+                        log.warn("Payout API returned unexpected response for custRef {}: success={} status={} amount={} custRef={} message={} resp={}", custRef, succ, respStatus, respAmount, respCust, respMessage, resp);
+                        gp.setStatus("Fail");
+                        try { gp.setTransactionId(tx.getId()); } catch (Exception e) { /* ignore */ }
+                        gatewayPaymentRepository.save(gp);
+                        tx.setStatus("Fail"); transactionRepository.save(tx);
+                        return;
+                    }
+                } catch (RestClientResponseException rcre) {
+                    // capture HTTP error response body for debugging
+                    String body = "";
+                    try { body = rcre.getResponseBodyAsString(); } catch (Exception ignored) {}
+                    int statusCode = -1;
+                    try { statusCode = rcre.getStatusCode().value(); } catch (Exception ignored) {}
+                    log.error("Payout API HTTP error for custRef {}: status={}, responseBody={}", custRef, statusCode, body, rcre);
+                    gp.setStatus("Fail");
+                    try { gp.setTransactionId(tx.getId()); } catch (Exception e) { /* ignore */ }
+                    gatewayPaymentRepository.save(gp);
+                    tx.setStatus("Fail"); transactionRepository.save(tx);
+                    return;
+                }
+
+            } catch (Exception ex) {
+                log.error("Payout API call failed for custRef {}", custRef, ex);
+                gp.setStatus("Fail");
+                try { gp.setTransactionId(tx.getId()); } catch (Exception e) { /* ignore */ }
+                gatewayPaymentRepository.save(gp);
+                tx.setStatus("Fail"); transactionRepository.save(tx);
+                return;
+            }
+
+        } catch (Exception ex) {
+            log.error("createPayOut failed", ex);
+            try { tx.setStatus("Fail"); transactionRepository.save(tx); } catch (Exception e) {}
+        }
+    }
+
+    // Convenience: reload transaction by id and call createPayOut. Useful for async callers
+    public void createPayOutById(Long txId) {
+        if (txId == null) return;
+        try {
+            var txOpt = transactionRepository.findById(txId);
+            if (txOpt.isPresent()) {
+                createPayOut(txOpt.get());
+            } else {
+                log.warn("createPayOutById: transaction not found id={}", txId);
+            }
+        } catch (Exception ex) {
+            log.error("createPayOutById failed for id={}", txId, ex);
+        }
     }
 }

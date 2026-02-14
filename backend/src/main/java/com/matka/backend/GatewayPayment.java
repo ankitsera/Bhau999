@@ -24,8 +24,11 @@ public class GatewayPayment {
     @Column(name = "tx_time")
     private LocalTime txTime;
 
-    @Column(name = "status", length = 7)
+    @Column(name = "status", length = 10)
     private String status; // Pending, Success, Fail
+
+    @Column(name = "transaction_id")
+    private Long transactionId;
 
     public String getCustRefNum() { return custRefNum; }
     public void setCustRefNum(String custRefNum) { this.custRefNum = custRefNum; }
@@ -44,4 +47,7 @@ public class GatewayPayment {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public Long getTransactionId() { return transactionId; }
+    public void setTransactionId(Long transactionId) { this.transactionId = transactionId; }
 }
