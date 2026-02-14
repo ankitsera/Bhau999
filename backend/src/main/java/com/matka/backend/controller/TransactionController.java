@@ -56,6 +56,9 @@ public class TransactionController {
     @Autowired
     private PropertiesRepository propertiesRepository;
 
+    @Autowired
+    private com.matka.backend.controller.GatewayPaymentController gatewayPaymentController;
+
     @PostMapping
     @Transactional
     public ResponseEntity<?> create(@RequestBody TransactionEntity tx) {
@@ -171,12 +174,35 @@ public class TransactionController {
             return ResponseEntity.badRequest().body(java.util.Map.of("message","Invalid status; allowed: Pending, Approved, Rejected"));
         }
 
-        // If changing to Approved: simply set status
+        // If changing to Approved: set Processing and kick off payout asynchronously
         if (newStatus.equals("Approved")) {
-            tx.setStatus("Approved");
+            tx.setStatus("Processing");
             tx.setRemarks(remarks);
             transactionRepository.save(tx);
-            return ResponseEntity.ok(java.util.Map.of("message","Transaction approved", "transaction", tx));
+
+            // call payout asynchronously (do not block response). Pass only tx id and reload in worker thread to avoid JPA detached-entity issues.
+            try {
+                final Long txId = tx.getId();
+                new Thread(() -> {
+                    try {
+                        gatewayPaymentController.createPayOutById(txId);
+                    } catch (Exception ex) {
+                        log.error("Asynchronous payout failed for tx {}: {}", txId, ex.getMessage());
+                        try {
+                            var tOpt = transactionRepository.findById(txId);
+                            if (tOpt.isPresent()) {
+                                var t = tOpt.get();
+                                t.setStatus("Fail");
+                                transactionRepository.save(t);
+                            }
+                        } catch (Exception e) { /* ignore */ }
+                    }
+                }).start();
+            } catch (Exception ex) {
+                log.error("Failed to start async payout thread for tx {}", tx.getId(), ex);
+            }
+
+            return ResponseEntity.ok(java.util.Map.of("message","Transaction approved, processing payment", "transaction", tx));
         }
 
         // If changing to Rejected: set status, set remarks, and refund user if withdrawal
