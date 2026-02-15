@@ -48,7 +48,7 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
       }
 
       const message =
-        `Download the latest A1 Online app from here:\n${link}\n\n` +
+        `Download the latest SARA777 app from here:\n${link}\n\n` +
         `Then tap Download and install.\nIf it asks, allow “Install unknown apps”.`;
 
       await Share.share({ message });

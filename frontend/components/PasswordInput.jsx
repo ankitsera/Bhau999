@@ -1,6 +1,6 @@
 import React, { useState, forwardRef, useImperativeHandle } from "react";
 import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
 const PasswordInput = forwardRef(
   (
@@ -10,7 +10,7 @@ const PasswordInput = forwardRef(
       onChangeText,
       containerStyle,
       inputStyle,
-      leftIconName = "lock-closed-outline",
+      leftIconName = "lock-outline",
       showEyeWhen = "focusedOrHasText", // "focused" | "always" | "focusedOrHasText"
       returnKeyType = "done",
       onSubmitEditing,
@@ -36,7 +36,7 @@ const PasswordInput = forwardRef(
 
     return (
       <View style={[styles.inputContainer, focused && styles.inputFocused, containerStyle]}>
-        <Icon name={leftIconName} size={22} color="#00A86B" style={styles.leftIcon} />
+        <MaterialCommunityIcons name={leftIconName} size={22} color="#00A86B" style={styles.leftIcon} />
         <TextInput
           ref={inputRef}
           style={[styles.input, inputStyle]}

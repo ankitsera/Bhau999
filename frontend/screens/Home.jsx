@@ -76,7 +76,7 @@ const Header = ({ navigation }) => {
           >
             <MaterialIcons name="format-align-left" size={28} color="black" />
           </Pressable>
-          <Text style={styles.brandText}>A1 Online</Text>
+          <Text style={styles.brandText}>SARA777</Text>
         </View>
 
         <View style={styles.headerRight}>

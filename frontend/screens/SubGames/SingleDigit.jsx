@@ -165,30 +165,59 @@ const SingleDigit = ({ route }) => {
       return;
     }
 
-    const betsToSend =
-      mode === 'EASY'
-        ? easyBets.map(b =>
-            makeBet({
-              mobileNumber,
-              gameName,
-              type: 'Single Digit',
-              openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(), // OPEN/CLOSE
-              amount: Number(b.points) || 0,
-              betValue: String(b.digit),
-            }),
-          )
-        : DIGITS.map(d => {
-            const p = Number(specialPointsByDigit[d] || 0);
-            if (p <= 0) return null;
-            return makeBet({
-              mobileNumber,
-              gameName,
-              type: 'Single Digit',
-              openClose: String(selectedType).toUpperCase(), // OPEN/CLOSE
-              amount: p,
-              betValue: String(d),
-            });
-          }).filter(Boolean);
+    let betsToSend = [];
+
+    if (mode === 'EASY') {
+      betsToSend = easyBets.map(b =>
+        makeBet({
+          mobileNumber,
+          gameName,
+          type: 'Single Digit',
+          openClose: String(b?.type || selectedType.toLowerCase()).toUpperCase(), // OPEN/CLOSE
+          amount: Number(b.points) || 0,
+          betValue: String(b.digit),
+        }),
+      );
+    } else {
+      const list = [];
+
+      for (let i = 0; i < DIGITS.length; i++) {
+        const d = DIGITS[i];
+        const raw = String(specialPointsByDigit[d] || '').trim();
+
+        if (!raw) continue; // empty => ignore
+
+        const p = Number(raw);
+
+        // typed something but invalid
+        if (!Number.isFinite(p) || p <= 0) {
+          Alert.alert('Validation', `Invalid points for Digit ${d}.`);
+          return; // stop all (no API call)
+        }
+
+        // min/max check (all-or-nothing)
+        if (p < minAmount || p > maxAmount) {
+          Alert.alert(
+            'Validation',
+            `Points for Digit ${d} must be between ${minAmount} and ${maxAmount}.`,
+          );
+          return; // stop all (no API call)
+        }
+
+        list.push({ digit: d, points: p });
+      }
+
+      betsToSend = list.map(x =>
+        makeBet({
+          mobileNumber,
+          gameName,
+          type: 'Single Digit',
+          openClose: String(selectedType).toUpperCase(), // OPEN/CLOSE
+          amount: Number(x.points) || 0,
+          betValue: String(x.digit),
+        }),
+      );
+    }
 
     try {
       const res = await placeBets(betsToSend);

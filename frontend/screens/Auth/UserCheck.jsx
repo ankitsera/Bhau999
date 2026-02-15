@@ -9,7 +9,7 @@ import {
   Linking,
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import Icon from "react-native-vector-icons/Ionicons";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import Snackbar from "react-native-snackbar";
 import { AuthContext } from "../../contexts/AuthContext";
 import { getCallSupport, getWhatsappSupport } from "../../utils/AppConfigService";
@@ -95,7 +95,7 @@ const UserCheck = ({ navigation }) => {
 
         {/* Input */}
         <View style={styles.inputContainer}>
-          <Icon name="call-outline" size={22} color="#00A86B" style={styles.icon} />
+          <MaterialCommunityIcons name="cellphone" size={22} color="#00A86B" style={styles.icon} />
           <TextInput
             style={styles.input}
             placeholder="Phone Number"
@@ -136,12 +136,12 @@ const UserCheck = ({ navigation }) => {
             <TouchableOpacity style={styles.circleButton}
               onPress={openDialer}
             >
-              <Icon name="call-outline" size={22} color="#000" />
+              <MaterialCommunityIcons name="phone-outline" size={22} color="#000" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.circleButton}
               onPress={openWhatsapp}
             >
-              <Icon name="logo-whatsapp" size={22} color="#000" />
+              <MaterialCommunityIcons name="whatsapp" size={22} color="#000" />
             </TouchableOpacity>
           </View>
           <View style={styles.bottomText}>

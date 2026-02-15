@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useContext } from "react"; // ✅ CHANGED (added useContext)
+import React, { useMemo, useState, useContext } from "react";
 import {
   View,
   ScrollView,
@@ -157,19 +157,19 @@ const SinglePana = ({ route }) => {
       return;
     }
 
-    // ✅ NEW: basic auth validation
+    // Basic auth validation
     if (!mobileNumber) {
       Alert.alert("Login required", "Mobile number not found. Please login again.");
       return;
     }
 
-    // ✅ CHANGED: don’t block when balance is still temp=0
+    // Don’t block when balance is still temp=0
     if (Number.isFinite(balance) && balance > 0 && points > balance) {
       Alert.alert("Insufficient balance", "Your wallet balance is too low.");
       return;
     }
 
-    // ✅ NEW: build API payload (array), per backend controller
+    // Build API payload (array), per backend controller
     // backend expects: [{ mobileNumber, gameName, type, open_close, amount, betValue }]
     let betsToSend = [];
 
@@ -179,30 +179,51 @@ const SinglePana = ({ route }) => {
           mobileNumber,
           gameName,
           type: "Single Pana",
-          openClose: String(b.type || "").toUpperCase(), // ✅ NEW: open_close per row
-          amount: Number(b.points) || 0, // ✅ CHANGED: amount instead of points
-          betValue: b.pana, // ✅ NEW: betValue
+          openClose: String(b.type || "").toUpperCase(), // open_close per row
+          amount: Number(b.points) || 0, // amount instead of points
+          betValue: b.pana, // betValue
         })
       );
-    } else {
-      const list = [];
-      ALL_SINGLE_PANA.forEach((pana) => {
-        const p = Number(specialPointsByPana[pana] || 0);
-        if (p > 0) {
+    }  else {
+        const list = [];
+
+        for (let i = 0; i < ALL_SINGLE_PANA.length; i++) {
+          const pana = ALL_SINGLE_PANA[i];
+          const raw = String(specialPointsByPana[pana] || "").trim();
+
+          if (!raw) continue; // empty => ignore
+
+          const num = Number(raw);
+
+          // typed something but invalid
+          if (!Number.isFinite(num) || num <= 0) {
+            Alert.alert("Validation", `Invalid points for pana ${pana}.`);
+            return; // ✅ stops BEFORE API call
+          }
+
+          // ✅ min/max: if any one fails, stop everything
+          if (num < minAmount || num > maxAmount) {
+            Alert.alert(
+              "Validation",
+              `Points for pana ${pana} must be between ${minAmount} and ${maxAmount}.`
+            );
+            return; // ✅ stops BEFORE API call
+          }
+
           list.push(
             makeBet({
               mobileNumber,
               gameName,
               type: "Single Pana",
-              openClose: selectedType,
-              amount: p,
+              openClose: selectedType, // OPEN/CLOSE
+              amount: num,
               betValue: pana,
             })
           );
         }
-      });
-      betsToSend = list;
-    }
+
+        betsToSend = list; // only valid bets get here
+      }
 
     try {
       // API call

@@ -9,7 +9,7 @@ export default function ShareApp({ navigation }) {
   const onShare = async () => {
     try {
       const message =
-        `Download the latest A1 Online app here:\n${APK_URL}\n\n` +
+        `Download the latest SARA777 app here:\n${APK_URL}\n\n` +
         `If it asks, allow "Install unknown apps" and then install.`;
 
       await Share.share({ message });

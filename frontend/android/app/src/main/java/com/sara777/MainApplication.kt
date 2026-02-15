@@ -1,4 +1,4 @@
-package com.a1online
+package com.sara777
 
 import android.app.Application
 import com.facebook.react.PackageList
@@ -7,8 +7,8 @@ import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 
-import com.a1online.UpiIntentPackage
-import com.a1online.update.UpdatePackage
+import com.sara777.UpiIntentPackage
+import com.sara777.update.UpdatePackage
 
 class MainApplication : Application(), ReactApplication {
 

@@ -1,4 +1,3 @@
-// src/screens/Login.jsx
 import React, { useContext, useState } from 'react';
 import {
   View,
@@ -8,7 +7,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { AuthContext } from '../../contexts/AuthContext';
 
 const GREEN = '#328555ff';
@@ -16,7 +15,7 @@ const TILE_GREEN = '#41B773';
 
 const TileIcon = ({ name }) => (
   <View style={styles.tile}>
-    <Icon name={name} size={26} color="#fff" />
+    <MaterialCommunityIcons name={name} size={26} color="#fff" />
   </View>
 );
 
@@ -53,7 +52,7 @@ const Login = ({ navigation, route }) => {
         <View
           style={[styles.fieldContainer, phoneFocused && styles.inputFocused]}
         >
-          <TileIcon name="phone-portrait-outline" />
+          <TileIcon name="cellphone" />
           <TextInput
             style={styles.input}
             value={mobileNumber}
@@ -67,7 +66,7 @@ const Login = ({ navigation, route }) => {
         <View
           style={[styles.fieldContainer, passFocused && styles.inputFocused]}
         >
-          <TileIcon name="key-outline" />
+          <TileIcon name="key-variant" />
           <TextInput
             style={styles.input}
             placeholder="Password"
@@ -90,7 +89,7 @@ const Login = ({ navigation, route }) => {
               showPassword ? 'Hide password' : 'Show password'
             }
           >
-            <Icon
+            <MaterialCommunityIcons
               name={showPassword ? 'eye-off-outline' : 'eye-outline'}
               size={22}
               color="#666"
@@ -105,11 +104,11 @@ const Login = ({ navigation, route }) => {
           activeOpacity={0.85}
         >
           <Text style={styles.loginText}>Login</Text>
-          <Icon
-            name="chevron-forward"
-            size={22}
+          <MaterialCommunityIcons
+            name="chevron-right"
+            size={24}
             color="#fff"
-            style={{ marginLeft: 8 }}
+            style={{ marginLeft: 2 }}
           />
         </TouchableOpacity>
       </View>

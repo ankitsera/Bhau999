@@ -177,6 +177,35 @@ const WithdrawMoney = ({ navigation }) => {
         return;
       }
 
+      // Require bank details
+      const accName = String(user?.accountHolderName || "").trim();
+      const accNo = String(user?.accountNumber || "").trim();
+      const ifsc = String(user?.ifscCode || "").trim();
+      
+
+      const anyBankField = !!accName || !!accNo || !!ifsc;
+      const hasBankDetails = !!accName && !!accNo && !!ifsc;
+
+      if (anyBankField && !hasBankDetails) {
+        Alert.alert("Bank details incomplete", "Please update your bank details and fill all fields.");
+        return;
+      }
+
+      if (!hasBankDetails) {
+        Alert.alert(
+          "Bank details required",
+          "Please add your bank account details before withdrawing.",
+          [
+            { text: "Cancel", style: "cancel" },
+            {
+              text: "Add Bank Details",
+              onPress: () => navigation.navigate("Bank Details"),
+            },
+          ]
+        );
+        return;
+      }
+
       const currentBal = Number(user?.balance || 0);
       if (amtNum > currentBal) {
         Alert.alert('Insufficient Balance', 'You do not have enough balance to withdraw.');

@@ -181,7 +181,7 @@ const DoublePana = ({ route }) => {
         makeBet({
           mobileNumber,
           gameName,
-          type: 'DOUBLE_PANA', // ✅ type=subgame
+          type: 'DOUBLE_PANA', // type=subgame
           openClose: String(b.type).toUpperCase(),
           amount: Number(b.points) || 0,
           betValue: b.pana,
@@ -189,21 +189,42 @@ const DoublePana = ({ route }) => {
       );
     } else {
       const list = [];
-      ALL_DOUBLE_PANA.forEach(pana => {
-        const p = Number(specialPointsByPana[pana] || 0);
-        if (p > 0) {
-          list.push(
-            makeBet({
-              mobileNumber,
-              gameName,
-              type: 'Double Pana',
-              openClose: selectedType,
-              amount: p,
-              betValue: pana,
-            }),
-          );
+
+      for (let i = 0; i < ALL_DOUBLE_PANA.length; i++) {
+        const pana = ALL_DOUBLE_PANA[i];
+        const raw = String(specialPointsByPana[pana] || "").trim();
+
+        if (!raw) continue; // empty => ignore
+
+        const p = Number(raw);
+
+        // typed something but invalid
+        if (!Number.isFinite(p) || p <= 0) {
+          Alert.alert("Validation", `Invalid points for Pana ${pana}.`);
+          return; // stop ALL (no API call)
         }
-      });
+
+        // min/max check (all-or-nothing)
+        if (p < minAmount || p > maxAmount) {
+          Alert.alert(
+            "Validation",
+            `Points for Pana ${pana} must be between ${minAmount} and ${maxAmount}.`
+          );
+          return; // stop ALL (no API call)
+        }
+
+        list.push(
+          makeBet({
+            mobileNumber,
+            gameName,
+            type: "Double Pana",
+            openClose: String(selectedType).toUpperCase(),
+            amount: p,
+            betValue: pana,
+          })
+        );
+      }
+
       betsToSend = list;
     }
 

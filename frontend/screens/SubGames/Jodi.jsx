@@ -184,12 +184,34 @@ const Jodi = ({ route }) => {
       );
     } else {
       const list = [];
-      JODI_NUMBERS.forEach(n => {
-        const p = Number(specialPointsByJodi[n] || 0);
-        if (p > 0) list.push({ jodi: n, points: p });
-      });
 
-      betsToSend = list.map(x =>
+      for (let i = 0; i < JODI_NUMBERS.length; i++) {
+        const n = JODI_NUMBERS[i];
+        const raw = String(specialPointsByJodi[n] || "").trim();
+
+        if (!raw) continue; // empty => ignore
+
+        const p = Number(raw);
+
+        // typed something but invalid
+        if (!Number.isFinite(p) || p <= 0) {
+          Alert.alert("Validation", `Invalid points for Jodi ${n}.`);
+          return; // stop everything (no API call)
+        }
+
+        // min/max check (all-or-nothing)
+        if (p < minAmount || p > maxAmount) {
+          Alert.alert(
+            "Validation",
+            `Points for Jodi ${n} must be between ${minAmount} and ${maxAmount}.`
+          );
+          return; // stop everything (no API call)
+        }
+
+        list.push({ jodi: n, points: p });
+      }
+
+      betsToSend = list.map((x) =>
         makeBet({
           mobileNumber,
           gameName,

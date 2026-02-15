@@ -1,5 +1,5 @@
 {
-  "name": "a1online",
+  "name": "sara777",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -12,6 +12,8 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-clipboard/clipboard": "^1.16.3",
+    "@react-native-firebase/app": "^23.8.6",
+    "@react-native-firebase/messaging": "^23.8.6",
     "@react-native/new-app-screen": "0.82.0",
     "@react-navigation/native": "^7.1.18",
     "@react-navigation/native-stack": "^7.3.28",

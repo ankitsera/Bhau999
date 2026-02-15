@@ -18,8 +18,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import GreenHeader from '../components/GreenHeader';
 import PaginationBar from '../components/PaginationBar';
 
@@ -426,7 +425,7 @@ const BidHistory = () => {
       <View style={styles.filterBar}>
         <Pressable style={styles.filterBtn} onPress={openFilter}>
           <View style={styles.filterBtnContent}>
-            <Ionicons name="funnel-sharp" size={24} color="black" />
+            <MaterialCommunityIcons name="filter" size={30} color="black" />
             {activeFilterCount ? (
               <View style={styles.filterBadge}>
                 <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>

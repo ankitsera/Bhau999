@@ -9,7 +9,6 @@ import {
   Linking,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import FontAwesome6 from "react-native-vector-icons/FontAwesome6";
 
 // ✅ AppConfig helpers (defaults already inside these)
 import {
@@ -25,7 +24,7 @@ const WHATSAPP = "#25D366";
 const CONTACT_NUMBER = "7757033237";
 const WHATSAPP_NUMBER = "7757033237";
 const MARQUEE_TEXT =
-  "Play Daily - Win Big! ₹1Cr+ Winnings Everyday 💸 A1 Online : Safe ✅ Fast⚡Real Results हर दिन ₹1Cr+ जीतनेका मौका – सिर्फ A1 Online पर!";
+  "Play Daily - Win Big! ₹1Cr+ Winnings Everyday 💸 SARA777 : Safe ✅ Fast⚡Real Results हर दिन ₹1Cr+ जीतनेका मौका – सिर्फ SARA777 पर!";
 
 const normalizeDigits = (v) => String(v || "").replace(/\D/g, "");
 
@@ -151,7 +150,7 @@ const TopStrip = ({ navigation }) => {
           onPress={handleLuckyStarline}
         >
           <View style={styles.pillIcon}>
-            <FontAwesome6 name="money-bill-1-wave" size={20} color={GREEN} />
+            <MaterialCommunityIcons name="card-bulleted" size={22} color={GREEN} />
           </View>
           <Text style={styles.pillText}>Add Fund</Text>
         </TouchableOpacity>
@@ -162,7 +161,7 @@ const TopStrip = ({ navigation }) => {
           onPress={handleLuckyJackpot}
         >
           <View style={styles.pillIcon}>
-            <FontAwesome6 name="money-check" size={20} color={GREEN} />
+            <MaterialCommunityIcons name="card-minus" size={22} color={GREEN} />
           </View>
           <Text style={styles.pillText}>Withdraw Fund</Text>
         </TouchableOpacity>

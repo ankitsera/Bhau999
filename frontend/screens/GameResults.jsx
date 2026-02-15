@@ -45,8 +45,8 @@ const ResultRow = ({ item }) => {
   const name = String(item?.gameName || "GAME").toUpperCase();
 
   // Active games API fields can be open_pana/close_pana (snake) or openPana/closePana (camel)
-  const openPana = item?.openPana ?? item?.open_pana ?? null;
-  const closePana = item?.closePana ?? item?.close_pana ?? null;
+  const openPana = item?.raw?.openPana ?? item?.raw?.open_pana ?? null;
+  const closePana = item?.raw?.closePana ?? item?.raw?.close_pana ?? null;
 
   return (
     <View style={styles.card}>
@@ -62,7 +62,7 @@ const ResultRow = ({ item }) => {
 };
 
 const GameResults = () => {
-  const { activeGames, isLoadingActiveGames, loadActiveGames } =
+  const { activeGamesUi, isLoadingActiveGames, loadActiveGames } =
     useContext(GameContext);
 
   useFocusEffect(
@@ -75,7 +75,7 @@ const GameResults = () => {
     await loadActiveGames?.();
   }, [loadActiveGames]);
 
-  const list = Array.isArray(activeGames) ? activeGames : [];
+  const list = Array.isArray(activeGamesUi) ? activeGamesUi : [];
 
   return (
     <SafeAreaView style={styles.screen} edges={["bottom"]}>

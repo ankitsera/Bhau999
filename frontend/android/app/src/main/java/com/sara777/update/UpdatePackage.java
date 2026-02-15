@@ -1,4 +1,4 @@
-package com.a1online.update;
+package com.sara777.update;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;

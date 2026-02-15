@@ -9,7 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Icon from 'react-native-vector-icons/Ionicons';
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import PasswordInput from '../../components/PasswordInput';
 import { AuthContext } from '../../contexts/AuthContext';
 
@@ -75,8 +75,8 @@ const Signup = ({ navigation, route }) => {
 
         {/* Phone */}
         <View style={styles.inputContainer}>
-          <Icon
-            name="call-outline"
+          <MaterialCommunityIcons
+            name="cellphone"
             size={22}
             color="#00A86B"
             style={styles.leftIcon}
@@ -94,8 +94,8 @@ const Signup = ({ navigation, route }) => {
 
         {/* Username */}
         <View style={[styles.inputContainer, uFocused && styles.inputFocused]}>
-          <Icon
-            name="person-outline"
+          <MaterialCommunityIcons
+            name="account-outline"
             size={22}
             color="#00A86B"
             style={styles.leftIcon}

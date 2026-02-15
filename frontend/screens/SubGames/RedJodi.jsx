@@ -112,16 +112,30 @@ const RedJodi = ({ route }) => {
     }
 
     const list = [];
-    RED_JODI_NUMBERS.forEach((j) => {
-      const p = Number(pointsByJodi[j] || 0);
-      if (p > 0) {
-        if (!isValidBetAmount(p, minAmount, maxAmount)) {
-          Alert.alert('Invalid Bet Amount', `Bet amount must be between ₹${minAmount} and ₹${maxAmount}`);
-          return;
-        }
-        list.push({ jodi: j, points: p });
+
+    for (let i = 0; i < RED_JODI_NUMBERS.length; i++) {
+      const j = RED_JODI_NUMBERS[i];
+      const raw = String(pointsByJodi[j] || '').trim();
+
+      if (!raw) continue; // empty ignore
+
+      const p = Number(raw);
+
+      if (!Number.isFinite(p) || p <= 0) {
+        Alert.alert('Invalid Bet Amount', `Invalid points for ${j}.`);
+        return; // stop ALL
       }
-    });
+
+      if (p < minAmount || p > maxAmount) {
+        Alert.alert(
+          'Invalid Bet Amount',
+          `Bet amount for ${j} must be between ₹${minAmount} and ₹${maxAmount}`,
+        );
+        return; // stop ALL
+      }
+
+      list.push({ jodi: j, points: p });
+    }
 
     if (list.length === 0) {
       Alert.alert("No bets", "Please enter points for at least one Red Jodi.");
