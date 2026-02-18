@@ -51,6 +51,7 @@ public class GatewayPaymentController {
     private static final String PAYMENT_GATEWAY_URL = "https://primexpay.in/api/payments/create";
     private static final String PAYMENT_CHECK_URL = "https://primexpay.in/api/merchant/check-payin-status";
     private static final String PAYMENT_PAYOUT_URL = "https://primexpay.in/api/merchant/initiate-fund-transfer";
+    private static final String PAYMENT_PAYOUT_CHECK_URL = "https://primexpay.in/api/merchant/check-payout-status";
 
     private String buildCustRef(String mobile, LocalDate date, LocalTime time) {
         if (mobile == null) mobile = "unknown";
@@ -74,15 +75,28 @@ public class GatewayPaymentController {
         return 1;
     }
 
-    private int readPaymentWaitTimeSec() {
+    private int readPayinWaitTimeSec() {
         try {
-            var prop = propertiesRepository.findById("payment_wait_time_sec");
+            var prop = propertiesRepository.findById("payin_wait_time_sec");
             if (prop.isPresent()) {
                 String v = prop.get().getValue();
                 if (v != null && !v.isBlank()) return Integer.parseInt(v);
             }
         } catch (Exception ex) {
-            log.warn("Failed to read payment_wait_time_sec property", ex);
+            log.warn("Failed to read payin_wait_time_sec property", ex);
+        }
+        return 60;
+    }
+  
+    private int readPayoutWaitTimeSec() {
+        try {
+            var prop = propertiesRepository.findById("payout_wait_time_sec");
+            if (prop.isPresent()) {
+                String v = prop.get().getValue();
+                if (v != null && !v.isBlank()) return Integer.parseInt(v);
+            }
+        } catch (Exception ex) {
+            log.warn("Failed to read payout_wait_time_sec property", ex);
         }
         return 60;
     }
@@ -113,6 +127,37 @@ public class GatewayPaymentController {
             return resp;
         } catch (Exception ex) {
             log.error("Failed to call check-payin-status for {}", custRef, ex);
+            return null;
+        }
+    }
+
+    // Call primexpay check-payout-status API
+    private java.util.Map<String,Object> callCheckPayoutStatus(String custRefOrTxnId) {
+        String resolvedApiKey = paymentGatewayApiKey;
+        if (resolvedApiKey == null || resolvedApiKey.isBlank()) {
+            resolvedApiKey = System.getenv("PRIMEXPAY_API_KEY_SARA1234");
+        }
+        if (resolvedApiKey == null || resolvedApiKey.isBlank()) {
+            log.warn("Payment gateway API key not configured for check-payout-status");
+            return null;
+        }
+
+        try {
+            RestTemplate rest = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            java.util.Map<String,Object> payload = new java.util.HashMap<>();
+            payload.put("authEmail", paymentGatewayAuthEmail);
+            payload.put("apiKey", resolvedApiKey);
+            // prefer treating input as custRefNo; caller may pass txnId instead if desired
+            if (custRefOrTxnId != null && !custRefOrTxnId.isBlank()) payload.put("custRefNo", custRefOrTxnId);
+
+            HttpEntity<java.util.Map<String,Object>> entity = new HttpEntity<>(payload, headers);
+            var resp = rest.postForObject(PAYMENT_PAYOUT_CHECK_URL, entity, java.util.Map.class);
+            if (resp == null) return null;
+            return resp;
+        } catch (Exception ex) {
+            log.error("Failed to call check-payout-status for {}", custRefOrTxnId, ex);
             return null;
         }
     }
@@ -232,7 +277,7 @@ public class GatewayPaymentController {
                     final String finalCust = custRef;
                     new Thread(() -> {
                         try {
-                            int waitSec = readPaymentWaitTimeSec();
+                            int waitSec = readPayinWaitTimeSec();
                             Thread.sleep((long)waitSec * 1000L);
 
                             var checkResp = callCheckPayinStatus(finalCust);
@@ -356,6 +401,8 @@ public class GatewayPaymentController {
         if (payload.get("custRefNum") != null) cust = String.valueOf(payload.get("custRefNum"));
         if ((cust == null || cust.isBlank()) && payload.get("custRefNo") != null) cust = String.valueOf(payload.get("custRefNo"));
         if (cust == null || cust.isBlank()) return ResponseEntity.badRequest().body(Map.of("message","custRef required"));
+
+        log.info("Received payment callback for custRef {}", cust);
 
         var gpOpt = gatewayPaymentRepository.findById(cust);
         if (gpOpt.isEmpty()) return ResponseEntity.status(404).body(Map.of("message","GatewayPayment not found for custRefNum: "+cust));
@@ -723,6 +770,85 @@ public class GatewayPaymentController {
                         gp.setStatus("Pending");
                         try { gp.setTransactionId(tx.getId()); } catch (Exception e) { /* ignore */ }
                         gatewayPaymentRepository.save(gp);
+
+                        // start background checker for payout finalization (wait payment_wait_time_sec)
+                        try {
+                            final String finalCust = custRef;
+                            final Long linkedTxId = tx.getId();
+                            final int expectedAmt = amt;
+                            new Thread(() -> {
+                                try {
+                                    int waitSec = readPayoutWaitTimeSec();
+                                    Thread.sleep((long) waitSec * 1000L);
+
+                                    var checkResp = callCheckPayoutStatus(finalCust);
+                                    var gpOpt2 = gatewayPaymentRepository.findById(finalCust);
+                                    if (gpOpt2.isEmpty()) return;
+                                    var gp2 = gpOpt2.get();
+
+                                    if (checkResp == null) {
+                                        log.warn("Payout final check returned null for custRef {}", finalCust);
+                                        if (gp2.getStatus() == null || !gp2.getStatus().equalsIgnoreCase("success")) {
+                                            gp2.setStatus("Fail");
+                                            gatewayPaymentRepository.save(gp2);
+                                        }
+                                        if (linkedTxId != null) {
+                                            try {
+                                                var txOpt2 = transactionRepository.findById(linkedTxId);
+                                                if (txOpt2.isPresent()) {
+                                                    var tx2 = txOpt2.get();
+                                                    tx2.setStatus("Fail");
+                                                    transactionRepository.save(tx2);
+                                                }
+                                            } catch (Exception e) { log.warn("Failed to mark transaction fail for id {}: {}", linkedTxId, e.getMessage()); }
+                                        }
+                                        return;
+                                    }
+
+                                    Object chStatusObj = checkResp.get("status");
+                                    String chStatus = chStatusObj == null ? null : String.valueOf(chStatusObj);
+                                    Object chAmountObj = checkResp.get("amount");
+                                    Double chAmountD = null;
+                                    try { if (chAmountObj != null) chAmountD = Double.parseDouble(String.valueOf(chAmountObj)); } catch (Exception ex) { }
+                                    int chAmount = chAmountD == null ? 0 : (int) Math.round(chAmountD.doubleValue());
+
+                                    if (chStatus != null && chStatus.equalsIgnoreCase("completed") && chAmount == expectedAmt) {
+                                        gp2.setStatus("Success");
+                                        gatewayPaymentRepository.save(gp2);
+                                        if (linkedTxId != null) {
+                                            try {
+                                                var txOpt2 = transactionRepository.findById(linkedTxId);
+                                                if (txOpt2.isPresent()) {
+                                                    var tx2 = txOpt2.get();
+                                                    tx2.setStatus("Success");
+                                                    transactionRepository.save(tx2);
+                                                }
+                                            } catch (Exception e) { log.warn("Failed to mark transaction success for id {}: {}", linkedTxId, e.getMessage()); }
+                                        }
+                                    } else {
+                                        log.warn("Payout final check for custRef {} returned status={} amount={}; marking Fail", finalCust, chStatus, chAmount);
+                                        gp2.setStatus("Fail");
+                                        gatewayPaymentRepository.save(gp2);
+                                        if (linkedTxId != null) {
+                                            try {
+                                                var txOpt2 = transactionRepository.findById(linkedTxId);
+                                                if (txOpt2.isPresent()) {
+                                                    var tx2 = txOpt2.get();
+                                                    tx2.setStatus("Fail");
+                                                    transactionRepository.save(tx2);
+                                                }
+                                            } catch (Exception e) { log.warn("Failed to mark transaction fail for id {}: {}", linkedTxId, e.getMessage()); }
+                                        }
+                                    }
+
+                                } catch (Exception ex) {
+                                    log.warn("Background payout finalization failed for {}: {}", finalCust, ex.getMessage());
+                                }
+                            }).start();
+                        } catch (Exception ex) {
+                            log.warn("Failed to start background payout finalizer for {}: {}", custRef, ex.getMessage());
+                        }
+
                         // leave transaction as Processing (caller may update later)
                         return;
                     } else {
