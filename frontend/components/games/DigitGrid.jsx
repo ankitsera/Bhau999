@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-
-const GREEN = "#3FA16C";
+import { ThemeColor } from "../../contexts/Themes";
 
 const DigitGrid = ({ digits, pointsByDigit, onPressDigit }) => {
   return (
@@ -37,7 +36,7 @@ const styles = StyleSheet.create({
     height: 90,
     margin: 6,
     borderRadius: 12,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     justifyContent: "center",
     alignItems: "center",
   },

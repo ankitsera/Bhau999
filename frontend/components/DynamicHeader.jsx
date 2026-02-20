@@ -5,8 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { AuthContext } from "../contexts/AuthContext";
-
-const GREEN = "#3FA16C";
+import { ThemeColor } from "../contexts/Themes";
 
 const DynamicHeader = ({ title = "", speed = 60, gap = 80 }) => {
   const navigation = useNavigation();
@@ -100,7 +99,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 90,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,
   },

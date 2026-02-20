@@ -8,10 +8,9 @@ import {
   BackHandler,
   NativeModules,
 } from 'react-native';
+import { ThemeColor } from '../contexts/Themes';
 
 const { UpdateModule } = NativeModules;
-
-const GREEN = '#3FA16C';
 
 export default function UpdateGate({ visible, compulsory, onDismiss, apkUrl }) {
   const [busy, setBusy] = useState(false);
@@ -165,7 +164,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
   },
   btnDisabled: {
     opacity: 0.7,
@@ -180,11 +179,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: GREEN,
+    borderColor: ThemeColor,
     backgroundColor: '#fff',
   },
   laterText: {
-    color: GREEN,
+    color: ThemeColor,
     fontWeight: '800',
   },
 });

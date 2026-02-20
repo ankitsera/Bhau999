@@ -1,6 +1,7 @@
 import React, { useState, forwardRef, useImperativeHandle } from "react";
 import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { ThemeColor } from "../contexts/Themes";
 
 const PasswordInput = forwardRef(
   (
@@ -36,7 +37,7 @@ const PasswordInput = forwardRef(
 
     return (
       <View style={[styles.inputContainer, focused && styles.inputFocused, containerStyle]}>
-        <MaterialCommunityIcons name={leftIconName} size={22} color="#00A86B" style={styles.leftIcon} />
+        <MaterialCommunityIcons name={leftIconName} size={22} color={ThemeColor} style={styles.leftIcon} />
         <TextInput
           ref={inputRef}
           style={[styles.input, inputStyle]}
@@ -61,7 +62,7 @@ const PasswordInput = forwardRef(
             accessibilityRole="button"
             accessibilityLabel={visible ? "Hide password" : "Show password"}
           >
-            <Icon name={visible ? "eye-off-outline" : "eye-outline"} size={22} color="#666" />
+            <MaterialCommunityIcons name={visible ? "eye-off-outline" : "eye-outline"} size={22} color="#666" />
           </TouchableOpacity>
         )}
       </View>

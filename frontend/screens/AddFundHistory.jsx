@@ -16,12 +16,13 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
-import GreenHeader from '../components/GreenHeader';
+import ThemeHeader from '../components/Header';
 import PaginationBar from '../components/PaginationBar';
 import EmptyState from '../components/EmptyState';
 
 import { AuthContext } from '../contexts/AuthContext';
 import { PaymentsContext } from '../contexts/PaymentsContext';
+import { ThemeColor } from '../contexts/Themes';
 
 const PAGE_SIZE = 10;
 
@@ -89,13 +90,13 @@ const Row = ({ label, value }) => (
   </View>
 );
 
-const DepositCard = ({ item, GREEN }) => {
+const DepositCard = ({ item, ThemeColor }) => {
   const amountNum = Number(item?.amount || 0) || 0;
   const dt = parseTxDateTime(item?.txDate, item?.txTime);
 
   return (
     <View style={styles.card}>
-      <View style={[styles.cardTop, { backgroundColor: GREEN }]}>
+      <View style={[styles.cardTop, { backgroundColor: ThemeColor }]}>
         <Text style={styles.cardTopLeft}>CREDIT</Text>
         <Text style={styles.cardTopRight}>₹{Math.abs(amountNum)}</Text>
       </View>
@@ -131,7 +132,7 @@ const AddFundHistory = () => {
   const { user } = useContext(AuthContext);
   const mobileNumber = user?.mobileNumber;
 
-  const { GREEN, deposits, isLoadingDeposits, loadDeposits } =
+  const { deposits, isLoadingDeposits, loadDeposits } =
     useContext(PaymentsContext);
 
   const [page, setPage] = useState(1);
@@ -192,11 +193,11 @@ const AddFundHistory = () => {
 
   return (
     <View style={styles.container}>
-      <GreenHeader title="Add Fund History" />
+      <ThemeHeader title="Add Fund History" />
 
       {isLoadingDeposits && sorted.length === 0 ? (
         <View style={styles.loaderWrap}>
-          <ActivityIndicator size="small" color={GREEN} />
+          <ActivityIndicator size="small" color={ThemeColor} />
           <Text style={styles.loaderText}>Loading...</Text>
         </View>
       ) : sorted.length === 0 ? (
@@ -207,7 +208,7 @@ const AddFundHistory = () => {
           keyExtractor={(item, idx) => makeKey(item, idx)}
           contentContainerStyle={styles.listContent}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          renderItem={({ item }) => <DepositCard item={item} GREEN={GREEN} />}
+          renderItem={({ item }) => <DepositCard item={item} ThemeColor={ThemeColor} />}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />

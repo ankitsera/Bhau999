@@ -19,13 +19,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import GreenHeader from '../components/GreenHeader';
+import ThemeHeader from '../components/Header';
 import PaginationBar from '../components/PaginationBar';
 
 import { AuthContext } from '../contexts/AuthContext';
 import { GameContext } from '../contexts/GameContext';
+import { ThemeColor } from '../contexts/Themes';
 
-const GREEN = '#3FA16C';
 const PAGE_SIZE = 8;
 
 const parseLocalDateTime = val => {
@@ -260,7 +260,7 @@ const BidHistory = () => {
   const [page, setPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
 
-  // ✅ Filter modal state (kept in-screen for now; later can move into GreenHeader)
+  // ✅ Filter modal state (kept in-screen for now; later can move into ThemeHeader)
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   // ✅ applied filters (these affect list)
@@ -419,9 +419,9 @@ const BidHistory = () => {
 
   return (
     <SafeAreaView style={styles.screen} edges={['bottom']}>
-      <GreenHeader title="Bid History" />
+      <ThemeHeader title="Bid History" />
 
-      {/* ✅ Filter button kept inside screen (later can move into GreenHeader) */}
+      {/* ✅ Filter button kept inside screen (later can move into ThemeHeader) */}
       <View style={styles.filterBar}>
         <Pressable style={styles.filterBtn} onPress={openFilter}>
           <View style={styles.filterBtnContent}>
@@ -450,7 +450,7 @@ const BidHistory = () => {
       <View style={styles.body}>
         {isLoadingBidHistory && sorted.length === 0 ? (
           <View style={styles.loaderWrap}>
-            <ActivityIndicator size="small" color={GREEN} />
+            <ActivityIndicator size="small" color={ThemeColor} />
             <Text style={styles.loaderText}>Loading...</Text>
           </View>
         ) : (
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
   },
   filterBtn: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     paddingHorizontal: 14,
     paddingVertical: 5,
     borderRadius: 10,
@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   filterBadgeText: {
-    color: GREEN,
+    color: ThemeColor,
     fontWeight: '900',
     fontSize: 12,
   },
@@ -671,7 +671,7 @@ const styles = StyleSheet.create({
   },
 
   cardTop: {
-    backgroundColor: '#3FA16C',
+    backgroundColor: ThemeColor,
     paddingVertical: 14,
     paddingHorizontal: 10,
     alignItems: 'center',

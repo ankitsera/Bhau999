@@ -12,8 +12,8 @@ import {
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import EmptyState from "../../components/EmptyState";
 import { GameContext } from "../../contexts/GameContext";
+import { ThemeColor } from "../../contexts/Themes";
 
-const GREEN = "#3FA16C";
 const RED = "#EF4B3E";
 
 const ClosedPopup = ({ visible, onClose }) => {
@@ -105,7 +105,7 @@ const GamesList = ({ navigation, refreshing, onRefresh }) => {
   if (isLoadingActiveGames) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={GREEN} />
+        <ActivityIndicator size="large" color={ThemeColor} />
       </View>
     );
   }
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   result: {
     fontSize: 22,
     fontWeight: "900",
-    color: GREEN,
+    color: ThemeColor,
   },
   timeRow: {
     flexDirection: "row",
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   modalOkBtn: {
     marginTop: 18,
     width: "75%",
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",

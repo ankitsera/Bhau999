@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
-
-const GREEN = "#3FA16C";
+import { ThemeColor } from "../../contexts/Themes";
 
 const SpecialModeGrid = ({ digits, pointsByDigit, onChangePoint }) => {
   const leftDigits = digits.filter((_, idx) => idx % 2 === 0);
@@ -51,7 +50,7 @@ const styles = StyleSheet.create({
   },
   digitBox: {
     width: 60,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     justifyContent: "center",
     alignItems: "center",
     borderTopLeftRadius: 6,

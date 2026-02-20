@@ -1,8 +1,8 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { ThemeColor } from "../../contexts/Themes";
 
-const GREEN = "#3FA16C";
 const DELETE_COL_W = 44; // keep header + rows aligned
 
 const EasyModeTable = ({ bets, onDelete, digitHeaderLabel = "Ank" }) => {
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: "row",
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     paddingVertical: 8,
     paddingHorizontal: 8,
     borderRadius: 6,
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     justifyContent: "center",
     alignItems: "center",
   },

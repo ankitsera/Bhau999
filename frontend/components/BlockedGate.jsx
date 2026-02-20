@@ -8,6 +8,7 @@ import {
   Pressable,
 } from 'react-native';
 import { AuthContext } from '../contexts/AuthContext';
+import { ThemeColor } from '../contexts/Themes';
 
 export default function BlockedGate({ visible, navigationRef }) {
   const { clearSession } = useContext(AuthContext);
@@ -97,7 +98,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3FA16C',
+    backgroundColor: ThemeColor,
   },
   btnDisabled: {
     opacity: 0.7,

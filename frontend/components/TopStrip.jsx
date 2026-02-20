@@ -16,9 +16,9 @@ import {
   getCallSupport,
   getWhatsappSupport,
 } from "../utils/AppConfigService";
+import { ThemeColor, ThemeColorTile } from "../contexts/Themes";
 
-const GREEN = "#3FA16C";
-const WHATSAPP = "#25D366";
+const WHATSAPP = ThemeColorTile;
 
 // kept as fallback initial values (helpers already have same defaults)
 const CONTACT_NUMBER = "7757033237";
@@ -150,7 +150,7 @@ const TopStrip = ({ navigation }) => {
           onPress={handleLuckyStarline}
         >
           <View style={styles.pillIcon}>
-            <MaterialCommunityIcons name="card-bulleted" size={22} color={GREEN} />
+            <MaterialCommunityIcons name="card-bulleted" size={22} color={ThemeColor} />
           </View>
           <Text style={styles.pillText}>Add Fund</Text>
         </TouchableOpacity>
@@ -161,7 +161,7 @@ const TopStrip = ({ navigation }) => {
           onPress={handleLuckyJackpot}
         >
           <View style={styles.pillIcon}>
-            <MaterialCommunityIcons name="card-minus" size={22} color={GREEN} />
+            <MaterialCommunityIcons name="card-minus" size={22} color={ThemeColor} />
           </View>
           <Text style={styles.pillText}>Withdraw Fund</Text>
         </TouchableOpacity>
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderRadius: 26,
     paddingVertical: 10,
     paddingHorizontal: 12,

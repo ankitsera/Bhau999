@@ -19,7 +19,7 @@ import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
 import { isValidBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
-const GREEN = "#3FA16C";
+import { ThemeColor } from '../../contexts/Themes';
 
 // Order is IMPORTANT: even indexes render left column, odd indexes render right column
 const RED_JODI_NUMBERS = [
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   specialSubmitButton: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderRadius: 6,
     paddingVertical: 12,
     alignItems: "center",

@@ -1,9 +1,11 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Appearance, useColorScheme } from 'react-native';
+import { lightColors, darkColors } from './Themes';
 
 const ThemeContext = createContext({
     isDarkMode: false,
     toggleTheme: () => {},
+    colors: lightColors,
   });
 
 export const ThemeProvider = ({ children }) => {
@@ -22,8 +24,10 @@ const toggleTheme = () => {
     setIsDarkMode((prevMode) => !prevMode);
 };
 
+const colors = isDarkMode ? darkColors : lightColors;
+
 return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
+    <ThemeContext.Provider value={{ isDarkMode, toggleTheme, colors }}>
     {children}
     </ThemeContext.Provider>
 );

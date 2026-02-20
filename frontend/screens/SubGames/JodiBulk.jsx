@@ -19,7 +19,7 @@ import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
-const GREEN = "#3FA16C";
+import { ThemeColor } from '../../contexts/Themes';
 
 const JodiBulk = ({ route }) => {
   const gameName = route?.params?.gameName || "GAME";
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   addButton: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     paddingVertical: 10,
     paddingHorizontal: 32,
     borderRadius: 6,

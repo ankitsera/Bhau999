@@ -26,7 +26,8 @@ import BettingClosedModal from '../../components/BettingClosedModal';
 import { useBettingGuard } from '../../utils/BettingGuard';
 import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
 
-const GREEN = '#3FA16C';
+import { ThemeColor } from '../../contexts/Themes';
+
 const BLACK = '#000';
 
 // 00..99 once
@@ -418,7 +419,7 @@ const JodiEasyForm = ({
 
 const ModeButton = ({ label, active, onPress }) => (
   <TouchableOpacity
-    style={[modeStyles.button, { backgroundColor: active ? BLACK : GREEN }]}
+    style={[modeStyles.button, { backgroundColor: active ? BLACK : ThemeColor }]}
     activeOpacity={0.85}
     onPress={onPress}
   >
@@ -485,7 +486,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   specialSubmitButton: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderRadius: 6,
     paddingVertical: 12,
     alignItems: 'center',
@@ -561,7 +562,7 @@ const formStyles = StyleSheet.create({
     marginTop: 12,
     height: 44,
     borderRadius: 6,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     justifyContent: 'center',
     alignItems: 'center',
     width: 180,

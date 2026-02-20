@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Share, Alert } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import GreenHeader from '../../components/GreenHeader';
+import ThemeHeader from '../../components/Header';
 
 const APK_URL = 'http://admina1online.cloud/apk/app-release.apk';
 
@@ -25,7 +25,7 @@ export default function ShareApp({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <GreenHeader title="Share App" />
+      <ThemeHeader title="Share App" />
       <Text style={styles.sub}>
         Send the download link on WhatsApp / Telegram / anywhere.
       </Text>

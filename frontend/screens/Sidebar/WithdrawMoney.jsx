@@ -24,8 +24,7 @@ import {
   getWithdrawalTimeEnd,
   getMinimumWithdrawalAmount,
 } from '../../utils/AppConfigService';
-
-const GREEN = '#3FA16C';
+import { ThemeColor, ThemeIconBg } from '../../contexts/Themes';
 
 function isWithinWithdrawalWindow(now = new Date(), open, close) {
   const start = new Date(now);
@@ -223,7 +222,7 @@ const WithdrawMoney = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* GREEN HEADER (inline) */}
+      {/* ThemeColor HEADER (inline) */}
       <View style={[styles.headerRoot, { paddingTop: insets.top }]}>
         <View style={styles.headerBg} />
         <View style={styles.headerRow}>
@@ -281,7 +280,7 @@ const WithdrawMoney = ({ navigation }) => {
               <Text style={styles.helpText}>Call</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.helpBtn} onPress={openWhatsapp}>
-              <MaterialCommunityIcons name="whatsapp" size={20} color={GREEN} />
+              <MaterialCommunityIcons name="whatsapp" size={20} color={ThemeColor} />
               <Text style={styles.helpText}>Whatsapp</Text>
             </TouchableOpacity>
           </View>
@@ -293,7 +292,7 @@ const WithdrawMoney = ({ navigation }) => {
               <MaterialCommunityIcons
                 name="bank-outline"
                 size={22}
-                color={GREEN}
+                color={ThemeColor}
               />
             </View>
             <TextInput
@@ -431,7 +430,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 90,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,
   },
@@ -551,7 +550,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: GREEN,
+    borderColor: ThemeColor,
     borderRadius: 40,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -562,7 +561,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#e9f8f0',
+    backgroundColor: ThemeIconBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
@@ -581,7 +580,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bottomBtn: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     width: '92%',
     borderRadius: 30,
     paddingVertical: 14,
@@ -609,7 +608,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalPrimaryBtn: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -684,7 +683,7 @@ const styles = StyleSheet.create({
   },
   tncTitle: {
     textAlign: 'center',
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     color: '#fff',
     fontWeight: '800',
     fontSize: 18,

@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import PasswordInput from '../../components/PasswordInput';
 import { AuthContext } from '../../contexts/AuthContext';
+import { ThemeColor } from '../../contexts/Themes';
 
 const Signup = ({ navigation, route }) => {
   const { signup } = useContext(AuthContext);
@@ -24,7 +25,7 @@ const Signup = ({ navigation, route }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  //To make border green on focus
+  //To make border match theme color on focus
   const [uFocused, setUFocused] = useState(false);
 
   const handleRegister = () => {
@@ -78,7 +79,7 @@ const Signup = ({ navigation, route }) => {
           <MaterialCommunityIcons
             name="cellphone"
             size={22}
-            color="#00A86B"
+            color={ThemeColor}
             style={styles.leftIcon}
           />
           <TextInput
@@ -97,7 +98,7 @@ const Signup = ({ navigation, route }) => {
           <MaterialCommunityIcons
             name="account-outline"
             size={22}
-            color="#00A86B"
+            color={ThemeColor}
             style={styles.leftIcon}
           />
           <TextInput
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 0,
-    backgroundColor: '#3FA16C',
+    backgroundColor: ThemeColor,
   },
 
   // ----- Content Card -----
@@ -202,7 +203,7 @@ const styles = StyleSheet.create({
   },
   inputFocused: {
     borderWidth: 1,
-    borderColor: '#00A86B',
+    borderColor: ThemeColor,
   },
   leftIcon: { marginRight: 8 },
   input: {
@@ -213,7 +214,7 @@ const styles = StyleSheet.create({
   },
 
   registerButton: {
-    backgroundColor: '#3FA16C',
+    backgroundColor: ThemeColor,
     borderRadius: 25,
     paddingVertical: 12,
     width: '85%',

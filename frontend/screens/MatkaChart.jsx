@@ -11,11 +11,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
-import GreenHeader from '../components/GreenHeader';
+import ThemeHeader from '../components/Header';
 import EmptyState from '../components/EmptyState';
 import { GameContext } from '../contexts/GameContext';
-
-const GREEN = '#3FA16C';
+import { ThemeColor } from '../contexts/Themes';
 
 const Row = ({ name, onPanel }) => {
   return (
@@ -62,12 +61,12 @@ const MatkaChart = () => {
 
   return (
     <SafeAreaView style={styles.screen} edges={['bottom']}>
-      <GreenHeader title="Game Chart List" />
+      <ThemeHeader title="Game Chart List" />
 
       <View style={styles.body}>
         {isLoadingActiveGames && list.length === 0 ? (
           <View style={styles.loaderWrap}>
-            <ActivityIndicator size="small" color={GREEN} />
+            <ActivityIndicator size="small" color={ThemeColor} />
             <Text style={styles.loaderText}>Loading...</Text>
           </View>
         ) : (
@@ -153,7 +152,7 @@ const styles = StyleSheet.create({
   },
 
   btn: {
-    backgroundColor: '#3FA16C',
+    backgroundColor: ThemeColor,
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 8,

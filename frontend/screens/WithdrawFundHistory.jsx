@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
-import GreenHeader from '../components/GreenHeader';
+import ThemeHeader from '../components/Header';
 import PaginationBar from '../components/PaginationBar';
 import EmptyState from '../components/EmptyState';
 
@@ -197,7 +197,7 @@ const WithdrawFundHistory = () => {
 
   return (
     <View style={styles.container}>
-      <GreenHeader title="Withdraw Fund History" />
+      <ThemeHeader title="Withdraw Fund History" />
 
       {isLoadingWithdrawals && sorted.length === 0 ? (
         <View style={styles.loaderWrap}>

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Switch } from "react-native";
-import GreenHeader from "../../components/GreenHeader";
-
-const GREEN = "#3FA16C";
+import ThemeHeader from "../../components/Header";
+import { ThemeColor, ThemeIconBg } from "../../contexts/Themes";
 
 const Row = ({ label, value, onChange }) => (
   <View style={styles.row}>
@@ -10,8 +9,8 @@ const Row = ({ label, value, onChange }) => (
     <Switch
       value={value}
       onValueChange={onChange}
-      trackColor={{ false: "#d6d6d6", true: "#bfe8cf" }}
-      thumbColor={value ? GREEN : "#f4f3f4"}
+      trackColor={{ false: "#d6d6d6", true: ThemeIconBg }}
+      thumbColor={value ? ThemeColor : "#f4f3f4"}
     />
   </View>
 );
@@ -31,7 +30,7 @@ const Settings = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <GreenHeader title="Setting" />
+      <ThemeHeader title="Setting" />
       <View style={styles.card}>
         <View style={styles.banner}><Text style={styles.bannerText}>Notification Setting</Text></View>
 
@@ -66,7 +65,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
   },
   banner: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     margin: 12,
     borderRadius: 8,
     paddingVertical: 10,

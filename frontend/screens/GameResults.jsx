@@ -10,11 +10,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 
-import GreenHeader from "../components/GreenHeader";
+import ThemeHeader from "../components/Header";
 import EmptyState from "../components/EmptyState";
 import { GameContext } from "../contexts/GameContext";
-
-const GREEN = "#3FA16C";
+import { ThemeColor } from "../contexts/Themes";
 
 const sumDigitsMod10 = (val) => {
   if (val === null || val === undefined) return null;
@@ -79,12 +78,12 @@ const GameResults = () => {
 
   return (
     <SafeAreaView style={styles.screen} edges={["bottom"]}>
-      <GreenHeader title="Market Result History" />
+      <ThemeHeader title="Market Result History" />
 
       <View style={styles.body}>
         {isLoadingActiveGames && list.length === 0 ? (
           <View style={styles.loaderWrap}>
-            <ActivityIndicator size="small" color={GREEN} />
+            <ActivityIndicator size="small" color={ThemeColor} />
             <Text style={styles.loaderText}>Loading...</Text>
           </View>
         ) : list.length === 0 ? (
@@ -157,7 +156,7 @@ const styles = StyleSheet.create({
   gameName: {
     flex: 1,
     marginRight: 12,
-    color: GREEN,
+    color: ThemeColor,
     fontWeight: "900",
     fontSize: 16,
     letterSpacing: 0.3,

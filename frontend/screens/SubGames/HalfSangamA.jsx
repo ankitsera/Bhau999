@@ -21,7 +21,7 @@ import BettingClosedModal from '../../components/BettingClosedModal';
 import { useBettingGuard } from '../../utils/BettingGuard';
 import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
 
-const GREEN = '#3FA16C';
+import { ThemeColor } from '../../contexts/Themes';
 
 const HalfSangamA = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     height: 44,
     borderRadius: 6,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     justifyContent: 'center',
     alignItems: 'center',
     width: 180,
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     marginTop: 14,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderRadius: 6,
     paddingVertical: 12,
     paddingHorizontal: 12,
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     height: 70,
     borderTopWidth: 1,
     borderTopColor: '#D9D9D9',
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,

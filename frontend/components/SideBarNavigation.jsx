@@ -12,11 +12,11 @@ import { AuthContext } from '../contexts/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Share, Alert } from 'react-native';
 import { getShareUrl } from '../utils/AppConfigService';
-
-const GREEN = '#3FA16C';
+import { useTheme } from '../contexts/ThemeContext';
 
 const SideBarNavigation = ({ navigation, closeSidebar }) => {
   const { user, logout } = useContext(AuthContext);
+  const { isDarkMode, toggleTheme, colors } = useTheme();
 
   const menuItems = [
     { name: 'Home', icon: 'home' },
@@ -32,6 +32,7 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
     { name: 'Notice board / Rules', icon: 'rule' },
     { name: 'Settings', icon: 'settings' },
     { name: 'Share App', icon: 'share' },
+    { name: isDarkMode ? 'Light Mode' : 'Dark Mode', icon: isDarkMode ? 'light-mode' : 'dark-mode' },
     { name: 'Logout', icon: 'logout' },
   ];
 
@@ -49,7 +50,7 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
 
       const message =
         `Download the latest SARA777 app from here:\n${link}\n\n` +
-        `Then tap Download and install.\nIf it asks, allow “Install unknown apps”.`;
+        `Then tap Download and install.\nIf it asks, allow "Install unknown apps".`;
 
       await Share.share({ message });
     } catch (e) {
@@ -59,6 +60,13 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
 
   const handleSidebarClick = async menu => {
     closeSidebar();
+    
+    // Handle theme toggle
+    if (menu === 'Light Mode' || menu === 'Dark Mode') {
+      toggleTheme();
+      return;
+    }
+    
     if(menu === 'Logout'){
       logout(navigation);
       return;
@@ -74,36 +82,36 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
 
   const renderMenuItem = ({ item }) => (
     <View>
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: colors.divider }]} />
       <TouchableOpacity
         style={styles.menuItem}
         activeOpacity={0.7}
         onPress={() => handleSidebarClick(item.name)}
       >
-        <View style={styles.iconCircle}>
+        <View style={[styles.iconCircle, { backgroundColor: colors.primary }]}>
           <MaterialIcons name={item.icon} size={20} color="#fff" />
         </View>
-        <Text style={styles.menuText}>{item.name}</Text>
+        <Text style={[styles.menuText, { color: colors.text }]}>{item.name}</Text>
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar backgroundColor="#fff" barStyle="dark-content" />
-      <View style={styles.container}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+      <StatusBar backgroundColor={colors.background} barStyle={isDarkMode ? "light-content" : "dark-content"} />
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* ---------- USER INFO SECTION ---------- */}
-        <View style={styles.userSection}>
-          <View style={styles.userCircle}>
+        <View style={[styles.userSection, { backgroundColor: colors.background }]}>
+          <View style={[styles.userCircle, { backgroundColor: colors.primary }]}>
             <MaterialIcons name="person" size={24} color="#fff" />
           </View>
 
           <View style={styles.userInfo}>
-            <Text style={styles.username}>{user?.username || 'User'}</Text>
-            <Text style={styles.mobile}>
+            <Text style={[styles.username, { color: colors.text }]}>{user?.username || 'User'}</Text>
+            <Text style={[styles.mobile, { color: colors.textSecondary }]}>
               {user?.mobileNumber || '9999999999'}
             </Text>
-            <Text style={styles.since}>
+            <Text style={[styles.since, { color: colors.textTertiary }]}>
               Since{' '}
               {user?.dateSignup
                 ? user.dateSignup.slice(0, 10).split('-').reverse().join('/')
@@ -112,7 +120,7 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
           </View>
 
           <TouchableOpacity onPress={closeSidebar} style={styles.closeBtn}>
-            <MaterialIcons name="close" size={25} color="red" />
+            <MaterialIcons name="close" size={25} color={colors.error} />
           </TouchableOpacity>
         </View>
 
@@ -135,19 +143,16 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
 const styles = StyleSheet.create({
   safeArea:{
     flex: 1,
-    backgroundColor: "#fff",
   },
 
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
 
   // --- USER SECTION ---
   userSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     paddingVertical: 15,
     paddingHorizontal: 15,
   },
@@ -155,7 +160,6 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 30,
-    backgroundColor: GREEN,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -164,7 +168,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: GREEN,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -175,16 +178,13 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000',
   },
   mobile: {
     fontSize: 14,
-    color: '#333',
     marginTop: 1,
   },
   since: {
     fontSize: 13,
-    color: '#607d8b',
     marginTop: 2,
   },
   closeBtn: {
@@ -203,11 +203,9 @@ const styles = StyleSheet.create({
   },
   menuText: {
     fontSize: 15.5,
-    color: '#000',
   },
   divider: {
     height: 1,
-    backgroundColor: '#000',
     opacity: 0.2,
   },
 });

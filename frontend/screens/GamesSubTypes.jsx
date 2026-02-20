@@ -5,11 +5,11 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 
 import SubGameTile from "../components/games/SubGameTile";
 import { SUB_GAME_TYPES } from "../data/SubGameType";
-import GreenHeader from "../components/GreenHeader";
+import ThemeHeader from "../components/Header";
 import EmptyState from "../components/EmptyState";
 import { GameContext } from "../contexts/GameContext";
+import { ThemeColor } from "../contexts/Themes";
 
-const GREEN = "#3FA16C";
 const RED = "#EF4B3E";
 
 const ClosedPopup = ({ visible, onClose }) => {
@@ -112,8 +112,8 @@ const GamesSubTypes = () => {
   if (isLoadingActiveGames && !game) {
     return (
       <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <StatusBar barStyle="light-content" backgroundColor={GREEN} />
-        <GreenHeader title={title} />
+        <StatusBar barStyle="light-content" backgroundColor={ThemeColor} />
+        <ThemeHeader title={title} />
         <Text style={{ marginTop: 16, color: "#666", fontWeight: "700" }}>Loading...</Text>
       </View>
     );
@@ -121,8 +121,8 @@ const GamesSubTypes = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={GREEN} />
-      <GreenHeader title={title} />
+      <StatusBar barStyle="light-content" backgroundColor={ThemeColor} />
+      <ThemeHeader title={title} />
 
       <ClosedPopup
         visible={showClosedModal}
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   modalOkBtn: {
     marginTop: 18,
     width: "75%",
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",

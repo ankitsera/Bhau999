@@ -21,7 +21,7 @@ import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
-const GREEN = "#3FA16C";
+import { ThemeColor } from '../../contexts/Themes';
 
 const normalizePana = (v) =>
   String(v || "")
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     height: 44,
     borderRadius: 6,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     justifyContent: "center",
     alignItems: "center",
     width: 180,
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
 
   tableHeader: {
     marginTop: 16,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderRadius: 6,
     flexDirection: "row",
     paddingVertical: 12,
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 10,
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   submitBtn: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderRadius: 6,
     height: 52,
     justifyContent: "center",

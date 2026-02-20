@@ -3,10 +3,9 @@ import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
+import { ThemeColor } from "../contexts/Themes";
 
-const GREEN = "#3FA16C";
-
-const GreenHeader = ({ title = "" }) => {
+const ThemeHeader = ({ title = "" }) => {
   const { top } = useSafeAreaInsets();
   const navigation = useNavigation();
 
@@ -32,7 +31,7 @@ const GreenHeader = ({ title = "" }) => {
   );
 };
 
-export default GreenHeader;
+export default ThemeHeader;
 
 const styles = StyleSheet.create({
   root: { 
@@ -42,7 +41,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0, left: 0, right: 0,
     height: 90,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,
   },

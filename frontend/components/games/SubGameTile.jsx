@@ -1,7 +1,6 @@
 import React from "react";
 import { TouchableOpacity, View, Text, StyleSheet, Image } from "react-native";
-
-const GREEN = "#3FA16C";
+import { ThemeColor } from "../../contexts/Themes";
 
 const SubGameTile = ({ label, image, onPress }) => {
   return (

@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { ThemeColor } from "../contexts/Themes";
 
 const STATUS_COLORS = {
   pending: "#F29F05",

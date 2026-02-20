@@ -11,11 +11,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute } from "@react-navigation/native";
 
-import GreenHeader from "../components/GreenHeader";
+import ThemeHeader from "../components/Header";
 import EmptyState from "../components/EmptyState";
 import { GameContext } from "../contexts/GameContext";
-
-const GREEN = "#3FA16C";
+import { ThemeColor, ThemeColorTile } from "../contexts/Themes";
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -207,12 +206,12 @@ const GameChartPanel = () => {
 
   return (
     <SafeAreaView style={styles.screen} edges={["bottom"]}>
-      <GreenHeader title={`${gameName || "GAME"} CHART`} />
+      <ThemeHeader title={`${gameName || "GAME"} CHART`} />
 
       <View style={styles.body}>
         {isLoadingGameHistory && weeks.length === 0 ? (
           <View style={styles.loaderWrap}>
-            <ActivityIndicator size="small" color={GREEN} />
+            <ActivityIndicator size="small" color={ThemeColor} />
             <Text style={styles.loaderText}>Loading...</Text>
           </View>
         ) : weeks.length === 0 ? (
@@ -260,7 +259,7 @@ const styles = StyleSheet.create({
 
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: "#F3B300", // close to your screenshot header vibe
+    backgroundColor: ThemeColorTile, // close to your screenshot header vibe
     borderRadius: 6,
     overflow: "hidden",
   },

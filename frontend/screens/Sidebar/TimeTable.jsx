@@ -9,11 +9,10 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
-import GreenHeader from '../../components/GreenHeader';
+import ThemeHeader from '../../components/Header';
 import EmptyState from '../../components/EmptyState';
 import { GameContext } from '../../contexts/GameContext';
-
-const GREEN = '#3FA16C';
+import { ThemeColor } from '../../contexts/Themes';
 
 /** --- Row component --- */
 const TimeRow = ({ gameName, openTime, closeTime }) => (
@@ -62,11 +61,11 @@ const TimeTable = () => {
 
   return (
     <View style={styles.container}>
-      <GreenHeader title="Time Table" />
+      <ThemeHeader title="Time Table" />
 
       {isLoadingAllGames && (!allGamesUi || allGamesUi.length === 0) ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={GREEN} />
+          <ActivityIndicator size="large" color={ThemeColor} />
         </View>
       ) : !allGamesUi || allGamesUi.length === 0 ? (
         <View style={styles.center}>
@@ -102,9 +101,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F3F3',
   },
 
-  // Top GREEN chip (column headers)
+  // Top ThemeColor chip (column headers)
   headerChip: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,

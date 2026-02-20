@@ -23,8 +23,7 @@ import {
   getBankingName,
   getMinimumDepositAmount,
 } from '../../utils/AppConfigService';
-
-const GREEN = '#3FA16C';
+import { ThemeColor, ThemeIconBg } from '../../contexts/Themes';
 
 const AddMoney = ({ navigation }) => {
   const { user } = useContext(AuthContext);
@@ -130,7 +129,7 @@ const AddMoney = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {/* GREEN HEADER (inline) */}
+      {/* ThemeColor HEADER (inline) */}
       <View style={[styles.headerRoot, { paddingTop: insets.top }]}>
         <View style={styles.headerBg} />
         <View style={styles.headerRow}>
@@ -183,7 +182,7 @@ const AddMoney = ({ navigation }) => {
               <Text style={styles.helpText}>Call</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.helpBtn} onPress={openWhatsapp}>
-              <MaterialCommunityIcons name="whatsapp" size={20} color={GREEN} />
+              <MaterialCommunityIcons name="whatsapp" size={20} color={ThemeColor} />
               <Text style={styles.helpText}>Whatsapp</Text>
             </TouchableOpacity>
           </View>
@@ -195,7 +194,7 @@ const AddMoney = ({ navigation }) => {
               <MaterialCommunityIcons
                 name="bank-outline"
                 size={22}
-                color={GREEN}
+                color={ThemeColor}
               />
             </View>
             <TextInput
@@ -221,7 +220,7 @@ const AddMoney = ({ navigation }) => {
                   style={[
                     styles.presetBtn,
                     selected && {
-                      borderColor: GREEN,
+                      borderColor: ThemeColor,
                       backgroundColor: '#e9f8f0',
                     },
                     payLoading && { opacity: 0.6 },
@@ -230,7 +229,7 @@ const AddMoney = ({ navigation }) => {
                   <Text
                     style={[
                       styles.presetText,
-                      selected && { color: GREEN, fontWeight: '700' },
+                      selected && { color: ThemeColor, fontWeight: '700' },
                     ]}
                   >
                     {v}
@@ -276,7 +275,7 @@ export const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 90,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,
   },
@@ -396,7 +395,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: GREEN,
+    borderColor: ThemeColor,
     borderRadius: 40,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -407,7 +406,7 @@ export const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#e9f8f0',
+    backgroundColor: ThemeIconBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
@@ -446,7 +445,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bottomBtn: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     width: '92%',
     borderRadius: 30,
     paddingVertical: 14,

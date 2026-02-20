@@ -1,5 +1,46 @@
 import { StyleSheet } from 'react-native';
 
+// Global Theme Colors
+export const ThemeColor = '#b07312';
+export const ThemeColorTile = '#ca9034';
+export const ThemeIconBg = '#f1e6d5';
+
+// Light Mode Colors Palette
+export const lightColors = {
+  primary: '#b07312',
+  primaryTile: '#ca9034',
+  primaryIconBg: '#f1e6d5',
+  background: '#ffffff',
+  surface: '#f5f5f5',
+  text: '#000000',
+  textSecondary: '#333333',
+  textTertiary: '#666666',
+  border: '#e0e0e0',
+  divider: '#d6d6d6',
+  error: '#EF4B3E',
+  warning: '#ff9800',
+  success: '#4caf50',
+  infoText: '#0d0d0d',
+};
+
+// Dark Mode Colors Palette
+export const darkColors = {
+  primary: '#b07312',
+  primaryTile: '#ca9034',
+  primaryIconBg: '#3a2f1f',
+  background: '#0a0a0a',
+  surface: '#1a1a1a',
+  text: '#ffffff',
+  textSecondary: '#cccccc',
+  textTertiary: '#999999',
+  border: '#333333',
+  divider: '#2a2a2a',
+  error: '#EF4B3E',
+  warning: '#ff9800',
+  success: '#4caf50',
+  infoText: '#e0e0e0',
+};
+
 export const lightTheme = StyleSheet.create({
   container: {
     flex: 1,

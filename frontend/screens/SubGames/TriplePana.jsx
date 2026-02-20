@@ -21,7 +21,7 @@ import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
-const GREEN = "#3FA16C";
+import { ThemeColor } from '../../contexts/Themes';
 
 const TriplePana = ({ route }) => {
   const gameName = route?.params?.gameName || 'GAME';
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   submitBtn: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderRadius: 6,
     paddingVertical: 12,
     alignItems: "center",

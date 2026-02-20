@@ -11,6 +11,10 @@ import { AppState } from "react-native";
 import { checkUpdateIfDue } from "./utils/UpdateService";
 import UpdateGate from "./components/UpdateGate";
 import BlockedGate from "./components/BlockedGate";
+import NotificationGate from "./components/NotificationGate";
+
+// ✅ ADD THIS
+import { NotificationsProvider } from "./contexts/NotificationsContext";
 
 function AppInner() {
   const navigationRef = useRef(null);
@@ -23,7 +27,6 @@ function AppInner() {
   const [apkUrl, setApkUrl] = useState(null);
 
   const runCheck = async () => {
-    // priority to blocked gate
     if (isBlocked) return;
 
     try {
@@ -33,15 +36,14 @@ function AppInner() {
       setUpdateAvailable(!!res.updateAvailable);
       setCompulsoryUpdate(!!res.compulsoryUpdate);
       setApkUrl(res?.apkUrl || null);
-
-      // reset dismissal when a fresh check happens
       setOptionalDismissed(false);
     } catch (e) {
       console.log("Update check error:", e?.message);
     }
   };
 
-  const showUpdateGate = !isBlocked && (compulsoryUpdate || (updateAvailable && !optionalDismissed));
+  const showUpdateGate =
+    !isBlocked && (compulsoryUpdate || (updateAvailable && !optionalDismissed));
 
   useEffect(() => {
     runCheck();
@@ -53,18 +55,18 @@ function AppInner() {
 
   return (
     <ThemeProvider>
-      <Navigation navigationRef={navigationRef} />
+      <NotificationGate>
+        <Navigation navigationRef={navigationRef} />
 
-      {/* Blocked gate takes priority */}
-      <BlockedGate visible={isBlocked} navigationRef={navigationRef} />
+        <BlockedGate visible={isBlocked} navigationRef={navigationRef} />
 
-      {/* Only show update gate if not blocked */}
-      <UpdateGate
-        visible={showUpdateGate}
-        compulsory={compulsoryUpdate}
-        onDismiss={() => setOptionalDismissed(true)}
-        apkUrl={apkUrl}
-      />
+        <UpdateGate
+          visible={showUpdateGate}
+          compulsory={compulsoryUpdate}
+          onDismiss={() => setOptionalDismissed(true)}
+          apkUrl={apkUrl}
+        />
+      </NotificationGate>
     </ThemeProvider>
   );
 }
@@ -73,13 +75,15 @@ function App() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <PaymentsProvider>
-          <GameProvider>
-            <AppConfigProvider>
-              <AppInner />
-            </AppConfigProvider>
-          </GameProvider>
-        </PaymentsProvider>
+        <NotificationsProvider>
+          <PaymentsProvider>
+            <GameProvider>
+              <AppConfigProvider>
+                <AppInner />
+              </AppConfigProvider>
+            </GameProvider>
+          </PaymentsProvider>
+        </NotificationsProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-
-const GREEN = "#3FA16C";
+import { ThemeColor } from "../../contexts/Themes";
 
 const BottomBetBar = ({
   bids,
@@ -74,7 +73,7 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   button: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderRadius: 6,
     paddingHorizontal: 22,
     paddingVertical: 9,

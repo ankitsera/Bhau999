@@ -15,7 +15,9 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import DynamicHeader from '../../components/DynamicHeader';
 import LuckyGamesCard from '../../components/games/LuckyGamesCard';
 
-const GREEN = '#3FA16C';
+import { ThemeColor } from '../../contexts/Themes';
+
+const GREEN = ThemeColor;
 const BG = '#F3F3F3';
 
 const LuckyStarline = ({ navigation }) => {

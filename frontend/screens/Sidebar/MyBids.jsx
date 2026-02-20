@@ -6,11 +6,10 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
-import GreenHeader from "../../components/GreenHeader";
+import ThemeHeader from "../../components/Header";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-
-const GREEN = "#3FA16C";
+import { ThemeColor } from "../../contexts/Themes";
 
 const ITEMS = [
   {
@@ -89,7 +88,7 @@ const Item = ({ item, navigation }) => (
 const MyBids = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <GreenHeader title="My Bids" />
+      <ThemeHeader title="My Bids" />
 
       <FlatList
         data={ITEMS}
@@ -132,7 +131,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,

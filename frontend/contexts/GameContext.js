@@ -16,8 +16,8 @@ import {
   getBidHistoryByUser as getBidHistoryByUserAPI,
   getGameHistory as getGameHistoryAPI,
 } from "../utils/GameService";
+import { ThemeColor } from "./Themes";
 
-const GREEN = "#3FA16C";
 const RED = "#EF4B3E";
 
 const initialState = {
@@ -259,7 +259,7 @@ const toActiveGameUi = (g) => {
     ? "Close is Running"
     : "Bet is Running";
 
-  const statusColor = isClosed ? RED : GREEN;
+  const statusColor = isClosed ? RED : ThemeColor;
   const iconName = isClosed ? "close" : "play";
 
   // normalize pana keys

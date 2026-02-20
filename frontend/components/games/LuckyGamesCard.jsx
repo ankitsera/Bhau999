@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ThemeColor } from '../../contexts/Themes';
 
-const GREEN = '#3FA16C';
+const GREEN = ThemeColor;
 const CARD_BORDER = '#D9D9D9';
 
 const LuckyGamesCard = ({

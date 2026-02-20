@@ -1,8 +1,8 @@
 import React from 'react';
 import { Modal, View, Pressable, Text, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ThemeColor } from '../contexts/Themes';
 
-const GREEN = '#3FA16C';
 const RED = '#EF4B3E';
 
 const BettingClosedModal = ({ visible, onClose }) => {
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   okBtn: {
     marginTop: 18,
     width: '75%',
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',

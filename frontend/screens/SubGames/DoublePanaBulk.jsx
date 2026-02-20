@@ -23,7 +23,8 @@ import BettingClosedModal from '../../components/BettingClosedModal';
 import { useBettingGuard } from '../../utils/BettingGuard';
 import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
 
-const GREEN = '#3FA16C';
+import { ThemeColor } from '../../contexts/Themes';
+
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']; // increasing order
 
 const DoublePanaBulk = ({ route }) => {
@@ -279,7 +280,7 @@ const styles = StyleSheet.create({
   digitTile: {
     width: '18%',
     aspectRatio: 1.3,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',

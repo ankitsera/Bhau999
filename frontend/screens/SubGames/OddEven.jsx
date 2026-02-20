@@ -22,7 +22,7 @@ import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
-const GREEN = "#3FA16C";
+import { ThemeColor } from '../../contexts/Themes';
 
 const ODD_DIGITS = ["1", "3", "5", "7", "9"];
 const EVEN_DIGITS = ["0", "2", "4", "6", "8"];
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     height: 44,
     borderRadius: 6,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     justifyContent: "center",
     alignItems: "center",
     width: 180,

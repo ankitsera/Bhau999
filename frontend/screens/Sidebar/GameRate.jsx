@@ -7,12 +7,11 @@ import {
   SectionList,
   ActivityIndicator,
 } from "react-native";
-import GreenHeader from "../../components/GreenHeader";
+import ThemeHeader from "../../components/Header";
 import EmptyState from "../../components/EmptyState";
 import { GameContext } from "../../contexts/GameContext";
 import { getMinBetAmount } from "../../utils/AppConfigService";
-
-const GREEN = "#3FA16C";
+import { ThemeColor } from "../../contexts/Themes";
 
 const SectionHeader = ({ title }) => (
   <View style={styles.sectionHeader}>
@@ -134,11 +133,11 @@ const GameRate = () => {
 
   return (
     <View style={styles.container}>
-      <GreenHeader title="Game Rate" />
+      <ThemeHeader title="Game Rate" />
 
       {isLoading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={GREEN} />
+          <ActivityIndicator size="large" color={ThemeColor} />
         </View>
       ) : sections.length === 0 ? (
         <EmptyState icon="chart-line-variant" message="NO RATE DATA FOUND" />
@@ -175,7 +174,7 @@ const styles = StyleSheet.create({
   },
 
   sectionHeader: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 12,

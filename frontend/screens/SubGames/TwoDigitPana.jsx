@@ -28,7 +28,7 @@ import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
-const GREEN = "#3FA16C";
+import { ThemeColor } from '../../contexts/Themes';
 
 // 00..99 suggestions by first digit: "3" -> ["30".."39"]
 const FIRST_DIGIT_MAP = Array.from({ length: 10 }, (_, d) => {
@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     height: 44,
     borderRadius: 6,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "flex-end",

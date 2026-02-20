@@ -27,7 +27,7 @@ import {
   fetchBetLimits,
 } from '../../utils/BetValidationService';
 
-const GREEN = '#3FA16C';
+import { ThemeColor } from '../../contexts/Themes';
 
 const hasDuplicateDigits = s => {
   const str = String(s || '');
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     height: 44,
     width: 180,
     borderRadius: 6,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'flex-end',

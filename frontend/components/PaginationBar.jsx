@@ -2,8 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-
-const GREEN = "#3FA16C";
+import { ThemeColor, ThemeColorTile } from "../contexts/Themes";
 
 const PaginationBar = ({
   page = 1,
@@ -93,7 +92,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   pageText: { 
-    color: "#12D279", 
+    color: ThemeColorTile, 
     fontWeight: "800", 
     fontSize: 16 
  },

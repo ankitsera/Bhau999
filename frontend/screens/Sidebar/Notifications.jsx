@@ -1,12 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import EmptyState from '../../components/EmptyState'
-import GreenHeader from '../../components/GreenHeader'
+import ThemeHeader from '../../components/Header'
 
 const Notifications = ({navigation}) => {
   return (
     <View style={styles.container}>
-      <GreenHeader title="Notifications" />
+      <ThemeHeader title="Notifications" />
       <EmptyState message='Notifications Not Found'/>
     </View>
   )

@@ -9,9 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { AuthContext } from '../../contexts/AuthContext';
-
-const GREEN = '#328555ff';
-const TILE_GREEN = '#41B773';
+import { ThemeColor, ThemeColorTile } from '../../contexts/Themes';
 
 const TileIcon = ({ name }) => (
   <View style={styles.tile}>
@@ -35,7 +33,7 @@ const Login = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Green header */}
+      {/* Theme header */}
       <View style={styles.headerBg} />
 
       {/* White rounded sheet */}
@@ -131,7 +129,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 0,
-    backgroundColor: '#3FA16C',
+    backgroundColor: ThemeColor,
   },
 
   card: {
@@ -183,14 +181,14 @@ const styles = StyleSheet.create({
   },
   inputFocused: {
     borderWidth: 1,
-    borderColor: GREEN,
+    borderColor: ThemeColor,
   },
 
   tile: {
     width: 56,
     height: 56,
     borderRadius: 14,
-    backgroundColor: TILE_GREEN,
+    backgroundColor: ThemeColorTile,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -208,7 +206,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: TILE_GREEN,
+    backgroundColor: ThemeColorTile,
     paddingVertical: 14,
     paddingHorizontal: 28,
     borderRadius: 36,

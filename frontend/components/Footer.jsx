@@ -7,8 +7,7 @@ import {
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-const GREEN = "#3FA16C";
+import { ThemeColor } from "../contexts/Themes";
 
 const Footer = ({ navigation, active = "Home", onSupportPress }) => {
   const insets = useSafeAreaInsets();
@@ -122,7 +121,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     alignItems: "center",
     justifyContent: "center",
     elevation: 8,

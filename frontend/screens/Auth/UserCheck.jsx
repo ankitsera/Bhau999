@@ -13,6 +13,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import Snackbar from "react-native-snackbar";
 import { AuthContext } from "../../contexts/AuthContext";
 import { getCallSupport, getWhatsappSupport } from "../../utils/AppConfigService";
+import { ThemeColor } from "../../contexts/Themes";
 
 const UserCheck = ({ navigation }) => {
   const [mobileNumber, setMobileNumber] = useState("");
@@ -78,7 +79,7 @@ const UserCheck = ({ navigation }) => {
 
   return (
     <SafeAreaProvider style={styles.container}>
-      {/* Green Header */}
+      {/* Theme Header */}
       <View style={styles.headerBg}></View>
 
       {/* Main Content */}
@@ -95,7 +96,7 @@ const UserCheck = ({ navigation }) => {
 
         {/* Input */}
         <View style={styles.inputContainer}>
-          <MaterialCommunityIcons name="cellphone" size={22} color="#00A86B" style={styles.icon} />
+          <MaterialCommunityIcons name="cellphone" size={22} color={ThemeColor} style={styles.icon} />
           <TextInput
             style={styles.input}
             placeholder="Phone Number"
@@ -171,7 +172,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 0,
-    backgroundColor: "#3FA16C",
+    backgroundColor: ThemeColor,
   },
 
   // ----- Content Card -----
@@ -225,7 +226,7 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   loginButton: {
-    backgroundColor: "#3FA16C",
+    backgroundColor: ThemeColor,
     borderRadius: 25,
     paddingVertical: 12,
     width: "85%",
@@ -275,6 +276,6 @@ const styles = StyleSheet.create({
   signUp: {
     fontSize: 17,
     fontWeight: "bold",
-    color: "#46936aff",
+    color: ThemeColor,
   },
 });

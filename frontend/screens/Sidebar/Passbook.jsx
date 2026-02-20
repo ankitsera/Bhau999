@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
-import GreenHeader from '../../components/GreenHeader';
+import ThemeHeader from '../../components/Header';
 import PaginationBar from '../../components/PaginationBar';
 import EmptyState from '../../components/EmptyState';
 
@@ -178,7 +178,7 @@ const Passbook = () => {
 
   return (
     <View style={styles.container}>
-      <GreenHeader title="Passbook" />
+      <ThemeHeader title="Passbook" />
 
       {isLoadingTransactions && sorted.length === 0 ? (
         <View style={styles.loaderWrap}>

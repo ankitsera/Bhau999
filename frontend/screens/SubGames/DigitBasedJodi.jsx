@@ -20,7 +20,7 @@ import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
-const GREEN = "#3FA16C";
+import { ThemeColor } from '../../contexts/Themes';
 
 const DIGIT_ROWS = [
   ["1", "2", "3", "4", "5"],
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 56,
     borderRadius: 6,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     justifyContent: "center",
     alignItems: "center",
     marginHorizontal: 6,

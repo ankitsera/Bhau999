@@ -27,8 +27,7 @@ import {
   getWhatsappSupport,
   getTelegramChannel,
 } from '../utils/AppConfigService';
-
-const GREEN = '#3FA16C';
+import { ThemeColor, ThemeIconBg } from '../contexts/Themes';
 
 const Header = ({ navigation }) => {
   const { user } = useContext(AuthContext);
@@ -299,7 +298,7 @@ const Home = ({ navigation }) => {
               <Text style={styles.quitTitle}>Quit</Text>
             </View>
             <View style={styles.quitIconCircle}>
-              <MaterialCommunityIcons name="run-fast" size={40} color={GREEN} />
+              <MaterialCommunityIcons name="run-fast" size={40} color={ThemeColor} />
             </View>
             <Text style={styles.quitText}>
               Are you sure you want to quit the app?
@@ -309,7 +308,7 @@ const Home = ({ navigation }) => {
                 style={[styles.quitBtn, styles.quitBtnGhost]}
                 onPress={() => setQuitVisible(false)}
               >
-                <Text style={[styles.quitBtnText, { color: GREEN }]}>No</Text>
+                <Text style={[styles.quitBtnText, { color: ThemeColor }]}>No</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.quitBtn, styles.quitBtnSolid]}
@@ -501,7 +500,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   quitHeader: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     width: '100%',
     paddingVertical: 12,
   },
@@ -516,7 +515,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#EAF7F0',
+    backgroundColor: ThemeIconBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -543,11 +542,11 @@ const styles = StyleSheet.create({
   },
   quitBtnGhost: {
     borderWidth: 2,
-    borderColor: GREEN,
+    borderColor: ThemeColor,
     backgroundColor: '#fff',
   },
   quitBtnSolid: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
   },
   quitBtnText: {
     fontSize: 16,

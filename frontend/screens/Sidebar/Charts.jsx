@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from "react-native";
-import GreenHeader from "../../components/GreenHeader";
+import ThemeHeader from "../../components/Header";
 import EmptyState from "../../components/EmptyState";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-
-const GREEN = "#3FA16C";
+import { ThemeColor } from "../../contexts/Themes";
 
 const ROWS = [
   {
@@ -60,7 +59,7 @@ const Charts = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <GreenHeader title="Game Chart" />
+      <ThemeHeader title="Game Chart" />
       {selectedId ? (
         <EmptyState
           icon="folder-alert-outline"
@@ -106,7 +105,7 @@ const styles = StyleSheet.create({
     width: 44, 
     height: 44, 
     borderRadius: 22,
-    backgroundColor: GREEN, 
+    backgroundColor: ThemeColor, 
     alignItems: "center", 
     justifyContent: "center",
     marginRight: 12,

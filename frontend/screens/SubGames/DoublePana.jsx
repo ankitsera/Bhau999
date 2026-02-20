@@ -33,8 +33,8 @@ import { placeBets, makeBet } from '../../utils/GameService';
 import BettingClosedModal from '../../components/BettingClosedModal';
 import { useBettingGuard } from '../../utils/BettingGuard';
 import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
+import { ThemeColor } from '../../contexts/Themes';
 
-const GREEN = '#3FA16C';
 const BLACK = '#000';
 
 const GROUP_KEYS = Object.keys(DOUBLE_PANA_BY_RESULT_DIGIT).sort(
@@ -451,7 +451,7 @@ const DoublePanaEasyForm = ({
 // ---------- mode button ----------
 const ModeButton = ({ label, active, onPress }) => (
   <TouchableOpacity
-    style={[modeStyles.button, { backgroundColor: active ? BLACK : GREEN }]}
+    style={[modeStyles.button, { backgroundColor: active ? BLACK : ThemeColor }]}
     activeOpacity={0.85}
     onPress={onPress}
   >
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F3F3',
   },
   specialSubmitButton: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     borderRadius: 6,
     paddingVertical: 12,
     alignItems: 'center',
@@ -606,7 +606,7 @@ const formStyles = StyleSheet.create({
     marginTop: 4,
     height: 44,
     borderRadius: 6,
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     justifyContent: 'center',
     alignItems: 'center',
     width: 180,

@@ -1,12 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import EmptyState from '../../components/EmptyState'
-import GreenHeader from '../../components/GreenHeader'
+import ThemeHeader from '../../components/Header'
 
 const HowToPlay = ({navigation}) => {
   return (
     <View style={styles.container}>
-      <GreenHeader title="How to Play" />
+      <ThemeHeader title="How to Play" />
       <EmptyState message='How to Play video coming soon...'/>
     </View>
   )

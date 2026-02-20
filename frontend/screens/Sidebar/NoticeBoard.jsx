@@ -6,7 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import GreenHeader from '../../components/GreenHeader';
+import ThemeHeader from '../../components/Header';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import EmptyState from '../../components/EmptyState';
 import {
@@ -16,8 +16,7 @@ import {
   getNoticeBoard4,
   getNoticeBoard5,
 } from '../../utils/AppConfigService';
-
-const GREEN = '#3FA16C';
+import { ThemeColor } from '../../contexts/Themes';
 
 const Section = ({ title, points }) => (
   <View style={styles.section}>
@@ -82,11 +81,11 @@ const NoticeBoard = () => {
 
   return (
     <View style={styles.container}>
-      <GreenHeader title="Notice Board" />
+      <ThemeHeader title="Notice Board" />
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={GREEN} />
+          <ActivityIndicator size="large" color={ThemeColor} />
         </View>
       ) : sections.length === 0 ? (
         <EmptyState icon="file-document-outline" message="NO NOTICES FOUND" />
@@ -125,7 +124,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   retryBtn: {
-    backgroundColor: GREEN,
+    backgroundColor: ThemeColor,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
