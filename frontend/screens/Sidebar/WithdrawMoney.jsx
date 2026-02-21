@@ -24,7 +24,7 @@ import {
   getWithdrawalTimeEnd,
   getMinimumWithdrawalAmount,
 } from '../../utils/AppConfigService';
-import { ThemeColor, ThemeIconBg } from '../../contexts/Themes';
+import { useTheme } from '../../contexts/ThemeContext';
 
 function isWithinWithdrawalWindow(now = new Date(), open, close) {
   const start = new Date(now);
@@ -46,6 +46,8 @@ function formatTime({ hour, minute }) {
 }
 
 const WithdrawMoney = ({ navigation }) => {
+  const { colors } = useTheme();
+
   const { user } = useContext(AuthContext);
   const { withdrawMoney, loading: payLoading } = useContext(PaymentsContext);
 
@@ -221,26 +223,26 @@ const WithdrawMoney = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* ThemeColor HEADER (inline) */}
       <View style={[styles.headerRoot, { paddingTop: insets.top }]}>
-        <View style={styles.headerBg} />
+        <View style={[styles.headerBg, { backgroundColor: colors.primary }]} />
         <View style={styles.headerRow}>
           <Pressable
             onPress={() => navigation.goBack()}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             style={{ paddingRight: 8, marginBottom: 15 }}
           >
-            <MaterialIcons name="arrow-back" size={26} color="#000" />
+            <MaterialIcons name="arrow-back" size={26} color={colors.text} />
           </Pressable>
-          <Text style={styles.headerTitle}>Withdrawal Fund</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Withdrawal Fund</Text>
           <View style={styles.walletRight}>
             <MaterialCommunityIcons
               name="wallet-outline"
               size={22}
-              color="#000"
+              color={colors.text}
             />
-            <Text style={styles.walletAmt}>
+            <Text style={[styles.walletAmt, { color: colors.text }]}>
               {user?.balance ? user.balance : '0.0'}
             </Text>
           </View>
@@ -252,54 +254,54 @@ const WithdrawMoney = ({ navigation }) => {
         contentContainerStyle={{ padding: 16, paddingBottom: 160 }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.card}>
-          <View style={styles.innerCard}>
-            <Text style={styles.name}>
+        <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
+          <View style={[styles.innerCard, { backgroundColor: colors.background, shadowColor: colors.text }]}>
+            <Text style={[styles.name, { color: colors.text }]}>
               {user?.username ? user.username : 'User'}
             </Text>
-            <Text style={styles.mobile}>
+            <Text style={[styles.mobile, { color: colors.textSecondary }]}>
               {user?.mobileNumber ? user.mobileNumber : 'User'}
             </Text>
 
-            <View style={styles.balanceStrip}>
-              <Text style={styles.balanceLabel}>Available Balance</Text>
-              <Text style={styles.balanceValue}>
-                ₹ {user?.balance ? user.balance : '0.0'}
-              </Text>
+            <View style={{ width: "70%", borderWidth: 1, borderColor: colors.divider }}></View>
+            <View style={[styles.balanceStrip, { backgroundColor: colors.background }]}>
+              <Text style={[styles.balanceLabel, { color: colors.text }]}>Available Balance</Text>
+              <Text style={[styles.balanceValue, { color: colors.text }]}>₹ {user?.balance ? user.balance : '0.0'}</Text>
+
             </View>
           </View>
 
-          <View style={styles.divider} />
-          <Text style={styles.helpTitle}>
+          <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+          <Text style={[styles.helpTitle, { color: colors.text }]}>
             For Fund Query's please Call Or Whatsapp
           </Text>
 
           <View style={styles.helpBtns}>
-            <TouchableOpacity style={styles.helpBtn} onPress={openDialer}>
-              <MaterialIcons name="call" size={20} color="#000" />
-              <Text style={styles.helpText}>Call</Text>
+            <TouchableOpacity style={[styles.helpBtn, { backgroundColor: colors.background, shadowColor: colors.text }]} onPress={openDialer}>
+              <MaterialIcons name="call" size={20} color={colors.text} />
+              <Text style={[styles.helpText, { color: colors.text }]}>Call</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.helpBtn} onPress={openWhatsapp}>
-              <MaterialCommunityIcons name="whatsapp" size={20} color={ThemeColor} />
-              <Text style={styles.helpText}>Whatsapp</Text>
+            <TouchableOpacity style={[styles.helpBtn, { backgroundColor: colors.background, shadowColor: colors.text }]} onPress={openWhatsapp}>
+              <MaterialCommunityIcons name="whatsapp" size={20} color={colors.primary} />
+              <Text style={[styles.helpText, { color: colors.text }]}>Whatsapp</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: colors.divider }]} />
 
           {/* amount input ONLY (no presets) */}
-          <View style={styles.amountInputWrap}>
-            <View style={styles.bankIcon}>
+          <View style={[styles.amountInputWrap, { borderColor: colors.primary, backgroundColor: colors.background }]}>
+            <View style={[styles.bankIcon, { backgroundColor: colors.primaryIconBg }]}>
               <MaterialCommunityIcons
                 name="bank-outline"
                 size={22}
-                color={ThemeColor}
+                color={colors.primary}
               />
             </View>
             <TextInput
               placeholder="Enter Amount"
-              placeholderTextColor="#777"
+              placeholderTextColor={colors.textTertiary}
               keyboardType="numeric"
-              style={styles.amountInput}
+              style={[styles.amountInput, { color: colors.text }]}
               value={amount}
               onChangeText={setAmount}
               editable={!payLoading}
@@ -309,14 +311,14 @@ const WithdrawMoney = ({ navigation }) => {
       </ScrollView>
 
       {/* BOTTOM CTA */}
-      <View style={[styles.bottomWrap, { paddingBottom: insets.bottom }]}>
+      <View style={[styles.bottomWrap, { paddingBottom: insets.bottom, backgroundColor: colors.background }]}>
         <TouchableOpacity
-          style={[styles.bottomBtn, isDisabled && { opacity: 0.6 }]}
+          style={[styles.bottomBtn, { backgroundColor: colors.primary, shadowColor: colors.text }, isDisabled && { opacity: 0.6 }]}
           onPress={handleWithdraw}
           disabled={isDisabled}
           activeOpacity={0.85}
         >
-          {payLoading ? <ActivityIndicator /> : <Text style={styles.bottomText}>Send Request</Text>}
+          {payLoading ? <ActivityIndicator color={colors.background} /> : <Text style={styles.bottomText}>Send Request</Text>}
         </TouchableOpacity>
       </View>
 
@@ -331,31 +333,31 @@ const WithdrawMoney = ({ navigation }) => {
         }}
       >
         <View style={styles.modalBackdrop}>
-          <View style={styles.closedCard}>
-            <View style={styles.modalIconCircle}>
+          <View style={[styles.closedCard, { backgroundColor: colors.background, shadowColor: colors.text }]}>
+            <View style={[styles.modalIconCircle, { backgroundColor: colors.surface }]}>
               <MaterialIcons name="close" size={36} color="#EF4444" />
             </View>
-            <Text style={styles.closedTitle}>
+            <Text style={[styles.closedTitle, { color: colors.text }]}>
               Cannot withdraw at this time.
             </Text>
-            <View style={styles.modalHr} />
+            <View style={[styles.modalHr, { backgroundColor: colors.divider }]} />
 
-            <Text style={styles.modalRow}>
-              <Text style={styles.modalLabel}>Open Time : </Text>
-              <Text style={styles.modalValue}>
+            <Text style={[styles.modalRow, { color: colors.text }]}>
+              <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Open Time : </Text>
+              <Text style={[styles.modalValue, { color: colors.text }]}>
                 {WITHDRAW_OPEN_CFG ? formatTime(WITHDRAW_OPEN_CFG) : '--:--'}
               </Text>
             </Text>
 
-            <Text style={[styles.modalRow, { marginBottom: 16 }]}>
-              <Text style={styles.modalLabel}>Close Time : </Text>
-              <Text style={styles.modalValue}>
+            <Text style={[styles.modalRow, { marginBottom: 16, color: colors.text }]}>
+              <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Close Time : </Text>
+              <Text style={[styles.modalValue, { color: colors.text }]}>
                 {WITHDRAW_CLOSE_CFG ? formatTime(WITHDRAW_CLOSE_CFG) : '--:--'}
               </Text>
             </Text>
 
             <TouchableOpacity
-              style={styles.modalPrimaryBtn}
+              style={[styles.modalPrimaryBtn, { backgroundColor: colors.primary }]}
               onPress={() => {
                 setShowClosedModal(false);
                 navigation.navigate('Home');
@@ -375,8 +377,8 @@ const WithdrawMoney = ({ navigation }) => {
         onRequestClose={() => setShowTncModal(false)}
       >
         <View style={styles.modalBackdrop}>
-          <View style={styles.tncCard}>
-            <Text style={styles.tncTitle}>Terms & Conditions</Text>
+          <View style={[styles.tncCard, { backgroundColor: colors.background, shadowColor: colors.text }]}>
+            <Text style={[styles.tncTitle, { backgroundColor: colors.primary }]}>Terms & Conditions</Text>
             <ScrollView
               style={{ maxHeight: 360 }}
               contentContainerStyle={{
@@ -398,7 +400,7 @@ const WithdrawMoney = ({ navigation }) => {
               <TncItem text="Confirm your bank details are correct; wrong details are not our responsibility." />
             </ScrollView>
             <TouchableOpacity
-              style={[styles.modalPrimaryBtn, { margin: 16 }]}
+              style={[styles.modalPrimaryBtn, { margin: 16, backgroundColor: colors.primary }]}
               onPress={() => setShowTncModal(false)}
             >
               <Text style={styles.modalPrimaryText}>ACCEPT</Text>
@@ -411,10 +413,12 @@ const WithdrawMoney = ({ navigation }) => {
 };
 
 function TncItem({ text }) {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.tncRow}>
-      <Text style={{ fontSize: 18, lineHeight: 22 }}>👍</Text>
-      <Text style={styles.tncText}>{text}</Text>
+      <Text style={[styles.tncBullet, { color: colors.text }]}>•</Text>
+      <Text style={[styles.tncText, { color: colors.text }]}>{text}</Text>
     </View>
   );
 }
@@ -422,7 +426,7 @@ function TncItem({ text }) {
 export default WithdrawMoney;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F3F3F3' },
+  container: { flex: 1 },
   headerRoot: { width: '100%' },
   headerBg: {
     position: 'absolute',
@@ -430,7 +434,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 90,
-    backgroundColor: ThemeColor,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,
   },
@@ -442,7 +445,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     flex: 1,
-    color: '#000',
     fontSize: 24,
     fontWeight: '600',
     marginLeft: 6,
@@ -455,27 +457,22 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   walletAmt: {
-    color: '#000',
     fontSize: 22,
   },
 
   card: {
-    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 14,
     elevation: 6,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
   },
   innerCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
     elevation: 3,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -484,39 +481,32 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000',
   },
   mobile: {
     fontSize: 16,
-    color: '#000',
     marginBottom: 10,
   },
   balanceStrip: {
     width: '100%',
-    backgroundColor: '#111',
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: 'center',
   },
   balanceLabel: {
-    color: '#fff',
     fontSize: 15,
     marginBottom: 4,
   },
   balanceValue: {
-    color: '#fff',
     fontSize: 18,
     fontWeight: '700',
   },
 
   divider: {
     height: 2,
-    backgroundColor: '#00000033',
     marginVertical: 10,
   },
   helpTitle: {
     textAlign: 'center',
-    color: '#000',
     fontWeight: '700',
     marginBottom: 8,
   },
@@ -529,12 +519,10 @@ const styles = StyleSheet.create({
   helpBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     borderRadius: 22,
     paddingVertical: 8,
     paddingHorizontal: 16,
     elevation: 3,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
@@ -543,25 +531,21 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     fontSize: 15,
     fontWeight: '600',
-    color: '#000',
   },
 
   amountInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: ThemeColor,
     borderRadius: 40,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    backgroundColor: '#fff',
     marginTop: 6,
   },
   bankIcon: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: ThemeIconBg,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 8,
@@ -569,18 +553,15 @@ const styles = StyleSheet.create({
   amountInput: {
     flex: 1,
     fontSize: 16,
-    color: '#000',
   },
   bottomWrap: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#fff',
     alignItems: 'center',
   },
   bottomBtn: {
-    backgroundColor: ThemeColor,
     width: '92%',
     borderRadius: 30,
     paddingVertical: 14,
@@ -588,7 +569,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 6,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
@@ -608,7 +588,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalPrimaryBtn: {
-    backgroundColor: ThemeColor,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
@@ -620,34 +599,28 @@ const styles = StyleSheet.create({
   },
   modalHr: {
     height: 1,
-    backgroundColor: '#00000014',
     marginVertical: 12,
   },
   modalRow: {
     textAlign: 'center',
     fontSize: 16,
-    color: '#000',
     marginBottom: 4,
   },
   modalLabel: {
     fontSize: 16,
-    color: '#111',
   },
   modalValue: {
     fontSize: 16,
-    color: '#000',
     fontWeight: '800',
   },
 
   // Closed (out-of-hours) card
   closedCard: {
     width: '100%',
-    backgroundColor: '#fff',
     borderRadius: 20,
     paddingVertical: 18,
     paddingHorizontal: 16,
     elevation: 8,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -657,14 +630,12 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#FFECEC',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
   closedTitle: {
     textAlign: 'center',
-    color: '#ef4444',
     fontWeight: '700',
     fontSize: 16,
   },
@@ -672,18 +643,15 @@ const styles = StyleSheet.create({
   // T&C card
   tncCard: {
     width: '100%',
-    backgroundColor: '#fff',
     borderRadius: 20,
     overflow: 'hidden',
     elevation: 8,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
   },
   tncTitle: {
     textAlign: 'center',
-    backgroundColor: ThemeColor,
     color: '#fff',
     fontWeight: '800',
     fontSize: 18,
@@ -695,10 +663,15 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 10,
   },
+  tncBullet: {
+    fontSize: 18,
+    lineHeight: 22,
+    fontWeight: '900',
+  },
   tncText: {
     flex: 1,
-    color: '#000',
     fontSize: 15,
     lineHeight: 22,
+    fontWeight: '700',
   },
 });

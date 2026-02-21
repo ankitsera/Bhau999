@@ -16,13 +16,13 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
-import ThemeHeader from '../components/Header';
+import ThemeHeader from '../components/ThemeHeader';
 import PaginationBar from '../components/PaginationBar';
 import EmptyState from '../components/EmptyState';
 
 import { AuthContext } from '../contexts/AuthContext';
 import { PaymentsContext } from '../contexts/PaymentsContext';
-import { ThemeColor } from '../contexts/Themes';
+import { useTheme } from '../contexts/ThemeContext';
 
 const PAGE_SIZE = 10;
 
@@ -81,22 +81,28 @@ const makeKey = (x, idx) =>
     x?.amount ?? 'noa'
   }_${idx}`;
 
-const Row = ({ label, value }) => (
-  <View style={styles.row}>
-    <Text style={styles.label}>{label}</Text>
-    <Text style={styles.value} numberOfLines={2}>
-      {value}
-    </Text>
-  </View>
-);
+const Row = ({ label, value }) => {
+  const { colors } = useTheme();
 
-const DepositCard = ({ item, ThemeColor }) => {
+  return (
+    <View style={styles.row}>
+      <Text style={[styles.label, { color: colors.textTertiary }]}>{label}</Text>
+      <Text style={[styles.value, { color: colors.text }]} numberOfLines={2}>
+        {value}
+      </Text>
+    </View>
+  );
+};
+
+const DepositCard = ({ item }) => {
+  const { colors } = useTheme();
+
   const amountNum = Number(item?.amount || 0) || 0;
   const dt = parseTxDateTime(item?.txDate, item?.txTime);
 
   return (
-    <View style={styles.card}>
-      <View style={[styles.cardTop, { backgroundColor: ThemeColor }]}>
+    <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
+      <View style={[styles.cardTop, { backgroundColor: colors.primary }]}>
         <Text style={styles.cardTopLeft}>CREDIT</Text>
         <Text style={styles.cardTopRight}>₹{Math.abs(amountNum)}</Text>
       </View>
@@ -129,6 +135,8 @@ const DepositCard = ({ item, ThemeColor }) => {
 };
 
 const AddFundHistory = () => {
+  const { colors } = useTheme();
+
   const { user } = useContext(AuthContext);
   const mobileNumber = user?.mobileNumber;
 
@@ -192,13 +200,13 @@ const AddFundHistory = () => {
   const hasNext = safePage < totalPages;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ThemeHeader title="Add Fund History" />
 
       {isLoadingDeposits && sorted.length === 0 ? (
         <View style={styles.loaderWrap}>
-          <ActivityIndicator size="small" color={ThemeColor} />
-          <Text style={styles.loaderText}>Loading...</Text>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={[styles.loaderText, { color: colors.text }]}>Loading...</Text>
         </View>
       ) : sorted.length === 0 ? (
         <EmptyState message="NO FUND HISTORY FOUND" />
@@ -208,7 +216,7 @@ const AddFundHistory = () => {
           keyExtractor={(item, idx) => makeKey(item, idx)}
           contentContainerStyle={styles.listContent}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          renderItem={({ item }) => <DepositCard item={item} ThemeColor={ThemeColor} />}
+          renderItem={({ item }) => <DepositCard item={item} />}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -232,7 +240,6 @@ export default AddFundHistory;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
   listContent: {
     padding: 12,
@@ -246,16 +253,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   loaderText: {
-    color: '#111',
     fontWeight: '700',
   },
 
   card: {
-    backgroundColor: '#fff',
     borderRadius: 10,
     overflow: 'hidden',
     elevation: 5,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 6,
@@ -291,13 +295,11 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   label: {
-    color: '#777',
     fontWeight: '800',
   },
   value: {
     flex: 1,
     textAlign: 'right',
-    color: '#111',
     fontWeight: '900',
   },
 });

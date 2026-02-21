@@ -28,7 +28,7 @@ import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from "../../contexts/ThemeContext";
 
 // 00..99 suggestions by first digit: "3" -> ["30".."39"]
 const FIRST_DIGIT_MAP = Array.from({ length: 10 }, (_, d) => {
@@ -69,6 +69,8 @@ function getPanasForTwoDigit(twoDigit) {
 }
 
 const TwoDigitPana = ({ route }) => {
+  const { colors } = useTheme();
+
   const gameName = route?.params?.gameName || "GAME";
 
   const { user, updateUser } = useContext(AuthContext);
@@ -224,8 +226,8 @@ const TwoDigitPana = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={["bottom"]}>
-      <View style={styles.screen}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={["bottom"]}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <DynamicHeader title={`${gameName} - TWO DIGIT`} />
         <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
@@ -239,21 +241,36 @@ const TwoDigitPana = ({ route }) => {
 
           {/* Digit row (with dropdown suggestions) */}
           <View style={styles.pointInputRow}>
-            <Text style={styles.label}>Enter Digit:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Enter Digit:</Text>
 
             <View style={styles.inputWrapper}>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                    color: colors.text,
+                  },
+                ]}
                 keyboardType="number-pad"
                 maxLength={2}
                 value={digit}
                 onChangeText={setDigit}
                 placeholder="Digit"
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.textTertiary}
               />
 
               {suggestions.length > 0 && (
-                <View style={styles.suggestionBox}>
+                <View
+                  style={[
+                    styles.suggestionBox,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                >
                   {/* Keep this scroll; it's not a VirtualizedList, so it's fine */}
                   <View>
                     {suggestions.map((item) => (
@@ -263,7 +280,7 @@ const TwoDigitPana = ({ route }) => {
                         onPress={() => setDigit(item)}
                         activeOpacity={0.8}
                       >
-                        <Text style={styles.suggestionText}>{item}</Text>
+                        <Text style={[styles.suggestionText, { color: colors.text }]}>{item}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -274,24 +291,31 @@ const TwoDigitPana = ({ route }) => {
 
           {/* Points row */}
           <View style={styles.pointInputRow}>
-            <Text style={styles.label}>Enter Points:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
+              ]}
               keyboardType="number-pad"
               value={points}
               onChangeText={setPoints}
               placeholder="Point"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.textTertiary}
             />
           </View>
 
           {/* Add button */}
           <TouchableOpacity
-            style={styles.addButton}
+            style={[styles.addButton, { backgroundColor: colors.primary }]}
             onPress={handleAdd}
             activeOpacity={0.85}
           >
-            <Text style={styles.addText}>Add</Text>
+            <Text style={[styles.addText, { color: colors.text }]}>Add</Text>
           </TouchableOpacity>
 
           {/* Table area (scrolls internally) */}
@@ -319,11 +343,9 @@ export default TwoDigitPana;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
   },
   screen: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
   },
 
   content: {
@@ -340,7 +362,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#333",
     marginBottom: 4,
   },
 
@@ -352,9 +373,7 @@ const styles = StyleSheet.create({
     height: 44,
     width: 180,
     borderRadius: 22,
-    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#DDD",
     fontSize: 16,
     marginBottom: 12,
     textAlign: "center",
@@ -366,9 +385,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     borderRadius: 10,
-    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#DDD",
     maxHeight: 160,
     zIndex: 999,
     elevation: 8,
@@ -380,21 +397,18 @@ const styles = StyleSheet.create({
   },
   suggestionText: {
     fontSize: 14,
-    color: "#333",
   },
 
   addButton: {
     marginTop: 6,
     height: 44,
     borderRadius: 6,
-    backgroundColor: ThemeColor,
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "flex-end",
     width: 180,
   },
   addText: {
-    color: "#FFF",
     fontSize: 16,
     fontWeight: "700",
   },

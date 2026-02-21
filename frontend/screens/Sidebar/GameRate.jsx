@@ -1,4 +1,3 @@
-// screens/GameRate/GameRate.jsx
 import React, { useContext, useEffect, useMemo } from "react";
 import {
   View,
@@ -7,26 +6,36 @@ import {
   SectionList,
   ActivityIndicator,
 } from "react-native";
-import ThemeHeader from "../../components/Header";
+import ThemeHeader from "../../components/ThemeHeader";
 import EmptyState from "../../components/EmptyState";
 import { GameContext } from "../../contexts/GameContext";
 import { getMinBetAmount } from "../../utils/AppConfigService";
-import { ThemeColor } from "../../contexts/Themes";
+import { useTheme } from "../../contexts/ThemeContext";
 
-const SectionHeader = ({ title }) => (
-  <View style={styles.sectionHeader}>
-    <Text style={styles.sectionTitle}>{title}</Text>
-  </View>
-);
+const SectionHeader = ({ title }) => {
+  const { colors } = useTheme();
 
-const RateRow = ({ label, value }) => (
-  <View style={styles.rateRow}>
-    <Text style={styles.rateLabel}>{label}:</Text>
-    <Text style={styles.rateValue}>{value}</Text>
-  </View>
-);
+  return (
+    <View style={[styles.sectionHeader, { backgroundColor: colors.primary }]}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
+  );
+};
+
+const RateRow = ({ label, value }) => {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.rateRow, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
+      <Text style={[styles.rateLabel, { color: colors.text }]}>{label}:</Text>
+      <Text style={[styles.rateValue, { color: colors.text }]}>{value}</Text>
+    </View>
+  );
+};
 
 const GameRate = () => {
+  const { colors } = useTheme();
+
   const { rates, isLoadingRates, loadGameRates } = useContext(GameContext);
 
   const [minBetAmount, setMinBetAmount] = React.useState(null);
@@ -132,12 +141,12 @@ const GameRate = () => {
   const isLoading = (isLoadingRates || isConfigLoading) && !refreshing;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ThemeHeader title="Game Rate" />
 
       {isLoading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={ThemeColor} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : sections.length === 0 ? (
         <EmptyState icon="chart-line-variant" message="NO RATE DATA FOUND" />
@@ -166,7 +175,7 @@ const GameRate = () => {
 export default GameRate;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F3F3F3" },
+  container: { flex: 1 },
   center: {
     flex: 1,
     alignItems: "center",
@@ -174,7 +183,6 @@ const styles = StyleSheet.create({
   },
 
   sectionHeader: {
-    backgroundColor: ThemeColor,
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 12,
@@ -193,12 +201,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
-    backgroundColor: "#fff",
     borderRadius: 10,
     paddingVertical: 14,
     paddingHorizontal: 16,
     elevation: 4,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 5,
@@ -206,12 +212,10 @@ const styles = StyleSheet.create({
   },
   rateLabel: {
     fontSize: 18,
-    color: "#111",
     textAlign: "center",
   },
   rateValue: {
     fontSize: 18,
-    color: "#111",
     fontWeight: "800",
     textAlign: "center",
   },

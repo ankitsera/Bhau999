@@ -6,10 +6,10 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
-import ThemeHeader from "../../components/Header";
+import ThemeHeader from "../../components/ThemeHeader";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { ThemeColor } from "../../contexts/Themes";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const ITEMS = [
   {
@@ -49,38 +49,52 @@ const ITEMS = [
   },
 ];
 
-const LeftIcon = ({ name }) => (
-  <View style={styles.leftIconWrap}>
-    <MaterialCommunityIcons name={name} size={24} color="#fff" />
-  </View>
-);
+const LeftIcon = ({ name }) => {
+  const { colors } = useTheme();
 
-const Chevron = () => (
-  <View style={styles.chevWrap}>
-    <MaterialIcons name="chevron-right" size={26} color="#444" />
-  </View>
-);
-
-const Item = ({ item, navigation }) => (
-  <TouchableOpacity
-    activeOpacity={0.85}
-    style={styles.card}
-    onPress={() => item.onPress?.(navigation)}
-  >
-    <LeftIcon name={item.icon} />
-
-    <View style={{ flex: 1 }}>
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.subtitle}>{item.subtitle}</Text>
+  return (
+    <View style={[styles.leftIconWrap, { backgroundColor: colors.primary }]}>
+      <MaterialCommunityIcons name={name} size={24} color="#fff" />
     </View>
+  );
+};
 
-    <Chevron />
-  </TouchableOpacity>
-);
+const Chevron = () => {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.chevWrap, { backgroundColor: colors.surface }]}>
+      <MaterialIcons name="chevron-right" size={26} color={colors.textTertiary} />
+    </View>
+  );
+};
+
+const Item = ({ item, navigation }) => {
+  const { colors } = useTheme();
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.85}
+      style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}
+      onPress={() => item.onPress?.(navigation)}
+    >
+      <LeftIcon name={item.icon} />
+
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{item.subtitle}</Text>
+      </View>
+
+      <Chevron />
+    </TouchableOpacity>
+  );
+};
 
 const Funds = ({ navigation }) => {
+  const { colors } = useTheme();
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ThemeHeader title="Funds" />
 
       <FlatList
@@ -98,7 +112,7 @@ const Funds = ({ navigation }) => {
 export default Funds;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F3F3F3" },
+  container: { flex: 1 },
 
   listContent: {
     paddingHorizontal: 16,
@@ -109,12 +123,10 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
     borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 14,
     elevation: 5,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.12,
     shadowRadius: 6,
@@ -124,19 +136,16 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: ThemeColor,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
   },
 
   title: {
-    color: "#111",
     fontSize: 20,
     fontWeight: "800",
   },
   subtitle: {
-    color: "#333",
     marginTop: 2,
   },
 
@@ -144,7 +153,6 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: "#F1F1F1",
     alignItems: "center",
     justifyContent: "center",
     marginLeft: 12,

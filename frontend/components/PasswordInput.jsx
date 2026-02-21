@@ -1,7 +1,7 @@
 import React, { useState, forwardRef, useImperativeHandle } from "react";
 import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import { ThemeColor } from "../contexts/Themes";
+import { useTheme } from "../contexts/ThemeContext";
 
 const PasswordInput = forwardRef(
   (
@@ -19,6 +19,8 @@ const PasswordInput = forwardRef(
     },
     ref
   ) => {
+    const { colors } = useTheme();
+
     const [focused, setFocused] = useState(false);
     const [visible, setVisible] = useState(false);
 
@@ -36,13 +38,20 @@ const PasswordInput = forwardRef(
         : focused || (value?.length ?? 0) > 0;
 
     return (
-      <View style={[styles.inputContainer, focused && styles.inputFocused, containerStyle]}>
-        <MaterialCommunityIcons name={leftIconName} size={22} color={ThemeColor} style={styles.leftIcon} />
+      <View
+        style={[
+          styles.inputContainer,
+          { backgroundColor: colors.surface, shadowColor: colors.text },
+          focused && [styles.inputFocused, { borderColor: colors.primary }],
+          containerStyle,
+        ]}
+      >
+        <MaterialCommunityIcons name={leftIconName} size={22} color={colors.primary} style={styles.leftIcon} />
         <TextInput
           ref={inputRef}
-          style={[styles.input, inputStyle]}
+          style={[styles.input, { color: colors.text }, inputStyle]}
           placeholder={placeholder}
-          placeholderTextColor="#777"
+          placeholderTextColor={colors.textTertiary}
           secureTextEntry={!visible}
           value={value}
           onChangeText={onChangeText}
@@ -62,7 +71,7 @@ const PasswordInput = forwardRef(
             accessibilityRole="button"
             accessibilityLabel={visible ? "Hide password" : "Show password"}
           >
-            <MaterialCommunityIcons name={visible ? "eye-off-outline" : "eye-outline"} size={22} color="#666" />
+            <MaterialCommunityIcons name={visible ? "eye-off-outline" : "eye-outline"} size={22} color={colors.textTertiary} />
           </TouchableOpacity>
         )}
       </View>
@@ -76,7 +85,6 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F4F4F4",
     width: "85%",
     borderRadius: 12,
     paddingHorizontal: 14,
@@ -84,20 +92,17 @@ const styles = StyleSheet.create({
     marginBottom: 12,
 
     elevation: 4,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
     shadowRadius: 10,
   },
   inputFocused: {
     borderWidth: 1,
-    borderColor: "#00A86B",
   },
   leftIcon: { marginRight: 8 },
   input: {
     flex: 1,
     fontSize: 15,
-    color: "#000",
     paddingRight: 8,
   },
 });

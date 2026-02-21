@@ -29,7 +29,7 @@ import {
   fetchBetLimits,
 } from '../../utils/BetValidationService';
 
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const hasDuplicateDigits = s => {
   const str = String(s || '');
@@ -43,6 +43,8 @@ const hasDuplicateDigits = s => {
 };
 
 const SpMotor = ({ route }) => {
+  const { colors } = useTheme();
+
   const gameName = route?.params?.gameName || 'GAME';
 
   const { user, updateUser } = useContext(AuthContext);
@@ -234,8 +236,8 @@ const SpMotor = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <View style={styles.screen}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <DynamicHeader title={`${gameName} - SP MOTOR`} />
         <BettingClosedModal
           visible={showClosedModal}
@@ -252,20 +254,31 @@ const SpMotor = ({ route }) => {
 
           <View style={styles.form}>
             <View style={styles.pointInputRow}>
-              <Text style={styles.label}>Enter Digit:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>Enter Digit:</Text>
               <View style={{ alignItems: 'flex-end' }}>
                 <TextInput
-                  style={[styles.input, digitsError && styles.errorInput]}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.border,
+                      color: colors.text,
+                    },
+                    digitsError && [
+                      styles.errorInput,
+                      { borderColor: colors.error },
+                    ],
+                  ]}
                   keyboardType="number-pad"
                   value={digits}
                   onChangeText={handleChangeDigits}
                   onEndEditing={handleDigitsBlur}
                   placeholder="Number"
                   maxLength={6}
-                  placeholderTextColor="#999"
+                  placeholderTextColor={colors.textTertiary}
                 />
                 {digitsError ? (
-                  <Text style={styles.errorText}>
+                  <Text style={[styles.errorText, { color: colors.error }]}>
                     Please enter unique digits
                   </Text>
                 ) : null}
@@ -273,26 +286,37 @@ const SpMotor = ({ route }) => {
             </View>
 
             <View style={styles.pointInputRow}>
-              <Text style={styles.label}>Enter Points:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                    color: colors.text,
+                  },
+                ]}
                 keyboardType="number-pad"
                 value={points}
                 onChangeText={t =>
                   setPoints(String(t || '').replace(/[^0-9]/g, ''))
                 }
                 placeholder="Point"
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.textTertiary}
               />
             </View>
 
             <TouchableOpacity
-              style={[styles.addButton, !canAdd && styles.addButtonDisabled]}
+              style={[
+                styles.addButton,
+                { backgroundColor: colors.primary },
+                !canAdd && styles.addButtonDisabled,
+              ]}
               onPress={handleAdd}
               activeOpacity={0.85}
               disabled={!canAdd}
             >
-              <Text style={styles.addText}>Add</Text>
+              <Text style={[styles.addText, { color: colors.text }]}>Add</Text>
             </TouchableOpacity>
           </View>
 
@@ -320,11 +344,9 @@ export default SpMotor;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
   screen: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
 
   content: {
@@ -345,25 +367,20 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
   },
   input: {
     height: 44,
     width: 180,
     borderRadius: 22,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#DDD',
     fontSize: 16,
     textAlign: 'center',
   },
   errorInput: {
-    borderColor: '#E53935',
     borderWidth: 2,
   },
   errorText: {
     marginTop: 6,
-    color: '#E53935',
     fontWeight: '700',
     fontSize: 12,
   },
@@ -371,7 +388,6 @@ const styles = StyleSheet.create({
     height: 44,
     width: 180,
     borderRadius: 6,
-    backgroundColor: ThemeColor,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'flex-end',
@@ -381,7 +397,6 @@ const styles = StyleSheet.create({
     opacity: 0.55,
   },
   addText: {
-    color: '#FFF',
     fontSize: 16,
     fontWeight: '700',
   },

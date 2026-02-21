@@ -1,21 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Switch } from "react-native";
-import ThemeHeader from "../../components/Header";
-import { ThemeColor, ThemeIconBg } from "../../contexts/Themes";
+import ThemeHeader from "../../components/ThemeHeader";
+import { useTheme } from "../../contexts/ThemeContext";
 
-const Row = ({ label, value, onChange }) => (
-  <View style={styles.row}>
-    <Text style={styles.rowLabel}>{label}</Text>
-    <Switch
-      value={value}
-      onValueChange={onChange}
-      trackColor={{ false: "#d6d6d6", true: ThemeIconBg }}
-      thumbColor={value ? ThemeColor : "#f4f3f4"}
-    />
-  </View>
-);
+const Row = ({ label, value, onChange }) => {
+  const { colors } = useTheme();
+
+  return (
+    <View style={styles.row}>
+      <Text style={[styles.rowLabel, { color: colors.text }]}>{label}</Text>
+      <Switch
+        value={value}
+        onValueChange={onChange}
+        trackColor={{ false: colors.switchTrackOff, true: colors.primaryIconBg }}
+        thumbColor={value ? colors.primary : colors.switchThumbOff}
+      />
+    </View>
+  );
+};
 
 const Settings = ({ navigation }) => {
+  const { colors } = useTheme();
+
   const [game, setGame] = useState(true);
   const [main, setMain] = useState(true);
   const [starline, setStarline] = useState(true);
@@ -29,18 +35,20 @@ const Settings = ({ navigation }) => {
   }, [game, main, starline, jackpot]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ThemeHeader title="Setting" />
-      <View style={styles.card}>
-        <View style={styles.banner}><Text style={styles.bannerText}>Notification Setting</Text></View>
+      <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
+        <View style={[styles.banner, { backgroundColor: colors.primary }]}>
+          <Text style={styles.bannerText}>Notification Setting</Text>
+        </View>
 
         <Row label="Game Notification:" value={game} onChange={setGame} />
-        <View style={styles.sep} />
+        <View style={[styles.sep, { backgroundColor: colors.divider }]} />
         <Row label="Main Notification:" value={main} onChange={setMain} />
-        <View style={styles.sep} />
+        {/* <View style={[styles.sep, { backgroundColor: colors.divider }]} />
         <Row label="Lucky Starline Notification" value={starline} onChange={setStarline} />
-        <View style={styles.sep} />
-        <Row label="Lucky JackPot Notification" value={jackpot} onChange={setJackpot} />
+        <View style={[styles.sep, { backgroundColor: colors.divider }]} />
+        <Row label="Lucky JackPot Notification" value={jackpot} onChange={setJackpot} /> */}
       </View>
     </View>
   );
@@ -49,46 +57,40 @@ const Settings = ({ navigation }) => {
 export default Settings;
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: "#F3F3F3" 
+  container: {
+    flex: 1,
   },
   card: {
-    backgroundColor: "#fff",
     borderRadius: 12,
     margin: 16,
     paddingBottom: 10,
     elevation: 5,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.12,
     shadowRadius: 6,
   },
   banner: {
-    backgroundColor: ThemeColor,
     margin: 12,
     borderRadius: 8,
     paddingVertical: 10,
     alignItems: "center",
   },
-  bannerText: { 
-    color: "#fff", 
-    fontSize: 18, 
-    fontWeight: "800" 
+  bannerText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "800",
   },
   row: {
-    flexDirection: "row", 
-    alignItems: "center", 
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16, 
+    paddingHorizontal: 16,
     paddingVertical: 16,
   },
-  rowLabel: { 
-    fontSize: 16, 
-    color: "#111" 
+  rowLabel: {
+    fontSize: 16,
   },
-  sep: { 
-    height: 1, 
-    backgroundColor: "#eee" 
+  sep: {
+    height: 1,
   },
 });

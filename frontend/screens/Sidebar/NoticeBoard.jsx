@@ -6,7 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import ThemeHeader from '../../components/Header';
+import ThemeHeader from '../../components/ThemeHeader';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import EmptyState from '../../components/EmptyState';
 import {
@@ -16,31 +16,48 @@ import {
   getNoticeBoard4,
   getNoticeBoard5,
 } from '../../utils/AppConfigService';
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from '../../contexts/ThemeContext';
 
-const Section = ({ title, points }) => (
-  <View style={styles.section}>
-    <Text style={styles.sectionTitle}>{title}</Text>
+const Section = ({ title, points }) => {
+  const { colors } = useTheme();
 
-    {points?.length ? (
-      points.map((p, idx) => (
-        <View key={idx} style={styles.pointRow}>
-          <MaterialCommunityIcons
-            name="thumb-up-outline"
-            size={18}
-            color="#E39D05"
-            style={{ marginRight: 6 }}
-          />
-          <Text style={styles.pointText}>{p}</Text>
-        </View>
-      ))
-    ) : (
-      <Text style={styles.sectionText}>No details available</Text>
-    )}
-  </View>
-);
+  return (
+    <View style={styles.section}>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
+
+      <View style={[styles.ruleWrap, { backgroundColor: colors.surface, borderColor: colors.border, shadowColor: colors.text }]}>
+        <View style={[styles.ruleTopLine, { backgroundColor: colors.text }]} />
+
+        {points?.length ? (
+          points.map((p, idx) => (
+            <View key={idx} style={[styles.ruleRow, { borderBottomColor: colors.divider }]}>
+              <View style={[styles.ruleIndex, { backgroundColor: colors.text }]}>
+                <Text style={[styles.ruleIndexText, { color: colors.background }]}>{idx + 1}</Text>
+              </View>
+
+              <View style={styles.ruleTextWrap}>
+                <Text style={[styles.pointText, { color: colors.text }]}>{p}</Text>
+              </View>
+
+              <MaterialCommunityIcons
+                name="information-outline"
+                size={18}
+                color={colors.textTertiary}
+                style={{ marginLeft: 8, marginTop: 2 }}
+              />
+            </View>
+          ))
+        ) : (
+          <Text style={[styles.sectionText, { color: colors.textSecondary }]}>No details available</Text>
+        )}
+      </View>
+    </View>
+  );
+};
 
 const NoticeBoard = () => {
+  const { colors } = useTheme();
+
   const [loading, setLoading] = useState(true);
   const [notices, setNotices] = useState([]);
 
@@ -73,19 +90,19 @@ const NoticeBoard = () => {
     if (!notices || notices.length === 0) return [];
     return [
       {
-        title: 'Notices',
+        title: 'Important Notices',
         points: notices,
       },
     ];
   }, [notices]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ThemeHeader title="Notice Board" />
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={ThemeColor} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : sections.length === 0 ? (
         <EmptyState icon="file-document-outline" message="NO NOTICES FOUND" />
@@ -97,7 +114,7 @@ const NoticeBoard = () => {
           {sections.map((section, idx) => (
             <React.Fragment key={idx}>
               <Section title={section.title} points={section.points} />
-              {idx !== sections.length - 1 && <View style={styles.divider} />}
+              {idx !== sections.length - 1 && <View style={[styles.divider, { backgroundColor: colors.divider }]} />}
             </React.Fragment>
           ))}
         </ScrollView>
@@ -111,27 +128,12 @@ export default NoticeBoard;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
   center: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
-  },
-  errorText: {
-    color: '#c0392b',
-    marginBottom: 12,
-  },
-  retryBtn: {
-    backgroundColor: ThemeColor,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  retryText: {
-    color: '#fff',
-    fontWeight: '700',
   },
 
   section: {
@@ -140,29 +142,64 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '900',
-    color: '#111',
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
-  pointRow: {
+
+  ruleWrap: {
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden',
+    elevation: 5,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+  },
+  ruleTopLine: {
+    height: 3,
+    width: '100%',
+  },
+
+  ruleRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+
+  ruleIndex: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+    marginTop: 1,
+  },
+  ruleIndexText: {
+    fontWeight: '900',
+    fontSize: 13,
+  },
+
+  ruleTextWrap: {
+    flex: 1,
   },
   pointText: {
-    flex: 1,
     fontSize: 15,
-    color: '#111',
     lineHeight: 22,
+    fontWeight: '700',
+    textAlign: 'left',
   },
+
+  sectionText: {
+    textAlign: 'center',
+    paddingVertical: 16,
+    fontWeight: '700',
+  },
+
   divider: {
     height: 2,
-    backgroundColor: '#00000030',
     marginVertical: 12,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#444',
-    marginTop: 10,
   },
 });

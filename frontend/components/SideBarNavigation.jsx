@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   StyleSheet,
   FlatList,
   StatusBar,
+  Modal,
+  Pressable,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { AuthContext } from '../contexts/AuthContext';
@@ -16,7 +18,15 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const SideBarNavigation = ({ navigation, closeSidebar }) => {
   const { user, logout } = useContext(AuthContext);
-  const { isDarkMode, toggleTheme, colors } = useTheme();
+  const { isDarkMode, colors, themeMode, setThemeMode } = useTheme();
+
+  const [themeModalVisible, setThemeModalVisible] = useState(false);
+
+  const themeSubtitle = useMemo(() => {
+    if (themeMode === 'system')
+      return `System (${isDarkMode ? 'Dark' : 'Light'})`;
+    return themeMode === 'dark' ? 'Dark' : 'Light';
+  }, [themeMode, isDarkMode]);
 
   const menuItems = [
     { name: 'Home', icon: 'home' },
@@ -32,19 +42,22 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
     { name: 'Notice board / Rules', icon: 'rule' },
     { name: 'Settings', icon: 'settings' },
     { name: 'Share App', icon: 'share' },
-    { name: isDarkMode ? 'Light Mode' : 'Dark Mode', icon: isDarkMode ? 'light-mode' : 'dark-mode' },
+
+    // Theme menu
+    { name: 'Change Theme', icon: 'palette', isTheme: true },
+
     { name: 'Logout', icon: 'logout' },
   ];
 
   const shareApp = async () => {
     try {
-      // If you want to always get latest from backend once in a while:
-      // const url = await getShareUrl({ forceRefresh: true });
       const url = await getShareUrl();
-
-      const link = String(url || "").trim();
+      const link = String(url || '').trim();
       if (!link) {
-        Alert.alert("Share failed", "Share link is missing. Please try again later.");
+        Alert.alert(
+          'Share failed',
+          'Share link is missing. Please try again later.',
+        );
         return;
       }
 
@@ -54,20 +67,31 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
 
       await Share.share({ message });
     } catch (e) {
-      Alert.alert("Share failed", e?.message || "Something went wrong");
+      Alert.alert('Share failed', e?.message || 'Something went wrong');
     }
   };
 
-  const handleSidebarClick = async menu => {
-    closeSidebar();
-    
-    // Handle theme toggle
-    if (menu === 'Light Mode' || menu === 'Dark Mode') {
-      toggleTheme();
+  const openThemeModal = () => {
+    // keep sidebar open? IMO close it so the modal feels clean.
+    setThemeModalVisible(true);
+  };
+
+  const pickTheme = mode => {
+    setThemeMode(mode); // "system" | "light" | "dark"
+    setThemeModalVisible(false);
+  };
+
+  const handleSidebarClick = async item => {
+    const menu = item?.name;
+
+    if (item?.isTheme) {
+      openThemeModal();
       return;
     }
-    
-    if(menu === 'Logout'){
+
+    closeSidebar();
+
+    if (menu === 'Logout') {
       logout(navigation);
       return;
     }
@@ -83,34 +107,118 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
   const renderMenuItem = ({ item }) => (
     <View>
       <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+
       <TouchableOpacity
-        style={styles.menuItem}
-        activeOpacity={0.7}
-        onPress={() => handleSidebarClick(item.name)}
+        style={[styles.menuItem, { backgroundColor: colors.surface }]}
+        activeOpacity={0.75}
+        onPress={() => handleSidebarClick(item)}
       >
         <View style={[styles.iconCircle, { backgroundColor: colors.primary }]}>
           <MaterialIcons name={item.icon} size={20} color="#fff" />
         </View>
-        <Text style={[styles.menuText, { color: colors.text }]}>{item.name}</Text>
+
+        <View style={{ flex: 1 }}>
+          <Text
+            style={[styles.menuText, { color: colors.text }]}
+            numberOfLines={1}
+          >
+            {item.name}
+          </Text>
+
+          {item.isTheme ? (
+            <Text
+              style={[styles.menuSubText, { color: colors.textTertiary }]}
+              numberOfLines={1}
+            >
+              {themeSubtitle}
+            </Text>
+          ) : null}
+        </View>
+
+        {item.isTheme ? (
+          <MaterialIcons
+            name="chevron-right"
+            size={22}
+            color={colors.textTertiary}
+          />
+        ) : null}
       </TouchableOpacity>
     </View>
   );
 
+  const ThemeOption = ({ mode, title, desc, icon }) => {
+    const selected = themeMode === mode;
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => pickTheme(mode)}
+        style={[
+          styles.themeOption,
+          {
+            backgroundColor: colors.surface,
+            borderColor: selected ? colors.primary : colors.border,
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.themeIconCircle,
+            { backgroundColor: selected ? colors.primary : colors.border },
+          ]}
+        >
+          <MaterialIcons
+            name={icon}
+            size={18}
+            color={selected ? '#fff' : colors.text}
+          />
+        </View>
+
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.themeTitle, { color: colors.text }]}>
+            {title}
+          </Text>
+          <Text style={[styles.themeDesc, { color: colors.textSecondary }]}>
+            {desc}
+          </Text>
+        </View>
+
+        {selected ? (
+          <MaterialIcons name="check-circle" size={20} color={colors.primary} />
+        ) : null}
+      </TouchableOpacity>
+    );
+  };
+
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
-      <StatusBar backgroundColor={colors.background} barStyle={isDarkMode ? "light-content" : "dark-content"} />
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.background }]}
+    >
+      <StatusBar
+        backgroundColor={colors.background}
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+      />
+
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* ---------- USER INFO SECTION ---------- */}
-        <View style={[styles.userSection, { backgroundColor: colors.background }]}>
-          <View style={[styles.userCircle, { backgroundColor: colors.primary }]}>
+        <View
+          style={[styles.userSection, { backgroundColor: colors.background }]}
+        >
+          <View
+            style={[styles.userCircle, { backgroundColor: colors.primary }]}
+          >
             <MaterialIcons name="person" size={24} color="#fff" />
           </View>
 
           <View style={styles.userInfo}>
-            <Text style={[styles.username, { color: colors.text }]}>{user?.username || 'User'}</Text>
+            <Text style={[styles.username, { color: colors.text }]}>
+              {user?.username || 'User'}
+            </Text>
+
             <Text style={[styles.mobile, { color: colors.textSecondary }]}>
               {user?.mobileNumber || '9999999999'}
             </Text>
+
             <Text style={[styles.since, { color: colors.textTertiary }]}>
               Since{' '}
               {user?.dateSignup
@@ -124,24 +232,82 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
           </TouchableOpacity>
         </View>
 
-        {/* ---------- MENU SECTION ---------- */}
+        {/* MENU */}
         <View style={{ flex: 1 }}>
           <FlatList
             data={menuItems}
-            keyExtractor={item => item.name}
+            keyExtractor={i => i.name}
             renderItem={renderMenuItem}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.menuList}
-            scrollEnabled={true}
+            scrollEnabled
           />
         </View>
       </View>
+
+      {/* THEME MODAL */}
+      <Modal
+        visible={themeModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setThemeModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setThemeModalVisible(false)}
+        >
+          <Pressable
+            style={[
+              styles.modalCard,
+              {
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+              },
+            ]}
+            onPress={() => {}}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                Choose theme
+              </Text>
+              <TouchableOpacity onPress={() => setThemeModalVisible(false)}>
+                <MaterialIcons
+                  name="close"
+                  size={22}
+                  color={colors.textTertiary}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <ThemeOption
+              mode="system"
+              title="System"
+              desc={`Follow device (${
+                isDarkMode ? 'Dark' : 'Light'
+              } right now)`}
+              icon="settings-suggest"
+            />
+            <ThemeOption
+              mode="light"
+              title="Light"
+              desc="Always light mode"
+              icon="light-mode"
+            />
+            <ThemeOption
+              mode="dark"
+              title="Dark"
+              desc="Always dark mode"
+              icon="dark-mode"
+            />
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea:{
+  safeArea: {
     flex: 1,
   },
 
@@ -193,20 +359,76 @@ const styles = StyleSheet.create({
 
   // --- MENU SECTION ---
   menuList: {
-    paddingVertical: 5,
+    paddingVertical: 8,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 14,
+    marginHorizontal: 10,
+    marginVertical: 6,
+    borderRadius: 12,
   },
   menuText: {
     fontSize: 15.5,
+    fontWeight: '600',
   },
+  menuSubText: {
+    fontSize: 12.5,
+    marginTop: 2,
+  },
+
   divider: {
     height: 1,
-    opacity: 0.2,
+  },
+
+  // Modal
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  modalCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+
+  themeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginTop: 10,
+  },
+  themeIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  themeTitle: {
+    fontSize: 14.5,
+    fontWeight: '700',
+  },
+  themeDesc: {
+    fontSize: 12.5,
+    marginTop: 2,
   },
 });
 

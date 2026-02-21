@@ -23,12 +23,14 @@ import BettingClosedModal from '../../components/BettingClosedModal';
 import { useBettingGuard } from '../../utils/BettingGuard';
 import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
 
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const ROW1 = ['1', '2', '3', '4', '5'];
 const ROW2 = ['6', '7', '8', '9', '0'];
 
 const DpCommon = ({ route }) => {
+  const { colors } = useTheme();
+
   const gameName = route?.params?.gameName || 'GAME';
 
   const { user, updateUser } = useContext(AuthContext);
@@ -148,8 +150,8 @@ const DpCommon = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <View style={styles.screen}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <DynamicHeader title={`${gameName} - DP COMMON`} />
         <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
@@ -163,12 +165,13 @@ const DpCommon = ({ route }) => {
           />
 
           <View style={styles.row}>
-            <Text style={styles.label}>Enter Points:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
             <TextInput
               style={[
                 styles.input,
+                { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text },
                 pointsError
-                  ? { borderColor: '#E53935', borderWidth: 2 }
+                  ? { borderColor: colors.error, borderWidth: 2 }
                   : null,
               ]}
               keyboardType="number-pad"
@@ -179,7 +182,7 @@ const DpCommon = ({ route }) => {
                 if (pointsError && clean) setPointsError(false);
               }}
               placeholder="Point"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.textTertiary}
             />
           </View>
 
@@ -190,6 +193,7 @@ const DpCommon = ({ route }) => {
                   key={d}
                   digit={d}
                   onPress={() => addCommonForDigit(d)}
+                  bg={colors.primary}
                 />
               ))}
             </View>
@@ -199,6 +203,7 @@ const DpCommon = ({ route }) => {
                   key={d}
                   digit={d}
                   onPress={() => addCommonForDigit(d)}
+                  bg={colors.primary}
                 />
               ))}
             </View>
@@ -226,9 +231,9 @@ const DpCommon = ({ route }) => {
 
 export default DpCommon;
 
-const DigitBtn = ({ digit, onPress }) => (
+const DigitBtn = ({ digit, onPress, bg }) => (
   <TouchableOpacity
-    style={styles.digitBtn}
+    style={[styles.digitBtn, { backgroundColor: bg }]}
     activeOpacity={0.85}
     onPress={onPress}
   >
@@ -239,11 +244,9 @@ const DigitBtn = ({ digit, onPress }) => (
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
   screen: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
   content: {
     flex: 1,
@@ -260,18 +263,14 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
   },
   input: {
     height: 44,
     width: 180,
     borderRadius: 22,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#DDD',
     fontSize: 16,
     textAlign: 'center',
-    color: '#111',
     writingDirection: 'ltr',
     paddingHorizontal: 8,
   },
@@ -289,7 +288,6 @@ const styles = StyleSheet.create({
     height: 52,
     marginHorizontal: 6,
     borderRadius: 6,
-    backgroundColor: ThemeColor,
     justifyContent: 'center',
     alignItems: 'center',
   },

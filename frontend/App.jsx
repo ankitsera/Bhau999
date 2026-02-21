@@ -2,7 +2,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import Navigation from "./navigation/Navigation";
 import { AuthProvider, AuthContext } from "./contexts/AuthContext";
 import { PaymentsProvider } from "./contexts/PaymentsContext";
-import { ThemeProvider } from "@react-navigation/native";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { GameProvider } from "./contexts/GameContext";
 import { AppConfigProvider } from "./contexts/AppConfigContext";
@@ -54,7 +54,6 @@ function AppInner() {
   }, [isBlocked]);
 
   return (
-    <ThemeProvider>
       <NotificationGate>
         <Navigation navigationRef={navigationRef} />
 
@@ -67,24 +66,25 @@ function AppInner() {
           apkUrl={apkUrl}
         />
       </NotificationGate>
-    </ThemeProvider>
   );
 }
 
 function App() {
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <NotificationsProvider>
-          <PaymentsProvider>
-            <GameProvider>
-              <AppConfigProvider>
-                <AppInner />
-              </AppConfigProvider>
-            </GameProvider>
-          </PaymentsProvider>
-        </NotificationsProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <NotificationsProvider>
+            <PaymentsProvider>
+              <GameProvider>
+                <AppConfigProvider>
+                  <AppInner />
+                </AppConfigProvider>
+              </GameProvider>
+            </PaymentsProvider>
+          </NotificationsProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

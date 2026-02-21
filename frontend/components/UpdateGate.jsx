@@ -8,11 +8,13 @@ import {
   BackHandler,
   NativeModules,
 } from 'react-native';
-import { ThemeColor } from '../contexts/Themes';
+import { useTheme } from '../contexts/ThemeContext';
 
 const { UpdateModule } = NativeModules;
 
 export default function UpdateGate({ visible, compulsory, onDismiss, apkUrl }) {
+  const { colors } = useTheme();
+
   const [busy, setBusy] = useState(false);
   const [needsPermission, setNeedsPermission] = useState(false);
   const [lastStatus, setLastStatus] = useState(null);
@@ -74,25 +76,25 @@ export default function UpdateGate({ visible, compulsory, onDismiss, apkUrl }) {
       }}
     >
       <View style={styles.backdrop}>
-        <View style={styles.card}>
-          <Text style={styles.title}>
+        <View style={[styles.card, { backgroundColor: colors.background, borderColor: colors.border }]}>
+          <Text style={[styles.title, { color: colors.text }]}>
             {compulsory ? 'Update required' : 'Update available'}
           </Text>
 
-          <Text style={styles.body}>
+          <Text style={[styles.body, { color: colors.textSecondary }]}>
             {compulsory
               ? 'You must update to continue using the app.'
               : 'A new version is available. You can update now or later.'}
           </Text>
 
           {!String(apkUrl || '').trim() ? (
-            <Text style={styles.note}>
+            <Text style={[styles.note, { color: colors.textTertiary }]}>
               Update link is missing. Please try again later.
             </Text>
           ) : null}
 
           {needsPermission ? (
-            <Text style={styles.note}>
+            <Text style={[styles.note, { color: colors.textTertiary }]}>
               Please enable{' '}
               <Text style={styles.bold}>“Allow from this source”</Text> in
               Settings. After enabling, come back and tap{' '}
@@ -101,7 +103,7 @@ export default function UpdateGate({ visible, compulsory, onDismiss, apkUrl }) {
           ) : null}
 
           {lastStatus === 'DOWNLOADING' ? (
-            <Text style={styles.note}>
+            <Text style={[styles.note, { color: colors.textTertiary }]}>
               Download started. When it finishes, the installer will open.
             </Text>
           ) : null}
@@ -109,6 +111,7 @@ export default function UpdateGate({ visible, compulsory, onDismiss, apkUrl }) {
           <Pressable
             style={[
               styles.btn,
+              { backgroundColor: colors.primary },
               (busy || !String(apkUrl || '').trim()) && styles.btnDisabled,
             ]}
             onPress={start}
@@ -119,8 +122,8 @@ export default function UpdateGate({ visible, compulsory, onDismiss, apkUrl }) {
           </Pressable>
 
           {canDismiss && (
-            <Pressable style={styles.laterBtn} onPress={() => onDismiss?.()}>
-              <Text style={styles.laterText}>Later</Text>
+            <Pressable style={[styles.laterBtn, { borderColor: colors.primary, backgroundColor: colors.background }]} onPress={() => onDismiss?.()}>
+              <Text style={[styles.laterText, { color: colors.primary }]}>Later</Text>
             </Pressable>
           )}
         </View>
@@ -137,9 +140,9 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    backgroundColor: 'white',
     borderRadius: 16,
     padding: 18,
+    borderWidth: 1,
   },
   title: {
     fontSize: 18,
@@ -164,7 +167,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
-    backgroundColor: ThemeColor,
   },
   btnDisabled: {
     opacity: 0.7,
@@ -179,11 +181,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: ThemeColor,
-    backgroundColor: '#fff',
   },
   laterText: {
-    color: ThemeColor,
     fontWeight: '800',
   },
 });

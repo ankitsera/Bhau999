@@ -22,12 +22,14 @@ import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from "../../contexts/ThemeContext";
 
 const ODD_DIGITS = ["1", "3", "5", "7", "9"];
 const EVEN_DIGITS = ["0", "2", "4", "6", "8"];
 
 const OddEven = ({ route }) => {
+  const { colors } = useTheme();
+
   const gameName = route?.params?.gameName || "GAME";
 
   const { user, updateUser } = useContext(AuthContext);
@@ -135,7 +137,7 @@ const OddEven = ({ route }) => {
     );
 
     try {
-      const res = await placeBets(betsToSend);
+      await placeBets(betsToSend);
       Alert.alert("Success", "Bets placed successfully!");
 
       // Update balance safely
@@ -151,8 +153,8 @@ const OddEven = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={["bottom"]}>
-      <View style={styles.screen}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={["bottom"]}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <DynamicHeader title={`${gameName} - ODD EVEN`} />
         <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
@@ -170,30 +172,35 @@ const OddEven = ({ route }) => {
               label="Odd Digit"
               active={pick === "ODD"}
               onPress={() => setPick("ODD")}
+              colors={colors}
             />
             <RadioOption
               label="Even Digit"
               active={pick === "EVEN"}
               onPress={() => setPick("EVEN")}
+              colors={colors}
             />
           </View>
 
           {/* Points */}
           <View style={styles.pointInputRow}>
-            <Text style={styles.label}>Enter Points:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text },
+              ]}
               keyboardType="number-pad"
               value={points}
               onChangeText={(t) => setPoints(String(t).replace(/[^0-9]/g, ""))}
               placeholder="Point"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.textTertiary}
             />
           </View>
 
           {/* Add */}
           <TouchableOpacity
-            style={styles.addButton}
+            style={[styles.addButton, { backgroundColor: colors.primary }]}
             onPress={handleAdd}
             activeOpacity={0.85}
           >
@@ -202,19 +209,11 @@ const OddEven = ({ route }) => {
 
           {/* Table */}
           <View style={styles.tableArea}>
-            <EasyModeTable
-              bets={bets}
-              onDelete={handleDelete}
-              digitHeaderLabel="Ank"
-            />
+            <EasyModeTable bets={bets} onDelete={handleDelete} digitHeaderLabel="Ank" />
           </View>
         </View>
 
-        <BottomBetBar
-          bids={totals.bids}
-          points={totals.points}
-          onSubmit={handleSubmit}
-        />
+        <BottomBetBar bids={totals.bids} points={totals.points} onSubmit={handleSubmit} />
       </View>
     </SafeAreaView>
   );
@@ -224,17 +223,19 @@ export default OddEven;
 
 /* ---------------- small component ---------------- */
 
-const RadioOption = ({ label, active, onPress }) => {
+const RadioOption = ({ label, active, onPress, colors }) => {
   return (
-    <TouchableOpacity
-      style={styles.radioOption}
-      onPress={onPress}
-      activeOpacity={0.85}
-    >
-      <View style={[styles.radioOuter, active && styles.radioOuterActive]}>
-        {active ? <View style={styles.radioInner} /> : null}
+    <TouchableOpacity style={styles.radioOption} onPress={onPress} activeOpacity={0.85}>
+      <View
+        style={[
+          styles.radioOuter,
+          { borderColor: colors.textSecondary },
+          active && { borderColor: colors.text },
+        ]}
+      >
+        {active ? <View style={[styles.radioInner, { backgroundColor: colors.text }]} /> : null}
       </View>
-      <Text style={styles.radioText}>{label}</Text>
+      <Text style={[styles.radioText, { color: colors.text }]}>{label}</Text>
     </TouchableOpacity>
   );
 };
@@ -244,11 +245,9 @@ const RadioOption = ({ label, active, onPress }) => {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
   },
   screen: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
   },
   content: {
     flex: 1,
@@ -273,23 +272,17 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: "#333",
     justifyContent: "center",
     alignItems: "center",
-  },
-  radioOuterActive: {
-    borderColor: "#111",
   },
   radioInner: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "#111",
   },
   radioText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#333",
   },
 
   pointInputRow: {
@@ -300,16 +293,13 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#333",
     marginBottom: 4,
   },
   input: {
     height: 44,
     width: 180,
     borderRadius: 22,
-    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#DDD",
     fontSize: 16,
     marginBottom: 12,
     textAlign: "center",
@@ -321,11 +311,10 @@ const styles = StyleSheet.create({
     marginTop: 12,
     height: 44,
     borderRadius: 6,
-    backgroundColor: ThemeColor,
     justifyContent: "center",
     alignItems: "center",
     width: 180,
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
   },
   addText: {
     color: "#FFF",

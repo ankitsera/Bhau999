@@ -16,9 +16,7 @@ import {
   getCallSupport,
   getWhatsappSupport,
 } from "../utils/AppConfigService";
-import { ThemeColor, ThemeColorTile } from "../contexts/Themes";
-
-const WHATSAPP = ThemeColorTile;
+import { useTheme } from "../contexts/ThemeContext";
 
 // kept as fallback initial values (helpers already have same defaults)
 const CONTACT_NUMBER = "7757033237";
@@ -29,6 +27,8 @@ const MARQUEE_TEXT =
 const normalizeDigits = (v) => String(v || "").replace(/\D/g, "");
 
 const TopStrip = ({ navigation }) => {
+  const { colors } = useTheme();
+
   // ✅ config-driven values
   const [headlineText, setHeadlineText] = useState(MARQUEE_TEXT);
   const [callNumber, setCallNumber] = useState(CONTACT_NUMBER);
@@ -112,7 +112,7 @@ const TopStrip = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* marquee text */}
       <View style={styles.marqueeWrap}>
         <Animated.View
@@ -128,7 +128,7 @@ const TopStrip = ({ navigation }) => {
 
           <Text
             numberOfLines={1}
-            style={styles.marqueeText}
+            style={[styles.marqueeText, { color: colors.error }]}
             onLayout={(e) => setTextW(e.nativeEvent.layout.width)}
           >
             {headlineText}
@@ -136,7 +136,7 @@ const TopStrip = ({ navigation }) => {
 
           <View style={{ width: gap }} />
 
-          <Text numberOfLines={1} style={styles.marqueeText}>
+          <Text numberOfLines={1} style={[styles.marqueeText, { color: colors.error }]}>
             {headlineText}
           </Text>
         </Animated.View>
@@ -146,24 +146,24 @@ const TopStrip = ({ navigation }) => {
       <View style={styles.pillsRow}>
         <TouchableOpacity
           activeOpacity={0.9}
-          style={styles.pill}
+          style={[styles.pill, { backgroundColor: colors.primary }]}
           onPress={handleLuckyStarline}
         >
-          <View style={styles.pillIcon}>
-            <MaterialCommunityIcons name="card-bulleted" size={22} color={ThemeColor} />
+          <View style={[styles.pillIcon, { backgroundColor: colors.background }]}>
+            <MaterialCommunityIcons name="card-bulleted" size={22} color={colors.primary} />
           </View>
-          <Text style={styles.pillText}>Add Fund</Text>
+          <Text style={[styles.pillText, { color: colors.text }]}>Add Fund</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           activeOpacity={0.9}
-          style={styles.pill}
+          style={[styles.pill, { backgroundColor: colors.primary }]}
           onPress={handleLuckyJackpot}
         >
-          <View style={styles.pillIcon}>
-            <MaterialCommunityIcons name="card-minus" size={22} color={ThemeColor} />
+          <View style={[styles.pillIcon, { backgroundColor: colors.background }]}>
+            <MaterialCommunityIcons name="card-minus" size={22} color={colors.primary} />
           </View>
-          <Text style={styles.pillText}>Withdraw Fund</Text>
+          <Text style={[styles.pillText, { color: colors.text }]}>Withdraw Fund</Text>
         </TouchableOpacity>
       </View>
 
@@ -176,16 +176,16 @@ const TopStrip = ({ navigation }) => {
         }}
       >
         <View style={styles.contactRow}>
-          <MaterialCommunityIcons name="phone" size={22} color="#111" />
+          <MaterialCommunityIcons name="phone" size={22} color={colors.text} />
           <TouchableOpacity onPress={openDialer} activeOpacity={0.7}>
-            <Text style={styles.contactText}>{normalizeDigits(callNumber)}</Text>
+            <Text style={[styles.contactText, { color: colors.text }]}>{normalizeDigits(callNumber)}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.contactRow}>
-          <MaterialCommunityIcons name="whatsapp" size={22} color={WHATSAPP} />
+          <MaterialCommunityIcons name="whatsapp" size={22} color={colors.primaryTile} />
           <TouchableOpacity onPress={openWhatsApp} activeOpacity={0.7}>
-            <Text style={styles.contactText}>{normalizeDigits(waNumber)}</Text>
+            <Text style={[styles.contactText, { color: colors.text }]}>{normalizeDigits(waNumber)}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -200,7 +200,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 6,
     paddingBottom: 10,
-    backgroundColor: "#fff",
   },
   marqueeWrap: {
     overflow: "hidden",
@@ -210,7 +209,6 @@ const styles = StyleSheet.create({
   marqueeText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#E34234",
   },
   pillsRow: {
     flexDirection: "row",
@@ -222,7 +220,6 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: ThemeColor,
     borderRadius: 26,
     paddingVertical: 10,
     paddingHorizontal: 12,
@@ -236,13 +233,11 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 20,
-    backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
   },
   pillText: {
-    color: "#000",
     fontWeight: "700",
     fontSize: 14,
   },
@@ -253,7 +248,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   contactText: {
-    color: "#111",
     fontSize: 16,
     fontWeight: "600",
   },

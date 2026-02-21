@@ -1,4 +1,3 @@
-// screens/SubGames/SingleDigit.jsx
 import React, { useContext, useMemo, useState } from 'react';
 import {
   View,
@@ -28,12 +27,14 @@ import BettingClosedModal from '../../components/BettingClosedModal';
 import { useBettingGuard } from '../../utils/BettingGuard';
 import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
 
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const BLACK = '#000';
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 const SingleDigit = ({ route }) => {
+  const { colors } = useTheme();
+
   const gameName = route?.params?.gameName || 'GAME';
 
   const { user, updateUser } = useContext(AuthContext);
@@ -61,18 +62,17 @@ const SingleDigit = ({ route }) => {
     });
   }, []);
 
-  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
-    gameName,
-    selectedType,
-    setSelectedType,
-  });
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } =
+    useBettingGuard({
+      gameName,
+      selectedType,
+      setSelectedType,
+    });
 
-  // Easy mode
   const [easyDigit, setEasyDigit] = useState('');
   const [easyPoints, setEasyPoints] = useState('');
-  const [easyBets, setEasyBets] = useState([]); // { id, digit, points, type }
+  const [easyBets, setEasyBets] = useState([]);
 
-  // Special mode
   const [specialPointsByDigit, setSpecialPointsByDigit] = useState(() =>
     DIGITS.reduce((acc, d) => {
       acc[d] = '';
@@ -221,7 +221,7 @@ const SingleDigit = ({ route }) => {
     }
 
     try {
-      const res = await placeBets(betsToSend);
+      await placeBets(betsToSend);
       Alert.alert('Success', 'Bets placed successfully!');
 
       // Update balance safely
@@ -247,8 +247,8 @@ const SingleDigit = ({ route }) => {
 
   // -------- RENDER --------
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <View style={styles.screen}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <DynamicHeader title={`${gameName} - SINGLE DIGIT`} />
         <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
@@ -259,11 +259,13 @@ const SingleDigit = ({ route }) => {
               label="EASY MODE"
               active={mode === 'EASY'}
               onPress={() => setMode('EASY')}
+              primary={colors.primary}
             />
             <ModeButton
               label="SPECIAL MODE"
               active={mode === 'SPECIAL'}
               onPress={() => setMode('SPECIAL')}
+              primary={colors.primary}
             />
           </View>
 
@@ -296,9 +298,10 @@ const SingleDigit = ({ route }) => {
                 points={easyPoints}
                 onChangePoints={setEasyPoints}
                 onPressAdd={() => {
-                  Keyboard.dismiss(); // fixes “need to tap twice” vibe
+                  Keyboard.dismiss();
                   handleAddEasyBet();
                 }}
+                colors={colors}
               />
 
               <View style={styles.tableArea}>
@@ -324,7 +327,7 @@ const SingleDigit = ({ route }) => {
 
               <View style={styles.specialSubmitWrapper}>
                 <TouchableOpacity
-                  style={styles.specialSubmitButton}
+                  style={[styles.specialSubmitButton, { backgroundColor: colors.primary }]}
                   onPress={handleSubmit}
                   activeOpacity={0.85}
                 >
@@ -357,36 +360,37 @@ const SingleDigitEasyForm = ({
   points,
   onChangePoints,
   onPressAdd,
+  colors,
 }) => {
   return (
     <View style={formStyles.container}>
       <View style={formStyles.pointInputRow}>
-        <Text style={formStyles.label}>Enter Single Digit:</Text>
+        <Text style={[formStyles.label, { color: colors.text }]}>Enter Single Digit:</Text>
         <TextInput
-          style={formStyles.input}
+          style={[formStyles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
           keyboardType="number-pad"
           maxLength={1}
           value={digit}
           onChangeText={onChangeDigit}
           placeholder="Ank"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.textTertiary}
         />
       </View>
 
       <View style={formStyles.pointInputRow}>
-        <Text style={formStyles.label}>Enter Points:</Text>
+        <Text style={[formStyles.label, { color: colors.text }]}>Enter Points:</Text>
         <TextInput
-          style={formStyles.input}
+          style={[formStyles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
           keyboardType="number-pad"
           value={points}
           onChangeText={onChangePoints}
           placeholder="Point"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.textTertiary}
         />
       </View>
 
       <TouchableOpacity
-        style={formStyles.addButton}
+        style={[formStyles.addButton, { backgroundColor: colors.primary }]}
         onPress={onPressAdd}
         activeOpacity={0.85}
       >
@@ -396,10 +400,9 @@ const SingleDigitEasyForm = ({
   );
 };
 
-/* ----------------- small UI bits ----------------- */
-const ModeButton = ({ label, active, onPress }) => (
+const ModeButton = ({ label, active, onPress, primary }) => (
   <TouchableOpacity
-    style={[modeStyles.button, { backgroundColor: active ? BLACK : ThemeColor }]}
+    style={[modeStyles.button, { backgroundColor: active ? BLACK : primary }]}
     activeOpacity={0.85}
     onPress={onPress}
   >
@@ -423,15 +426,12 @@ const modeStyles = StyleSheet.create({
   },
 });
 
-/* ----------------- styles ----------------- */
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
   screen: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
   content: {
     flex: 1,
@@ -461,7 +461,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   specialSubmitButton: {
-    backgroundColor: ThemeColor,
     borderRadius: 6,
     paddingVertical: 12,
     alignItems: 'center',
@@ -485,16 +484,13 @@ const formStyles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 4,
   },
   input: {
     height: 44,
     width: 180,
     borderRadius: 22,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#DDD',
     fontSize: 16,
     marginBottom: 12,
     textAlign: 'center',
@@ -503,7 +499,6 @@ const formStyles = StyleSheet.create({
     marginTop: 12,
     height: 44,
     borderRadius: 6,
-    backgroundColor: ThemeColor,
     justifyContent: 'center',
     alignItems: 'center',
     width: 180,

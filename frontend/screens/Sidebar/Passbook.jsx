@@ -16,12 +16,13 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
-import ThemeHeader from '../../components/Header';
+import ThemeHeader from '../../components/ThemeHeader';
 import PaginationBar from '../../components/PaginationBar';
 import EmptyState from '../../components/EmptyState';
 
 import { AuthContext } from '../../contexts/AuthContext';
 import { PaymentsContext } from '../../contexts/PaymentsContext';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const PAGE_SIZE = 10;
 
@@ -81,6 +82,8 @@ const makeKey = (x, idx) =>
   }_${idx}`;
 
 const PassbookRow = ({ item, GREEN }) => {
+  const { colors } = useTheme();
+
   const amountNum = Number(item?.amount || 0) || 0;
   const isCredit = amountNum > 0;
   const dt = parseTxDateTime(item?.txDate, item?.txTime);
@@ -93,12 +96,12 @@ const PassbookRow = ({ item, GREEN }) => {
       : 'Transaction';
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
       <View style={styles.left}>
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
           {title}
         </Text>
-        <Text style={styles.sub}>
+        <Text style={[styles.sub, { color: colors.textSecondary }]}>
           {formatDate(dt)} • {formatTime(dt)}
         </Text>
       </View>
@@ -114,11 +117,15 @@ const PassbookRow = ({ item, GREEN }) => {
 };
 
 const Passbook = () => {
+  const { colors } = useTheme();
+
   const { user } = useContext(AuthContext);
   const mobileNumber = user?.mobileNumber;
 
   const { GREEN, transactions, isLoadingTransactions, loadTransactions } =
     useContext(PaymentsContext);
+
+  const primary = colors.primary;
 
   const [page, setPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
@@ -177,13 +184,13 @@ const Passbook = () => {
   const hasNext = safePage < totalPages;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ThemeHeader title="Passbook" />
 
       {isLoadingTransactions && sorted.length === 0 ? (
         <View style={styles.loaderWrap}>
-          <ActivityIndicator size="small" color={GREEN} />
-          <Text style={styles.loaderText}>Loading...</Text>
+          <ActivityIndicator size="small" color={primary} />
+          <Text style={[styles.loaderText, { color: colors.text }]}>Loading...</Text>
         </View>
       ) : sorted.length === 0 ? (
         <EmptyState message="NO PASSBOOK FOUND" />
@@ -217,7 +224,6 @@ export default Passbook;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
   listContent: {
     padding: 12,
@@ -231,12 +237,10 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   loaderText: {
-    color: '#111',
     fontWeight: '700',
   },
 
   card: {
-    backgroundColor: '#fff',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 14,
@@ -244,7 +248,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     elevation: 4,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 6,
@@ -254,13 +257,11 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   title: {
-    color: '#666',
     fontSize: 16,
     fontWeight: '800',
   },
   sub: {
     marginTop: 6,
-    color: '#777',
     fontSize: 14,
     fontWeight: '700',
   },

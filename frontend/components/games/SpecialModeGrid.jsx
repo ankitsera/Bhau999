@@ -1,8 +1,10 @@
 import React from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
-import { ThemeColor } from "../../contexts/Themes";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const SpecialModeGrid = ({ digits, pointsByDigit, onChangePoint }) => {
+  const { colors } = useTheme();
+
   const leftDigits = digits.filter((_, idx) => idx % 2 === 0);
   const rightDigits = digits.filter((_, idx) => idx % 2 === 1);
 
@@ -10,14 +12,15 @@ const SpecialModeGrid = ({ digits, pointsByDigit, onChangePoint }) => {
     <View style={styles.column}>
       {arr.map((d) => (
         <View key={d} style={styles.row}>
-          <View style={styles.digitBox}>
+          <View style={[styles.digitBox, { backgroundColor: colors.primary }]}>
             <Text style={styles.digitText}>{d}</Text>
           </View>
           <TextInput
-            style={styles.pointInput}
+            style={[styles.pointInput, { backgroundColor: colors.surface, color: colors.text }]}
             keyboardType="number-pad"
             value={pointsByDigit[d]}
             onChangeText={(value) => onChangePoint(d, value)}
+            placeholderTextColor={colors.textTertiary}
           />
         </View>
       ))}
@@ -50,7 +53,6 @@ const styles = StyleSheet.create({
   },
   digitBox: {
     width: 60,
-    backgroundColor: ThemeColor,
     justifyContent: "center",
     alignItems: "center",
     borderTopLeftRadius: 6,
@@ -63,7 +65,6 @@ const styles = StyleSheet.create({
   },
   pointInput: {
     flex: 1,
-    backgroundColor: "#E5E5E5",
     borderTopRightRadius: 6,
     borderBottomRightRadius: 6,
     paddingHorizontal: 10,

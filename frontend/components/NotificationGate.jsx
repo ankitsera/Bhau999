@@ -12,9 +12,11 @@ import {
   requestNotificationPermission,
   openAppSettings,
 } from "../utils/NotificationsService";
-import { ThemeColor } from "../contexts/Themes";
+import { useTheme } from "../contexts/ThemeContext";
 
 const NotificationGate = ({ children }) => {
+  const { colors, isDarkMode } = useTheme();
+
   const [granted, setGranted] = useState(false);
   const [checking, setChecking] = useState(true);
 
@@ -84,10 +86,10 @@ const NotificationGate = ({ children }) => {
 
   if (checking) {
     return (
-      <View style={styles.screen}>
-        <View style={styles.card}>
-          <Text style={styles.title}>Just a sec…</Text>
-          <Text style={styles.subtitle}>Checking notification permission</Text>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
+        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.title, { color: colors.text }]}>Just a sec…</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Checking notification permission</Text>
         </View>
       </View>
     );
@@ -96,49 +98,49 @@ const NotificationGate = ({ children }) => {
   if (granted) return children;
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.card}>
-        <Text style={styles.title}>Notifications are required</Text>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
+      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Text style={[styles.title, { color: colors.text }]}>Notifications are required</Text>
 
-        <Text style={styles.subtitle}>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           This app needs notification permission to work properly.
         </Text>
 
         <View style={styles.bullets}>
-          <Text style={styles.bullet}>• Result declared alerts</Text>
-          <Text style={styles.bullet}>• Admin announcements</Text>
+          <Text style={[styles.bullet, { color: colors.textSecondary }]}>• Result declared alerts</Text>
+          <Text style={[styles.bullet, { color: colors.textSecondary }]}>• Admin announcements</Text>
         </View>
 
         {!neverAskAgain ? (
           <TouchableOpacity
-            style={[styles.primaryBtn, requesting && styles.disabledBtn]}
+            style={[styles.primaryBtn, { backgroundColor: colors.primary }, requesting && styles.disabledBtn]}
             onPress={onAllow}
             disabled={requesting}
             activeOpacity={0.85}
           >
-            <Text style={styles.primaryBtnText}>
+            <Text style={[styles.primaryBtnText, { color: isDarkMode ? "#ffffff" : "#07110A" }]}>
               {requesting ? "Requesting…" : "Allow Notifications"}
             </Text>
           </TouchableOpacity>
         ) : (
           <>
             <TouchableOpacity
-              style={styles.primaryBtn}
+              style={[styles.primaryBtn, { backgroundColor: colors.primary }]}
               onPress={openAppSettings}
               activeOpacity={0.85}
             >
-              <Text style={styles.primaryBtnText}>Open Settings</Text>
+              <Text style={[styles.primaryBtnText, { color: isDarkMode ? "#ffffff" : "#07110A" }]}>Open Settings</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.secondaryBtn}
+              style={[styles.secondaryBtn, { borderColor: colors.border }]}
               onPress={() => BackHandler.exitApp()}
               activeOpacity={0.85}
             >
-              <Text style={styles.secondaryBtnText}>Exit App</Text>
+              <Text style={[styles.secondaryBtnText, { color: colors.text }]}>Exit App</Text>
             </TouchableOpacity>
 
-            <Text style={styles.hint}>
+            <Text style={[styles.hint, { color: colors.textTertiary }]}>
               In Settings, enable Notifications for this app.
             </Text>
           </>
@@ -151,28 +153,23 @@ const NotificationGate = ({ children }) => {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#0B0F17",
     padding: 20,
     justifyContent: "center",
   },
   card: {
     width: "100%",
-    backgroundColor: "#111827",
     borderRadius: 18,
     padding: 18,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
   },
   title: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#FFFFFF",
     textAlign: "center",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: "rgba(255,255,255,0.75)",
     textAlign: "center",
     marginBottom: 14,
     lineHeight: 20,
@@ -183,19 +180,16 @@ const styles = StyleSheet.create({
   },
   bullet: {
     fontSize: 14,
-    color: "rgba(255,255,255,0.80)",
     lineHeight: 20,
     marginTop: 4,
   },
   primaryBtn: {
-    backgroundColor: ThemeColor,
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: "center",
     marginTop: 6,
   },
   primaryBtnText: {
-    color: "#07110A",
     fontWeight: "800",
     fontSize: 15,
   },
@@ -209,17 +203,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.18)",
   },
   secondaryBtnText: {
-    color: "#FFFFFF",
     fontWeight: "700",
     fontSize: 15,
   },
   hint: {
     marginTop: 12,
     fontSize: 12,
-    color: "rgba(255,255,255,0.55)",
     textAlign: "center",
     lineHeight: 16,
   },

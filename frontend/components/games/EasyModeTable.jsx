@@ -1,27 +1,29 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import { ThemeColor } from "../../contexts/Themes";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const DELETE_COL_W = 44; // keep header + rows aligned
 
 const EasyModeTable = ({ bets, onDelete, digitHeaderLabel = "Ank" }) => {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
+      <View style={[styles.headerRow, { backgroundColor: colors.primary }]}>
         <View style={styles.headerCell}>
-          <Text style={styles.headerText}>{digitHeaderLabel}</Text>
+          <Text style={[styles.headerText, { color: colors.text }]}>{digitHeaderLabel}</Text>
         </View>
         <View style={styles.headerCell}>
-          <Text style={styles.headerText}>Point</Text>
+          <Text style={[styles.headerText, { color: colors.text }]}>Point</Text>
         </View>
         <View style={styles.headerCell}>
-          <Text style={styles.headerText}>Type</Text>
+          <Text style={[styles.headerText, { color: colors.text }]}>Type</Text>
         </View>
 
         {/* Fixed-width delete header cell (matches rows) */}
         <View style={styles.deleteCol}>
-          <Text style={styles.headerText}>Delete</Text>
+          <Text style={[styles.headerText, { color: colors.text }]}>Delete</Text>
         </View>
       </View>
 
@@ -33,18 +35,18 @@ const EasyModeTable = ({ bets, onDelete, digitHeaderLabel = "Ank" }) => {
           keyboardShouldPersistTaps="handled"
         >
           {!bets || bets.length === 0 ? (
-            <Text style={styles.emptyText}>No entries</Text>
+            <Text style={[styles.emptyText, { color: colors.textTertiary }]}>No entries</Text>
           ) : (
             bets.map((item) => (
-              <View key={String(item.id)} style={styles.row}>
-                <CellText>{item.digit}</CellText>
-                <CellText>{item.points}</CellText>
-                <CellText>{item.type}</CellText>
+              <View key={String(item.id)} style={[styles.row, { backgroundColor: colors.surface }]}>
+                <CellText colors={colors}>{item.digit}</CellText>
+                <CellText colors={colors}>{item.points}</CellText>
+                <CellText colors={colors}>{item.type}</CellText>
 
                 {/* Fixed-width delete column (matches header) */}
                 <View style={styles.deleteCol}>
                   <TouchableOpacity
-                    style={styles.deleteBtn}
+                    style={[styles.deleteBtn, { backgroundColor: colors.primary }]}
                     onPress={() => onDelete(item.id)}
                     activeOpacity={0.8}
                   >
@@ -64,7 +66,7 @@ const EasyModeTable = ({ bets, onDelete, digitHeaderLabel = "Ank" }) => {
   );
 };
 
-const CellText = ({ children }) => <Text style={styles.cellText}>{children}</Text>;
+const CellText = ({ children, colors }) => <Text style={[styles.cellText, { color: colors.textSecondary }]}>{children}</Text>;
 
 const styles = StyleSheet.create({
   container: {
@@ -73,7 +75,6 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: "row",
-    backgroundColor: ThemeColor,
     paddingVertical: 8,
     paddingHorizontal: 8,
     borderRadius: 6,
@@ -90,7 +91,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerText: {
-    color: "#000",
     fontWeight: "700",
     fontSize: 14,
     textAlign: "center",
@@ -102,12 +102,10 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     textAlign: "center",
-    color: "#666",
     paddingVertical: 16,
   },
   row: {
     flexDirection: "row",
-    backgroundColor: "#FFF",
     marginTop: 8,
     paddingVertical: 10,
     paddingHorizontal: 10,
@@ -118,13 +116,11 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
     fontSize: 15,
-    color: "#333",
   },
   deleteBtn: {
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: ThemeColor,
     justifyContent: "center",
     alignItems: "center",
   },

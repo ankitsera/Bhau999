@@ -27,7 +27,7 @@ import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from "../../contexts/ThemeContext";
 
 function buildDigitCount(str) {
   const c = {};
@@ -38,6 +38,8 @@ function buildDigitCount(str) {
 }
 
 const SpDpTp = ({ route }) => {
+  const { colors } = useTheme();
+
   const gameName = route?.params?.gameName || "GAME";
 
   const { user, updateUser } = useContext(AuthContext);
@@ -227,8 +229,8 @@ const SpDpTp = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={["bottom"]}>
-      <View style={styles.screen}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={["bottom"]}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <DynamicHeader title={`${gameName} - SP DP TP`} />
         <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
@@ -246,54 +248,71 @@ const SpDpTp = ({ route }) => {
               label="SP"
               checked={spChecked}
               onToggle={() => setSpChecked((p) => !p)}
+              colors={colors}
             />
             <CheckItem
               label="DP"
               checked={dpChecked}
               onToggle={() => setDpChecked((p) => !p)}
+              colors={colors}
             />
             <CheckItem
               label="TP"
               checked={tpChecked}
               onToggle={() => setTpChecked((p) => !p)}
+              colors={colors}
             />
           </View>
 
           {/* Digit */}
           <View style={styles.pointInputRow}>
-            <Text style={styles.label}>Enter Digit:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Enter Digit:</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
+              ]}
               keyboardType="number-pad"
               maxLength={1}
               value={digit}
               onChangeText={setDigit}
               placeholder="Digit"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.textTertiary}
             />
           </View>
 
           {/* Points */}
           <View style={styles.pointInputRow}>
-            <Text style={styles.label}>Enter Points:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
+              ]}
               keyboardType="number-pad"
               value={points}
               onChangeText={setPoints}
               placeholder="Point"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.textTertiary}
             />
           </View>
 
           {/* Generate */}
           <View style={styles.generateWrap}>
             <TouchableOpacity
-              style={styles.generateBtn}
+              style={[styles.generateBtn, { backgroundColor: colors.primary }]}
               onPress={handleGenerate}
               activeOpacity={0.85}
             >
-              <Text style={styles.generateText}>Genrate</Text>
+              <Text style={[styles.generateText, { color: colors.text }]}>Generate</Text>
             </TouchableOpacity>
           </View>
 
@@ -320,16 +339,26 @@ const SpDpTp = ({ route }) => {
 export default SpDpTp;
 
 /** ---------- Small UI ---------- */
-const CheckItem = ({ label, checked, onToggle }) => {
+const CheckItem = ({ label, checked, onToggle, colors }) => {
   return (
     <View style={styles.checkItem}>
-      <Text style={styles.checkLabel}>{label}</Text>
+      <Text style={[styles.checkLabel, { color: colors.text }]}>{label}</Text>
       <TouchableOpacity
-        style={[styles.checkBox, checked && styles.checkBoxChecked]}
+        style={[
+          styles.checkBox,
+          {
+            borderColor: colors.textSecondary,
+            backgroundColor: colors.surface,
+          },
+          checked && [
+            styles.checkBoxChecked,
+            { backgroundColor: colors.primary, borderColor: colors.primary },
+          ],
+        ]}
         onPress={onToggle}
         activeOpacity={0.85}
       >
-        {checked ? <MaterialIcons name="check" size={18} color="#FFF" /> : null}
+        {checked ? <MaterialIcons name="check" size={18} color={colors.text} /> : null}
       </TouchableOpacity>
     </View>
   );
@@ -338,12 +367,10 @@ const CheckItem = ({ label, checked, onToggle }) => {
 /** ---------- Styles ---------- */
 const styles = StyleSheet.create({
   safe: { 
-    flex: 1, 
-    backgroundColor: "#F3F3F3" 
+    flex: 1,
   },
   screen: { 
-    flex: 1, 
-    backgroundColor: "#F3F3F3" 
+    flex: 1,
   },
 
   content: {
@@ -362,7 +389,6 @@ const styles = StyleSheet.create({
   checkItem: { alignItems: "center", width: 80 },
   checkLabel: {
     fontSize: 14,
-    color: "#333",
     marginBottom: 6,
     fontWeight: "600",
   },
@@ -371,15 +397,10 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 3,
     borderWidth: 1,
-    borderColor: "#444",
-    backgroundColor: "#FFF",
     justifyContent: "center",
     alignItems: "center",
   },
-  checkBoxChecked: {
-    backgroundColor: "#0E2B1E",
-    borderColor: "#0E2B1E",
-  },
+  checkBoxChecked: {},
 
   pointInputRow: {
     flexDirection: "row",
@@ -390,20 +411,16 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#333",
     marginBottom: 4,
   },
   input: {
     height: 44,
     width: 180,
     borderRadius: 22,
-    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#DDD",
     fontSize: 16,
     marginBottom: 12,
     textAlign: "center", // This centers the text and cursor
-    color: "#000",       // Ensures entered text is visible
     paddingHorizontal: 0, // Removes internal padding that might push the cursor
   },
 
@@ -416,12 +433,10 @@ const styles = StyleSheet.create({
     width: 180,
     height: 44,
     borderRadius: 6,
-    backgroundColor: ThemeColor,
     justifyContent: "center",
     alignItems: "center",
   },
   generateText: {
-    color: "#FFF",
     fontSize: 16,
     fontWeight: "700",
   },

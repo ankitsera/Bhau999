@@ -13,13 +13,13 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AuthContext } from '../contexts/AuthContext';
 import { GameContext } from '../contexts/GameContext';
 import SideBarNavigation from '../components/SideBarNavigation';
 import Footer from '../components/Footer';
 import TopStrip from '../components/TopStrip';
 import GamesList from '../components/games/GamesList';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // ✅ AppConfig helpers (defaults live inside these)
 import {
@@ -27,19 +27,21 @@ import {
   getWhatsappSupport,
   getTelegramChannel,
 } from '../utils/AppConfigService';
-import { ThemeColor, ThemeIconBg } from '../contexts/Themes';
+
+import { useTheme } from '../contexts/ThemeContext';
 
 const Header = ({ navigation }) => {
   const { user } = useContext(AuthContext);
+  const { isDarkMode, colors } = useTheme();
   const [isSideBarVisible, setIsSideBarVisible] = useState(false);
 
   return (
-    <View style={styles.headerRoot}>
+    <View style={[styles.headerRoot, { backgroundColor: colors.background }]}>
       {/* keep translucent so modal overlay can cover status bar */}
       <StatusBar
         translucent
         backgroundColor="transparent"
-        barStyle="dark-content"
+        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
       />
 
       {/* Sidebar modal */}
@@ -52,7 +54,9 @@ const Header = ({ navigation }) => {
         onRequestClose={() => setIsSideBarVisible(false)}
       >
         <View style={styles.modalContainer}>
-          <View style={styles.sidebar}>
+          <View
+            style={[styles.sidebar, { backgroundColor: colors.background }]}
+          >
             <SideBarNavigation
               navigation={navigation}
               closeSidebar={() => setIsSideBarVisible(false)}
@@ -66,16 +70,30 @@ const Header = ({ navigation }) => {
       </Modal>
 
       {/* Top bar */}
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: colors.background,
+            shadowColor: colors.text,
+          },
+        ]}
+      >
         <View style={styles.logo}>
           <Pressable
             style={styles.hamburger}
             onPress={() => setIsSideBarVisible(true)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <MaterialIcons name="format-align-left" size={28} color="black" />
+            <MaterialIcons
+              name="format-align-left"
+              size={28}
+              color={colors.text}
+            />
           </Pressable>
-          <Text style={styles.brandText}>SARA777</Text>
+          <Text style={[styles.brandText, { color: colors.text }]}>
+            SARA777
+          </Text>
         </View>
 
         <View style={styles.headerRight}>
@@ -85,16 +103,21 @@ const Header = ({ navigation }) => {
               navigation.navigate('Add Money');
             }}
           >
-            <MaterialCommunityIcons name="wallet-outline" size={28} color="#000" />
-            <Text style={styles.walletAmt}>
+            <MaterialCommunityIcons
+              name="wallet-outline"
+              size={28}
+              color={colors.text}
+            />
+            <Text style={[styles.walletAmt, { color: colors.text }]}>
               {user?.balance ? user.balance : '0.0'}
             </Text>
           </Pressable>
+
           <Pressable onPress={() => navigation.navigate('Notifications')}>
             <MaterialIcons
               name="notifications-active"
               size={30}
-              color="black"
+              color={colors.text}
             />
           </Pressable>
         </View>
@@ -104,6 +127,8 @@ const Header = ({ navigation }) => {
 };
 
 const Home = ({ navigation }) => {
+  const { isDarkMode, colors } = useTheme();
+
   const [supportVisible, setSupportVisible] = useState(false);
   const [quitVisible, setQuitVisible] = useState(false);
 
@@ -199,17 +224,33 @@ const Home = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      {/* fixed header */}
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.background,
+          paddingTop:
+            Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0,
+        },
+      ]}
+    >
       <Header navigation={navigation} />
 
-      {/* fixed top strip right below header */}
-      <View style={styles.topStripContainer}>
+      <View
+        style={[
+          styles.topStripContainer,
+          { backgroundColor: colors.background },
+        ]}
+      >
         <TopStrip navigation={navigation} />
       </View>
 
-      {/* only GamesList scrolls */}
-      <View style={styles.gamesListContainer}>
+      <View
+        style={[
+          styles.gamesListContainer,
+          { backgroundColor: colors.background },
+        ]}
+      >
         <GamesList
           navigation={navigation}
           refreshing={refreshing}
@@ -232,18 +273,37 @@ const Home = ({ navigation }) => {
         onRequestClose={() => setSupportVisible(false)}
       >
         <View style={styles.modalBackdrop}>
-          <View style={styles.supportCard}>
-            <Text style={styles.supportTitle}>Support</Text>
+          <View
+            style={[
+              styles.supportCard,
+              {
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text style={[styles.supportTitle, { color: colors.text }]}>
+              Support
+            </Text>
+
             <Pressable
               style={styles.closeX}
               onPress={() => setSupportVisible(false)}
             >
-              <View style={styles.closeCircle}>
-                <MaterialIcons name="close" size={20} color="#555" />
+              <View
+                style={[
+                  styles.closeCircle,
+                  { backgroundColor: colors.surface },
+                ]}
+              >
+                <MaterialIcons
+                  name="close"
+                  size={20}
+                  color={colors.textTertiary}
+                />
               </View>
             </Pressable>
 
-            {/* first row */}
             <View style={styles.supportRow}>
               <TouchableOpacity
                 style={[styles.supportBtn, { backgroundColor: '#167de4ff' }]}
@@ -266,7 +326,6 @@ const Home = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            {/* second row: Telegram button */}
             <View style={styles.supportRowCenter}>
               <TouchableOpacity
                 style={[
@@ -293,25 +352,61 @@ const Home = ({ navigation }) => {
         onRequestClose={() => setQuitVisible(false)}
       >
         <View style={styles.modalBackdrop}>
-          <View style={styles.quitCard}>
-            <View style={styles.quitHeader}>
+          <View
+            style={[
+              styles.quitCard,
+              {
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <View
+              style={[styles.quitHeader, { backgroundColor: colors.primary }]}
+            >
               <Text style={styles.quitTitle}>Quit</Text>
             </View>
-            <View style={styles.quitIconCircle}>
-              <MaterialCommunityIcons name="run-fast" size={40} color={ThemeColor} />
+
+            <View
+              style={[
+                styles.quitIconCircle,
+                { backgroundColor: colors.primaryIconBg },
+              ]}
+            >
+              <MaterialCommunityIcons
+                name="run-fast"
+                size={40}
+                color={colors.primary}
+              />
             </View>
-            <Text style={styles.quitText}>
+
+            <Text style={[styles.quitText, { color: colors.text }]}>
               Are you sure you want to quit the app?
             </Text>
+
             <View style={styles.quitRow}>
               <TouchableOpacity
-                style={[styles.quitBtn, styles.quitBtnGhost]}
+                style={[
+                  styles.quitBtn,
+                  styles.quitBtnGhost,
+                  {
+                    borderColor: colors.primary,
+                    backgroundColor: colors.background,
+                  },
+                ]}
                 onPress={() => setQuitVisible(false)}
               >
-                <Text style={[styles.quitBtnText, { color: ThemeColor }]}>No</Text>
+                <Text style={[styles.quitBtnText, { color: colors.primary }]}>
+                  No
+                </Text>
               </TouchableOpacity>
+
               <TouchableOpacity
-                style={[styles.quitBtn, styles.quitBtnSolid]}
+                style={[
+                  styles.quitBtn,
+                  styles.quitBtnSolid,
+                  { backgroundColor: colors.primary },
+                ]}
                 onPress={confirmQuit}
               >
                 <Text style={[styles.quitBtnText, { color: '#fff' }]}>Yes</Text>
@@ -329,15 +424,11 @@ export default Home;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    // let content render under translucent status bar but keep header visible on Android
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0,
   },
 
   /* Header */
   headerRoot: {
     width: '100%',
-    backgroundColor: '#fff',
   },
   header: {
     height: 70,
@@ -345,9 +436,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 15,
-    backgroundColor: '#fff',
     elevation: 3,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
@@ -361,7 +450,6 @@ const styles = StyleSheet.create({
   },
   brandText: {
     fontWeight: '800',
-    color: '#000',
     fontSize: 24,
     marginLeft: 6,
   },
@@ -377,19 +465,15 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   walletAmt: {
-    color: '#000',
     fontSize: 24,
   },
 
   /* TopStrip */
-  topStripContainer: {
-    backgroundColor: '#fff',
-  },
+  topStripContainer: {},
 
   /* Games */
   gamesListContainer: {
     flex: 1,
-    backgroundColor: '#fff',
   },
 
   /* Sidebar modal + overlay */
@@ -404,7 +488,6 @@ const styles = StyleSheet.create({
     left: 0,
     width: '70%',
     height: '100%',
-    backgroundColor: '#fff',
     zIndex: 51,
   },
   overlay: {
@@ -429,9 +512,9 @@ const styles = StyleSheet.create({
   /* Support card */
   supportCard: {
     width: '95%',
-    backgroundColor: '#fff',
     borderRadius: 18,
     padding: 18,
+    borderWidth: 1,
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
@@ -441,7 +524,6 @@ const styles = StyleSheet.create({
   supportTitle: {
     fontSize: 20,
     fontWeight: '800',
-    color: '#111',
     textAlign: 'center',
     marginBottom: 14,
   },
@@ -454,7 +536,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#F0F0F0',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -489,9 +570,9 @@ const styles = StyleSheet.create({
   /* Quit card */
   quitCard: {
     width: '92%',
-    backgroundColor: '#fff',
     borderRadius: 20,
     overflow: 'hidden',
+    borderWidth: 1,
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
@@ -500,7 +581,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   quitHeader: {
-    backgroundColor: ThemeColor,
     width: '100%',
     paddingVertical: 12,
   },
@@ -515,14 +595,12 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: ThemeIconBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   quitText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#111',
     textAlign: 'center',
     paddingHorizontal: 16,
   },
@@ -542,12 +620,8 @@ const styles = StyleSheet.create({
   },
   quitBtnGhost: {
     borderWidth: 2,
-    borderColor: ThemeColor,
-    backgroundColor: '#fff',
   },
-  quitBtnSolid: {
-    backgroundColor: ThemeColor,
-  },
+  quitBtnSolid: {},
   quitBtnText: {
     fontSize: 16,
     fontWeight: '800',

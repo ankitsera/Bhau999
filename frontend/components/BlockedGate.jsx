@@ -8,10 +8,11 @@ import {
   Pressable,
 } from 'react-native';
 import { AuthContext } from '../contexts/AuthContext';
-import { ThemeColor } from '../contexts/Themes';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function BlockedGate({ visible, navigationRef }) {
   const { clearSession } = useContext(AuthContext);
+  const { colors } = useTheme();
   const [busy, setBusy] = useState(false);
 
   // ✅ Block Android back button while blocked
@@ -50,14 +51,14 @@ export default function BlockedGate({ visible, navigationRef }) {
       }}
     >
       <View style={styles.backdrop}>
-        <View style={styles.card}>
-          <Text style={styles.title}>Access blocked</Text>
-          <Text style={styles.body}>
+        <View style={[styles.card, { backgroundColor: colors.background, borderColor: colors.border }]}>
+          <Text style={[styles.title, { color: colors.text }]}>Access blocked</Text>
+          <Text style={[styles.body, { color: colors.textSecondary }]}>
             Your account is not approved yet. Please contact support.
           </Text>
 
           <Pressable
-            style={[styles.btn, busy && styles.btnDisabled]}
+            style={[styles.btn, { backgroundColor: colors.primary }, busy && styles.btnDisabled]}
             onPress={goToUserCheck}
           >
             <Text style={styles.btnText}>
@@ -78,9 +79,9 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   card: {
-    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 18,
+    borderWidth: 1,
   },
   title: {
     fontSize: 18,
@@ -98,7 +99,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: ThemeColor,
   },
   btnDisabled: {
     opacity: 0.7,

@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import EmptyState from '../../components/EmptyState'
-import ThemeHeader from '../../components/Header'
+import ThemeHeader from '../../components/ThemeHeader'
 
 const Notifications = ({navigation}) => {
   return (

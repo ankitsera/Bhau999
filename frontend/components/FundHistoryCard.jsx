@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import { ThemeColor } from "../contexts/Themes";
+import { useTheme } from "../contexts/ThemeContext";
 
 const STATUS_COLORS = {
   pending: "#F29F05",
@@ -17,6 +17,8 @@ const FundHistoryCard = ({
   requestType = "Credit",
   depositMode = "UPI / Bank",
 }) => {
+  const { colors } = useTheme();
+
   const color = STATUS_COLORS[status] ?? STATUS_COLORS.pending;
 
   const statusIcon =
@@ -30,10 +32,10 @@ const FundHistoryCard = ({
     : "Pending";
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
       {/* top row: date + status */}
       <View style={styles.topRow}>
-        <Text style={styles.date}>{createdAt}</Text>
+        <Text style={[styles.date, { color: colors.textSecondary }]}>{createdAt}</Text>
 
         <View style={styles.statusWrap}>
           <MaterialCommunityIcons name={statusIcon} size={16} color={color} />
@@ -43,27 +45,27 @@ const FundHistoryCard = ({
 
       {/* amount + order id */}
       <View style={styles.amountRow}>
-        <Text style={styles.amount}>₹{amount}</Text>
+        <Text style={[styles.amount, { color: colors.text }]}>₹{amount}</Text>
 
         <View style={{ flex: 1 }} />
 
         <View>
-          <Text style={styles.metaLabel}>Order id</Text>
-          <Text style={styles.orderId}>{orderId}</Text>
+          <Text style={[styles.metaLabel, { color: colors.textTertiary }]}>Order id</Text>
+          <Text style={[styles.orderId, { color: colors.text }]}>{orderId}</Text>
         </View>
       </View>
 
-      <View style={styles.hr} />
+      <View style={[styles.hr, { backgroundColor: colors.divider }]} />
 
       {/* request type + deposit mode */}
       <View style={styles.bottomRow}>
         <View style={styles.metaBlock}>
-          <Text style={styles.metaLabel}>Request Type</Text>
-          <Text style={styles.metaValue}>{requestType}</Text>
+          <Text style={[styles.metaLabel, { color: colors.textTertiary }]}>Request Type</Text>
+          <Text style={[styles.metaValue, { color: colors.text }]}>{requestType}</Text>
         </View>
         <View style={styles.metaBlock}>
-          <Text style={styles.metaLabel}>Deposit Mode</Text>
-          <Text style={styles.metaValue}>{depositMode}</Text>
+          <Text style={[styles.metaLabel, { color: colors.textTertiary }]}>Deposit Mode</Text>
+          <Text style={[styles.metaValue, { color: colors.text }]}>{depositMode}</Text>
         </View>
       </View>
     </View>
@@ -74,11 +76,9 @@ export default FundHistoryCard;
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
     borderRadius: 14,
     padding: 14,
     elevation: 5,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.12,
     shadowRadius: 6,
@@ -88,7 +88,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   date: {
-    color: "#222",
     fontSize: 13,
   },
   statusWrap: {
@@ -111,14 +110,11 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: 28,
     fontWeight: "900",
-    color: "#111",
   },
   metaLabel: {
-    color: "#666",
     fontSize: 12,
   },
   orderId: {
-    color: "#111",
     fontSize: 13,
     fontWeight: "700",
     marginTop: 2,
@@ -126,7 +122,6 @@ const styles = StyleSheet.create({
 
   hr: {
     height: 1,
-    backgroundColor: "#E5E5E5",
     marginVertical: 10,
   },
 
@@ -138,7 +133,6 @@ const styles = StyleSheet.create({
     width: "48%",
   },
   metaValue: {
-    color: "#111",
     fontWeight: "800",
     marginTop: 2,
   },

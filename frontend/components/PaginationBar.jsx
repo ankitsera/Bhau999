@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import { ThemeColor, ThemeColorTile } from "../contexts/Themes";
+import { useTheme } from "../contexts/ThemeContext";
 
 const PaginationBar = ({
   page = 1,
@@ -12,21 +12,22 @@ const PaginationBar = ({
   onNext,
 }) => {
   const { bottom } = useSafeAreaInsets();
+  const { colors } = useTheme();
 
   return (
-    <View style={[styles.wrap, { paddingBottom: bottom ? bottom - 2 : 8 }]}>
+    <View style={[styles.wrap, { paddingBottom: bottom ? bottom - 2 : 8, backgroundColor: colors.surface, shadowColor: colors.text }]}>
       <TouchableOpacity
         style={[styles.sideBtn, !hasPrev && styles.disabled]}
         onPress={onPrev}
         disabled={!hasPrev}
         activeOpacity={0.8}
       >
-        <MaterialIcons name="chevron-left" size={22} color="#111" />
-        <Text style={styles.sideText}>PREV</Text>
+        <MaterialIcons name="chevron-left" size={22} color={colors.text} />
+        <Text style={[styles.sideText, { color: colors.text }]} >PREV</Text>
       </TouchableOpacity>
 
-      <View style={styles.pageDot}>
-        <Text style={styles.pageText} numberOfLines={1}>
+      <View style={[styles.pageDot, { backgroundColor: colors.text }]}>
+        <Text style={[styles.pageText, { color: colors.primaryTile }]} numberOfLines={1}>
           {page}
         </Text>
       </View>
@@ -37,8 +38,8 @@ const PaginationBar = ({
         disabled={!hasNext}
         activeOpacity={0.8}
       >
-        <Text style={styles.sideText}>NEXT</Text>
-        <MaterialIcons name="chevron-right" size={22} color="#111" />
+        <Text style={[styles.sideText, { color: colors.text }]}>NEXT</Text>
+        <MaterialIcons name="chevron-right" size={22} color={colors.text} />
       </TouchableOpacity>
     </View>
   );
@@ -52,7 +53,6 @@ const styles = StyleSheet.create({
     left: 12,
     right: 12,
     bottom: 8,
-    backgroundColor: "#fff",
     borderRadius: 28,
     paddingHorizontal: 14,
     paddingTop: 10,
@@ -62,7 +62,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
 
     elevation: 8,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: 8,
@@ -76,7 +75,6 @@ const styles = StyleSheet.create({
   },
   disabled: { opacity: 0.35 },
   sideText: { 
-    color: "#111", 
     fontSize: 15, 
     fontWeight: "700",
   },
@@ -87,12 +85,10 @@ const styles = StyleSheet.create({
     height: 46,
     paddingHorizontal: 12,
     borderRadius: 50,
-    backgroundColor: "#111",
     alignItems: "center",
     justifyContent: "center",
   },
   pageText: { 
-    color: ThemeColorTile, 
     fontWeight: "800", 
     fontSize: 16 
  },

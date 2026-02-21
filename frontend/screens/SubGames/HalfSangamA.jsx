@@ -21,9 +21,11 @@ import BettingClosedModal from '../../components/BettingClosedModal';
 import { useBettingGuard } from '../../utils/BettingGuard';
 import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
 
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const HalfSangamA = ({ route }) => {
+  const { colors } = useTheme();
+
   const gameName = route?.params?.gameName || 'GAME';
 
   const { user, updateUser } = useContext(AuthContext);
@@ -175,8 +177,8 @@ const HalfSangamA = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <View style={styles.screen}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <DynamicHeader title={`${gameName} - HALF SANGAM(A)`} />
         <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
@@ -188,23 +190,23 @@ const HalfSangamA = ({ route }) => {
           >
             {/* Open Pana */}
             <View style={styles.pointInputRow}>
-              <Text style={styles.label}>Enter Open Pana:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>Enter Open Pana:</Text>
 
               <View style={styles.inputWrapper}>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                   keyboardType="number-pad"
                   value={openPana}
                   onChangeText={t => setOpenPana(sanitizeDigits(t).slice(0, 3))}
                   placeholder="Pana"
-                  placeholderTextColor="#999"
+                  placeholderTextColor={colors.textTertiary}
                   maxLength={3}
                   onFocus={() => setShowOpenSug(true)}
                   onBlur={() => setTimeout(() => setShowOpenSug(false), 120)}
                 />
 
                 {showOpenSug && openSuggestions.length > 0 && (
-                  <View style={styles.suggestionBox}>
+                  <View style={[styles.suggestionBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
                     <ScrollView
                       keyboardShouldPersistTaps="handled"
                       nestedScrollEnabled
@@ -220,7 +222,7 @@ const HalfSangamA = ({ route }) => {
                             Keyboard.dismiss();
                           }}
                         >
-                          <Text style={styles.suggestionText}>{item}</Text>
+                          <Text style={[styles.suggestionText, { color: colors.text }]}>{item}</Text>
                         </TouchableOpacity>
                       ))}
                     </ScrollView>
@@ -231,33 +233,33 @@ const HalfSangamA = ({ route }) => {
 
             {/* Close Ank */}
             <View style={styles.pointInputRow}>
-              <Text style={styles.label}>Enter Close Ank:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>Enter Close Ank:</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                 keyboardType="number-pad"
                 value={closeAnk}
                 onChangeText={t => setCloseAnk(sanitizeDigits(t).slice(0, 1))}
                 placeholder="Ank"
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.textTertiary}
                 maxLength={1}
               />
             </View>
 
             {/* Points */}
             <View style={styles.pointInputRow}>
-              <Text style={styles.label}>Enter Points:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                 keyboardType="number-pad"
                 value={points}
                 onChangeText={t => setPoints(sanitizeDigits(t))}
                 placeholder="Point"
-                placeholderTextColor="#999"
+                placeholderTextColor={colors.textTertiary}
               />
             </View>
 
             <TouchableOpacity
-              style={styles.addButton}
+              style={[styles.addButton, { backgroundColor: colors.primary }]}
               onPress={handleAdd}
               activeOpacity={0.85}
             >
@@ -265,24 +267,24 @@ const HalfSangamA = ({ route }) => {
             </TouchableOpacity>
 
             {/* Table */}
-            <View style={styles.tableHeader}>
-              <Text style={[styles.headerCell, { flex: 1.2 }]}>Sangam</Text>
-              <Text style={[styles.headerCell, { flex: 0.9 }]}>Amount</Text>
-              <Text style={[styles.headerCell, { flex: 0.7 }]}>Delete</Text>
+            <View style={[styles.tableHeader, { backgroundColor: colors.primary }]}>
+              <Text style={[styles.headerCell, { flex: 1.2, color: colors.text }]}>Sangam</Text>
+              <Text style={[styles.headerCell, { flex: 0.9, color: colors.text }]}>Amount</Text>
+              <Text style={[styles.headerCell, { flex: 0.7, color: colors.text }]}>Delete</Text>
             </View>
 
             {bets.map(b => (
-              <View key={b.id} style={styles.rowCard}>
-                <Text style={[styles.rowText, { flex: 1.2 }]}>{b.sangam}</Text>
+              <View key={b.id} style={[styles.rowCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                <Text style={[styles.rowText, { flex: 1.2, color: colors.text }]}>{b.sangam}</Text>
                 <Text
-                  style={[styles.rowText, { flex: 0.9, textAlign: 'center' }]}
+                  style={[styles.rowText, { flex: 0.9, textAlign: 'center', color: colors.text }]}
                 >
                   {b.points}
                 </Text>
 
                 <View style={{ flex: 0.7, alignItems: 'center' }}>
                   <TouchableOpacity
-                    style={styles.deleteCircle}
+                    style={[styles.deleteCircle, { backgroundColor: colors.primary }]}
                     onPress={() => handleDelete(b.id)}
                     activeOpacity={0.85}
                   >
@@ -301,9 +303,9 @@ const HalfSangamA = ({ route }) => {
         </View>
 
         {/* Bottom submit */}
-        <View style={styles.bottomBar}>
+        <View style={[styles.bottomBar, { backgroundColor: colors.surface, borderTopColor: colors.divider }]}>
           <TouchableOpacity
-            style={styles.submitBtn}
+            style={[styles.submitBtn, { backgroundColor: colors.primary }]}
             onPress={handleSubmit}
             activeOpacity={0.9}
           >
@@ -320,11 +322,9 @@ export default HalfSangamA;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
   screen: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
   content: {
     flex: 1,
@@ -343,7 +343,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
   },
   inputWrapper: {
     width: 180,
@@ -353,9 +352,7 @@ const styles = StyleSheet.create({
     height: 44,
     width: 180,
     borderRadius: 22,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#DDD',
     fontSize: 16,
     textAlign: 'center',
     paddingHorizontal: 10,
@@ -365,9 +362,7 @@ const styles = StyleSheet.create({
     top: 48,
     left: 0,
     right: 0,
-    backgroundColor: '#FFF',
     borderWidth: 1,
-    borderColor: '#DDD',
     borderRadius: 10,
     maxHeight: 180,
     overflow: 'hidden',
@@ -380,13 +375,11 @@ const styles = StyleSheet.create({
   },
   suggestionText: {
     fontSize: 14,
-    color: '#333',
   },
   addButton: {
     marginTop: 6,
     height: 44,
     borderRadius: 6,
-    backgroundColor: ThemeColor,
     justifyContent: 'center',
     alignItems: 'center',
     width: 180,
@@ -399,7 +392,6 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     marginTop: 14,
-    backgroundColor: ThemeColor,
     borderRadius: 6,
     paddingVertical: 12,
     paddingHorizontal: 12,
@@ -407,39 +399,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerCell: {
-    color: '#000',
     fontWeight: '800',
     fontSize: 18,
     textAlign: 'center',
   },
   rowCard: {
     marginTop: 10,
-    backgroundColor: '#FFF',
     borderRadius: 18,
     paddingVertical: 14,
     paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
+    borderWidth: 1,
     elevation: 2,
   },
   rowText: {
     fontSize: 18,
-    color: '#111',
     fontWeight: '500',
   },
   deleteCircle: {
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: ThemeColor,
     justifyContent: 'center',
     alignItems: 'center',
   },
   bottomBar: {
     height: 70,
     borderTopWidth: 1,
-    borderTopColor: '#D9D9D9',
-    backgroundColor: ThemeColor,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,
@@ -448,6 +435,7 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     alignItems: 'center',
     paddingVertical: 14,
+    borderRadius: 10,
   },
   submitText: {
     color: '#FFF',

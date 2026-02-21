@@ -10,16 +10,15 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import DynamicHeader from "../../components/DynamicHeader";
-import GameDateTypeRow from "../../components/games/GameDateTypeRow";
 import SpecialModeGrid from "../../components/games/SpecialModeGrid";
 
 import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
 import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
-import { isValidBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
+import { fetchBetLimits } from "../../utils/BetValidationService";
 
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from "../../contexts/ThemeContext";
 
 // Order is IMPORTANT: even indexes render left column, odd indexes render right column
 const RED_JODI_NUMBERS = [
@@ -36,19 +35,14 @@ const RED_JODI_NUMBERS = [
 ];
 
 const RedJodi = ({ route }) => {
+  const { colors } = useTheme();
+
   const gameName = route?.params?.gameName || "GAME";
 
   const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
 
-  const todayLabel = (() => {
-    const d = new Date();
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const yyyy = d.getFullYear();
-    return `${dd}-${mm}-${yyyy}`;
-  })();
 
   const { showClosedModal, closeClosedModal, guard } = useBettingGuard({
     gameName,
@@ -61,6 +55,7 @@ const RedJodi = ({ route }) => {
       return acc;
     }, {})
   );
+
   const [minAmount, setMinAmount] = useState(10);
   const [maxAmount, setMaxAmount] = useState(10000);
 
@@ -154,7 +149,7 @@ const RedJodi = ({ route }) => {
     );
 
     try {
-      const res = await placeBets(betsToSend);
+      await placeBets(betsToSend);
       Alert.alert("Success", "Bets placed successfully!");
 
       // Update balance safely
@@ -176,9 +171,9 @@ const RedJodi = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={["bottom"]}>
-      <View style={styles.screen}>
-        <DynamicHeader title={`${gameName} - JODI`} />
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={["bottom"]}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
+        <DynamicHeader title={`${gameName} - RED JODI`} />
         <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
@@ -195,10 +190,9 @@ const RedJodi = ({ route }) => {
           </ScrollView>
         </View>
 
-        {/* Sticky bottom submit like screenshot */}
-        <View style={styles.specialSubmitWrapper}>
+        <View style={[styles.specialSubmitWrapper, { backgroundColor: colors.background }]}>
           <TouchableOpacity
-            style={styles.specialSubmitButton}
+            style={[styles.specialSubmitButton, { backgroundColor: colors.primary }]}
             onPress={handleSubmit}
             activeOpacity={0.85}
           >
@@ -215,11 +209,9 @@ export default RedJodi;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
   },
   screen: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
   },
   content: {
     flex: 1,
@@ -235,7 +227,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   specialSubmitButton: {
-    backgroundColor: ThemeColor,
     borderRadius: 6,
     paddingVertical: 12,
     alignItems: "center",

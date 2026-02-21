@@ -19,9 +19,11 @@ import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from "../../contexts/ThemeContext";
 
 const JodiBulk = ({ route }) => {
+  const { colors } = useTheme();
+
   const gameName = route?.params?.gameName || "GAME";
 
   const { user, updateUser } = useContext(AuthContext);
@@ -48,7 +50,6 @@ const JodiBulk = ({ route }) => {
   // { id, digit, points, type }
   const [bets, setBets] = useState([]);
 
-  // totals for bottom bar
   const { bids, totalPoints } = useMemo(() => {
     const b = bets.length;
     const p = bets.reduce((sum, b) => sum + (Number(b.points) || 0), 0);
@@ -76,8 +77,8 @@ const JodiBulk = ({ route }) => {
     };
 
     setBets((prev) => [...prev, newBet]);
-    setJodiDigit(""); // reset only digit
-    setPointsError(false); // clear error, keep points
+    setJodiDigit("");
+    setPointsError(false);
   };
 
   const handleDigitChange = (text) => {
@@ -102,10 +103,7 @@ const JodiBulk = ({ route }) => {
   };
 
   const handleAddPress = () => {
-    if (!jodiDigit || jodiDigit.length !== 2) {
-      // silently ignore; UX requirement was just visual cue for points
-      return;
-    }
+    if (!jodiDigit || jodiDigit.length !== 2) return;
     addBet(jodiDigit);
   };
 
@@ -146,7 +144,6 @@ const JodiBulk = ({ route }) => {
       const res = await placeBets(betsToSend);
       Alert.alert("Success", "Bets placed successfully!");
 
-      // Update balance safely
       const spent = Number(totalPoints) || 0;
       const nextBalance = Math.max(0, balance - spent);
       updateUser({ balance: nextBalance });
@@ -160,46 +157,44 @@ const JodiBulk = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={["bottom"]}>
-      <View style={styles.screen}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={["bottom"]}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <DynamicHeader title={`${gameName} - JODI BULK`} />
         <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
         <View style={styles.content}>
-          {/* Points row */}
           <View style={styles.pointInputRow}>
-            <Text style={styles.label}>Enter Points:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
             <TextInput
               style={[
                 styles.input,
-                pointsError && styles.errorInput,
+                { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text },
+                pointsError && [styles.errorInput, { borderColor: colors.error }],
               ]}
               keyboardType="number-pad"
               value={points}
               onChangeText={handlePointsChange}
               placeholder="Point"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.textTertiary}
             />
           </View>
 
-          {/* Jodi row */}
           <View style={styles.pointInputRow}>
-            <Text style={styles.label}>Enter Jodi Digit:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>Enter Jodi Digit:</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
               keyboardType="number-pad"
               value={jodiDigit}
               onChangeText={handleDigitChange}
               placeholder="Jodi"
               maxLength={2}
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.textTertiary}
             />
           </View>
 
-          {/* Add button aligned right */}
           <View style={styles.addButtonWrapper}>
             <TouchableOpacity
-              style={styles.addButton}
+              style={[styles.addButton, { backgroundColor: colors.primary }]}
               onPress={handleAddPress}
               activeOpacity={0.85}
             >
@@ -207,7 +202,6 @@ const JodiBulk = ({ route }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Table */}
           <View style={styles.tableArea}>
             <EasyModeTable
               bets={bets}
@@ -217,7 +211,6 @@ const JodiBulk = ({ route }) => {
           </View>
         </View>
 
-        {/* Bottom summary bar */}
         <BottomBetBar
           bids={bids}
           points={totalPoints}
@@ -233,11 +226,9 @@ export default JodiBulk;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
   },
   screen: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
   },
   content: {
     flex: 1,
@@ -253,22 +244,19 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#333",
   },
   input: {
     height: 44,
     width: 180,
     borderRadius: 22,
-    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#DDD",
     fontSize: 16,
     marginBottom: 4,
     textAlign: "center",
     writingDirection: "ltr",
   },
   errorInput: {
-    borderColor: "#FF4D4F",
+    borderWidth: 2,
   },
   addButtonWrapper: {
     alignItems: "flex-end",
@@ -276,7 +264,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   addButton: {
-    backgroundColor: ThemeColor,
     paddingVertical: 10,
     paddingHorizontal: 32,
     borderRadius: 6,

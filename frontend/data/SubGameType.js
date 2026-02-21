@@ -62,13 +62,13 @@ export const SUB_GAME_TYPES = [
   {
     key: "HalfSangamA",
     label: "Half Sangam (A)",
-    image: require("../assets/Images/halfSangam.webp"),
+    image: require("../assets/Images/halfSangamA.webp"),
     routeName: "HalfSangamA",
   },
   {
     key: "HalfSangamB",
     label: "Half Sangam (B)",
-    image: require("../assets/Images/halfSangam.webp"),
+    image: require("../assets/Images/halfSangamB.webp"),
     routeName: "HalfSangamB",
   },
   // {
@@ -86,7 +86,7 @@ export const SUB_GAME_TYPES = [
   {
     key: "twoDigitPana",
     label: "Two Digit Pana",
-    image: require("../assets/Images/twoDigitPana.webp"),
+    image: require("../assets/Images/jodi.webp"),
     routeName: "TwoDigitPana",
   },
   {
@@ -134,7 +134,7 @@ export const SUB_GAME_TYPES = [
   {
     key: "Digit Based Jodi",
     label: "Digit Based Jodi",
-    image: require("../assets/Images/jodi.webp"),
+    image: require("../assets/Images/digitBasedJodi.webp"),
     routeName: "DigitBasedJodi",
   },
 ];

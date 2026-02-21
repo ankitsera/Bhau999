@@ -19,12 +19,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import ThemeHeader from '../components/Header';
+import ThemeHeader from '../components/ThemeHeader';
 import PaginationBar from '../components/PaginationBar';
 
 import { AuthContext } from '../contexts/AuthContext';
 import { GameContext } from '../contexts/GameContext';
-import { ThemeColor } from '../contexts/Themes';
+import { useTheme } from '../contexts/ThemeContext';
 
 const PAGE_SIZE = 8;
 
@@ -123,6 +123,8 @@ const makeSig = x => {
 };
 
 const ResultPill = ({ result }) => {
+  const { colors } = useTheme();
+
   const r = String(result || '')
     .trim()
     .toUpperCase();
@@ -140,6 +142,8 @@ const ResultPill = ({ result }) => {
 };
 
 const InfoBlock = ({ label, value, align = 'left' }) => {
+  const { colors } = useTheme();
+
   return (
     <View
       style={[
@@ -148,8 +152,8 @@ const InfoBlock = ({ label, value, align = 'left' }) => {
         align === 'right' && styles.right,
       ]}
     >
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue} numberOfLines={1}>
+      <Text style={[styles.infoLabel, { color: colors.textTertiary }]}>{label}</Text>
+      <Text style={[styles.infoValue, { color: colors.text }]} numberOfLines={1}>
         {value}
       </Text>
     </View>
@@ -157,6 +161,8 @@ const InfoBlock = ({ label, value, align = 'left' }) => {
 };
 
 const BidHistoryCard = ({ item }) => {
+  const { colors } = useTheme();
+
   const gameType = String(item?.type || '--');
   const digit = item?.betValue ?? item?.bet_value ?? '--';
   const points = item?.amount ?? '--';
@@ -167,9 +173,9 @@ const BidHistoryCard = ({ item }) => {
   const txnTime = dt ? formatTime12h(dt) : '--:--';
 
   return (
-    <View style={styles.card}>
-      <View style={styles.cardTop}>
-        <Text style={styles.cardTopTitle}>{buildTitle(item)}</Text>
+    <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
+      <View style={[styles.cardTop, { backgroundColor: colors.primary }]}>
+        <Text style={[styles.cardTopTitle, { color: colors.text }]}>{buildTitle(item)}</Text>
       </View>
 
       <View style={styles.cardBody}>
@@ -183,33 +189,45 @@ const BidHistoryCard = ({ item }) => {
           <InfoBlock label="Points" value={String(points)} align="right" />
         </View>
 
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: colors.divider }]} />
 
         <View style={styles.row2}>
           <InfoBlock label="Bid Id" value={String(bidId)} align="left" />
           <InfoBlock label="Bid Date" value={bidDate} align="right" />
         </View>
 
-        <Text style={styles.txnTime}>Transaction Time : {txnTime}</Text>
+        <Text style={[styles.txnTime, { color: colors.textTertiary }]}>Transaction Time : {txnTime}</Text>
       </View>
     </View>
   );
 };
 
-const EmptyState = ({ text }) => (
-  <View style={styles.emptyWrap}>
-    <Text style={styles.emptyText}>{text}</Text>
-  </View>
-);
+const EmptyState = ({ text }) => {
+  const { colors } = useTheme();
+
+  return (
+    <View style={styles.emptyWrap}>
+      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{text}</Text>
+    </View>
+  );
+};
 
 // ✅ tiny checkbox (no extra deps)
 const CheckRow = ({ label, checked, onToggle }) => {
+  const { colors } = useTheme();
+
   return (
     <Pressable style={styles.checkRow} onPress={onToggle}>
-      <View style={[styles.checkbox, checked && styles.checkboxOn]}>
-        {checked ? <Text style={styles.tick}>✓</Text> : null}
+      <View
+        style={[
+          styles.checkbox,
+          { borderColor: colors.textTertiary, backgroundColor: colors.background },
+          checked && [styles.checkboxOn, { borderColor: colors.primary, backgroundColor: colors.surface }],
+        ]}
+      >
+        {checked ? <Text style={[styles.tick, { color: colors.success }]}>✓</Text> : null}
       </View>
-      <Text style={styles.checkLabel} numberOfLines={1}>
+      <Text style={[styles.checkLabel, { color: colors.text }]} numberOfLines={1}>
         {label}
       </Text>
     </Pressable>
@@ -251,6 +269,8 @@ const matchesGameFilter = (item, wantedSet) => {
 };
 
 const BidHistory = () => {
+  const { colors } = useTheme();
+
   const { user } = useContext(AuthContext);
   const mobileNumber = user?.mobileNumber;
 
@@ -418,17 +438,17 @@ const BidHistory = () => {
   }, []);
 
   return (
-    <SafeAreaView style={styles.screen} edges={['bottom']}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={['bottom']}>
       <ThemeHeader title="Bid History" />
 
       {/* ✅ Filter button kept inside screen (later can move into ThemeHeader) */}
       <View style={styles.filterBar}>
-        <Pressable style={styles.filterBtn} onPress={openFilter}>
+        <Pressable style={[styles.filterBtn, { backgroundColor: colors.primary }]} onPress={openFilter}>
           <View style={styles.filterBtnContent}>
-            <MaterialCommunityIcons name="filter" size={30} color="black" />
+            <MaterialCommunityIcons name="filter" size={30} color={colors.text} />
             {activeFilterCount ? (
-              <View style={styles.filterBadge}>
-                <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
+              <View style={[styles.filterBadge, { backgroundColor: colors.background }]}>
+                <Text style={[styles.filterBadgeText, { color: colors.primary }]}>{activeFilterCount}</Text>
               </View>
             ) : null}
           </View>
@@ -436,13 +456,13 @@ const BidHistory = () => {
 
         {activeFilterCount ? (
           <Pressable
-            style={styles.clearBtn}
+            style={[styles.clearBtn, { backgroundColor: colors.surface }]}
             onPress={() => {
               setFilters({ openClose: new Set(), result: new Set(), games: new Set() });
               setPage(1);
             }}
           >
-            <Text style={styles.clearBtnText}>Clear</Text>
+            <Text style={[styles.clearBtnText, { color: colors.text }]}>Clear</Text>
           </Pressable>
         ) : null}
       </View>
@@ -450,8 +470,8 @@ const BidHistory = () => {
       <View style={styles.body}>
         {isLoadingBidHistory && sorted.length === 0 ? (
           <View style={styles.loaderWrap}>
-            <ActivityIndicator size="small" color={ThemeColor} />
-            <Text style={styles.loaderText}>Loading...</Text>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={[styles.loaderText, { color: colors.text }]}>Loading...</Text>
           </View>
         ) : (
           <FlatList
@@ -489,13 +509,13 @@ const BidHistory = () => {
       >
         <Pressable style={styles.modalBackdrop} onPress={closeFilter} />
 
-        <View style={styles.modalCard}>
-          <View style={styles.modalHeader}>
+        <View style={[styles.modalCard, { backgroundColor: colors.background }]}>
+          <View style={[styles.modalHeader, { backgroundColor: colors.primary }]}>
             <Text style={styles.modalHeaderText}>Filter Type</Text>
           </View>
 
           <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-            <Text style={styles.sectionTitle}>By Game Type</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>By Game Type</Text>
             <View style={styles.row2Col}>
               <CheckRow
                 label="Open"
@@ -509,9 +529,9 @@ const BidHistory = () => {
               />
             </View>
 
-            <View style={styles.hr} />
+            <View style={[styles.hr, { backgroundColor: colors.divider }]} />
 
-            <Text style={styles.sectionTitle}>By Winning Status</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>By Winning Status</Text>
             <View style={styles.row3Col}>
               <CheckRow
                 label="Win"
@@ -530,25 +550,31 @@ const BidHistory = () => {
               />
             </View>
 
-            <View style={styles.hr} />
+            <View style={[styles.hr, { backgroundColor: colors.divider }]} />
 
-            <Text style={styles.sectionTitle}>By Games</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>By Games</Text>
             <View style={styles.gamesWrap}>
               {allGames.length === 0 ? (
-                <Text style={styles.noGamesText}>No games found</Text>
+                <Text style={[styles.noGamesText, { color: colors.textSecondary }]}>No games found</Text>
               ) : (
                 allGames.map(g => {
                   const checked = draft.games.has(g);
                   return (
                     <Pressable
                       key={g}
-                      style={styles.gameRow}
+                      style={[styles.gameRow, { backgroundColor: colors.surface, borderColor: colors.border }]}
                       onPress={() => toggleDraftSet('games', g)}
                     >
-                      <View style={[styles.checkbox, checked && styles.checkboxOn]}>
-                        {checked ? <Text style={styles.tick}>✓</Text> : null}
+                      <View
+                        style={[
+                          styles.checkbox,
+                          { borderColor: colors.textTertiary, backgroundColor: colors.background },
+                          checked && [styles.checkboxOn, { borderColor: colors.primary, backgroundColor: colors.surface }],
+                        ]}
+                      >
+                        {checked ? <Text style={[styles.tick, { color: colors.success }]}>✓</Text> : null}
                       </View>
-                      <Text style={styles.gameText} numberOfLines={1}>
+                      <Text style={[styles.gameText, { color: colors.text }]} numberOfLines={1}>
                         {g}
                       </Text>
                     </Pressable>
@@ -558,19 +584,19 @@ const BidHistory = () => {
             </View>
           </ScrollView>
 
-          <View style={styles.modalFooter}>
-            <Pressable style={styles.footerBtnLeft} onPress={closeFilter}>
+          <View style={[styles.modalFooter, { backgroundColor: colors.background }]}>
+            <Pressable style={[styles.footerBtnLeft, { backgroundColor: colors.primary }]} onPress={closeFilter}>
               <Text style={styles.footerBtnText}>Cancel</Text>
             </Pressable>
 
             <Pressable
-              style={styles.footerBtnMid}
+              style={[styles.footerBtnMid, { backgroundColor: colors.primaryTile }]}
               onPress={clearDraft}
             >
               <Text style={styles.footerBtnText}>Reset</Text>
             </Pressable>
 
-            <Pressable style={styles.footerBtnRight} onPress={applyFilter}>
+            <Pressable style={[styles.footerBtnRight, { backgroundColor: colors.primary }]} onPress={applyFilter}>
               <Text style={styles.footerBtnText}>Filter</Text>
             </Pressable>
           </View>
@@ -585,7 +611,6 @@ export default BidHistory;
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: '#F6F6F6',
   },
   body: {
     flex: 1,
@@ -602,7 +627,6 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
   },
   filterBtn: {
-    backgroundColor: ThemeColor,
     paddingHorizontal: 14,
     paddingVertical: 5,
     borderRadius: 10,
@@ -614,7 +638,6 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   filterBadge: {
-    backgroundColor: '#fff',
     borderRadius: 10,
     minWidth: 20,
     minHeight: 20,
@@ -622,7 +645,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   filterBadgeText: {
-    color: ThemeColor,
     fontWeight: '900',
     fontSize: 12,
   },
@@ -630,10 +652,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: '#EAEAEA',
   },
   clearBtnText: {
-    color: '#111',
     fontWeight: '900',
   },
 
@@ -650,18 +670,15 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   loaderText: {
-    color: '#111',
     fontWeight: '700',
   },
 
   card: {
-    backgroundColor: '#fff',
     borderRadius: 10,
     overflow: 'hidden',
     marginBottom: 14,
 
     elevation: 6,
-    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 3,
@@ -671,14 +688,12 @@ const styles = StyleSheet.create({
   },
 
   cardTop: {
-    backgroundColor: ThemeColor,
     paddingVertical: 14,
     paddingHorizontal: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cardTopTitle: {
-    color: '#111',
     fontSize: 18,
     fontWeight: '900',
     letterSpacing: 0.4,
@@ -730,27 +745,23 @@ const styles = StyleSheet.create({
   },
 
   infoLabel: {
-    color: '#777',
     fontSize: 13,
     fontWeight: '700',
     marginBottom: 4,
   },
   infoValue: {
-    color: '#111',
     fontSize: 18,
     fontWeight: '900',
   },
 
   divider: {
     height: 1,
-    backgroundColor: '#E8E8E8',
     marginVertical: 12,
   },
 
   txnTime: {
     marginTop: 10,
     textAlign: 'center',
-    color: '#777',
     fontWeight: '700',
   },
 
@@ -759,7 +770,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    color: '#444',
     fontWeight: '800',
   },
 
@@ -774,10 +784,8 @@ const styles = StyleSheet.create({
     marginBottom: 70,
     borderRadius: 14,
     overflow: 'hidden',
-    backgroundColor: '#F0F0F0',
   },
   modalHeader: {
-    backgroundColor: '#3FA16C',
     paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -797,7 +805,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#111',
     marginBottom: 10,
   },
 
@@ -816,7 +823,6 @@ const styles = StyleSheet.create({
 
   hr: {
     height: 1,
-    backgroundColor: '#D8D8D8',
     marginVertical: 12,
   },
 
@@ -832,23 +838,16 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: '#888',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff',
   },
-  checkboxOn: {
-    borderColor: '#3FA16C',
-    backgroundColor: '#E9FFF2',
-  },
+  checkboxOn: {},
   tick: {
     fontWeight: '900',
-    color: '#0E8F4D',
     marginTop: -1,
   },
   checkLabel: {
     fontWeight: '800',
-    color: '#111',
     flex: 1,
   },
 
@@ -860,20 +859,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#fff',
     paddingHorizontal: 12,
     paddingVertical: 14,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#E2E2E2',
   },
   gameText: {
     fontWeight: '900',
-    color: '#111',
     flex: 1,
   },
   noGamesText: {
-    color: '#555',
     fontWeight: '800',
   },
 
@@ -881,11 +876,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     padding: 12,
-    backgroundColor: '#F0F0F0',
   },
   footerBtnLeft: {
     flex: 1,
-    backgroundColor: '#3FA16C',
     borderRadius: 999,
     paddingVertical: 12,
     alignItems: 'center',
@@ -893,7 +886,6 @@ const styles = StyleSheet.create({
   },
   footerBtnMid: {
     flex: 1,
-    backgroundColor: '#2F7A54',
     borderRadius: 999,
     paddingVertical: 12,
     alignItems: 'center',
@@ -901,7 +893,6 @@ const styles = StyleSheet.create({
   },
   footerBtnRight: {
     flex: 1,
-    backgroundColor: '#3FA16C',
     borderRadius: 999,
     paddingVertical: 12,
     alignItems: 'center',

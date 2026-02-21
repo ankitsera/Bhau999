@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useContext } from "react";
+import React, { useMemo, useState, useContext } from 'react';
 import {
   View,
   ScrollView,
@@ -7,55 +7,60 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import DynamicHeader from "../../components/DynamicHeader";
-import BottomBetBar from "../../components/games/BottomBetBar";
+import DynamicHeader from '../../components/DynamicHeader';
+import BottomBetBar from '../../components/games/BottomBetBar';
 
-import GameTypePicker from "../../components/games/GameTypePicker";
-import GameDateTypeRow from "../../components/games/GameDateTypeRow";
+import GameTypePicker from '../../components/games/GameTypePicker';
+import GameDateTypeRow from '../../components/games/GameDateTypeRow';
 
-import EasyModeTable from "../../components/games/EasyModeTable";
-import SpecialModeGrid from "../../components/games/SpecialModeGrid";
+import EasyModeTable from '../../components/games/EasyModeTable';
+import SpecialModeGrid from '../../components/games/SpecialModeGrid';
 
 import {
   ALL_SINGLE_PANA,
   SINGLE_PANA_BY_RESULT_DIGIT,
   getSinglePanaSuggestions,
-} from "../../data/singlePanaMap";
+} from '../../data/singlePanaMap';
 
-import { AuthContext } from "../../contexts/AuthContext";
-import { placeBets, makeBet } from "../../utils/GameService";
-import BettingClosedModal from "../../components/BettingClosedModal";
-import { useBettingGuard } from "../../utils/BettingGuard";
-import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
+import { AuthContext } from '../../contexts/AuthContext';
+import { placeBets, makeBet } from '../../utils/GameService';
+import BettingClosedModal from '../../components/BettingClosedModal';
+import { useBettingGuard } from '../../utils/BettingGuard';
+import {
+  validateAndAlertBetAmount,
+  fetchBetLimits,
+} from '../../utils/BetValidationService';
 
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from '../../contexts/ThemeContext';
 
-const BLACK = "#000";
+const BLACK = '#000';
 
 const GROUP_KEYS = Object.keys(SINGLE_PANA_BY_RESULT_DIGIT); // "0".."9"
 
 const SinglePana = ({ route }) => {
+  const { colors } = useTheme();
+
   const gameName = route?.params?.gameName || 'GAME';
 
   const { user, updateUser } = useContext(AuthContext);
-  const mobileNumber = user?.mobileNumber; 
+  const mobileNumber = user?.mobileNumber;
   const balance = Number(user?.balance || 0);
 
   // today's date label (static style dd-mm-yyyy)
   const todayLabel = (() => {
     const d = new Date();
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
     const yyyy = d.getFullYear();
     return `${dd}-${mm}-${yyyy}`;
   })();
 
   // -------- STATE --------
-  const [mode, setMode] = useState("EASY"); // "EASY" | "SPECIAL"
-  const [selectedType, setSelectedType] = useState("OPEN");
+  const [mode, setMode] = useState('EASY'); // "EASY" | "SPECIAL"
+  const [selectedType, setSelectedType] = useState('OPEN');
   const [minAmount, setMinAmount] = useState(10);
   const [maxAmount, setMaxAmount] = useState(10000);
 
@@ -66,36 +71,40 @@ const SinglePana = ({ route }) => {
     });
   }, []);
 
-  const { pickerOptions, showClosedModal, closeClosedModal, guard } = useBettingGuard({
-    gameName,
-    selectedType,
-    setSelectedType,
-  });
+  const { pickerOptions, showClosedModal, closeClosedModal, guard } =
+    useBettingGuard({
+      gameName,
+      selectedType,
+      setSelectedType,
+    });
 
   // Easy mode
-  const [easyPana, setEasyPana] = useState("");
-  const [easyPoints, setEasyPoints] = useState("");
+  const [easyPana, setEasyPana] = useState('');
+  const [easyPoints, setEasyPoints] = useState('');
   const [easyBets, setEasyBets] = useState([]); // { id, pana, points, type }
 
   // Special mode (points per pana)
   const [specialPointsByPana, setSpecialPointsByPana] = useState(() =>
     ALL_SINGLE_PANA.reduce((acc, p) => {
-      acc[p] = "";
+      acc[p] = '';
       return acc;
-    }, {})
+    }, {}),
   );
 
   // -------- DERIVED TOTALS --------
   const easyTotals = useMemo(() => {
     const bids = easyBets.length;
-    const points = easyBets.reduce((sum, b) => sum + (Number(b.points) || 0), 0);
+    const points = easyBets.reduce(
+      (sum, b) => sum + (Number(b.points) || 0),
+      0,
+    );
     return { bids, points };
   }, [easyBets]);
 
   const specialTotals = useMemo(() => {
     let bids = 0;
     let points = 0;
-    ALL_SINGLE_PANA.forEach((pana) => {
+    ALL_SINGLE_PANA.forEach(pana => {
       const p = Number(specialPointsByPana[pana] || 0);
       if (p > 0) {
         bids += 1;
@@ -105,18 +114,26 @@ const SinglePana = ({ route }) => {
     return { bids, points };
   }, [specialPointsByPana]);
 
-  const activeTotals = mode === "EASY" ? easyTotals : specialTotals;
+  const activeTotals = mode === 'EASY' ? easyTotals : specialTotals;
 
   // -------- HANDLERS --------
   const handleAddEasyBet = () => {
-    if (!easyPana || easyPana.trim() === "") {
-      Alert.alert("Validation", "Please enter a pana.");
+    if (!easyPana || easyPana.trim() === '') {
+      Alert.alert('Validation', 'Please enter a pana.');
       return;
     }
 
-    const clean = easyPana.replace(/[^0-9]/g, "");
+    const clean = easyPana.replace(/[^0-9]/g, '');
     if (clean.length !== 3) {
-      Alert.alert("Validation", "Pana must be a 3-digit number.");
+      Alert.alert('Validation', 'Pana must be a 3-digit number.');
+      return;
+    }
+
+    if (!ALL_SINGLE_PANA.includes(clean)) {
+      Alert.alert(
+        'Validation',
+        'Invalid Single Pana. Please enter a valid pana.',
+      );
       return;
     }
 
@@ -132,17 +149,17 @@ const SinglePana = ({ route }) => {
       type: selectedType.toLowerCase(), // "open"/"close"
     };
 
-    setEasyBets((prev) => [...prev, newBet]);
-    setEasyPana("");
-    setEasyPoints("");
+    setEasyBets(prev => [...prev, newBet]);
+    setEasyPana('');
+    setEasyPoints('');
   };
 
-  const handleDeleteEasyBet = (id) => {
-    setEasyBets((prev) => prev.filter((b) => b.id !== id));
+  const handleDeleteEasyBet = id => {
+    setEasyBets(prev => prev.filter(b => b.id !== id));
   };
 
   const handleChangeSpecialPoint = (pana, value) => {
-    setSpecialPointsByPana((prev) => ({
+    setSpecialPointsByPana(prev => ({
       ...prev,
       [pana]: value,
     }));
@@ -154,19 +171,22 @@ const SinglePana = ({ route }) => {
     const { bids, points } = activeTotals;
 
     if (bids === 0) {
-      Alert.alert("No bets", "Please add at least one bet.");
+      Alert.alert('No bets', 'Please add at least one bet.');
       return;
     }
 
     // Basic auth validation
     if (!mobileNumber) {
-      Alert.alert("Login required", "Mobile number not found. Please login again.");
+      Alert.alert(
+        'Login required',
+        'Mobile number not found. Please login again.',
+      );
       return;
     }
 
     // Don’t block when balance is still temp=0
     if (Number.isFinite(balance) && balance > 0 && points > balance) {
-      Alert.alert("Insufficient balance", "Your wallet balance is too low.");
+      Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
       return;
     }
 
@@ -174,62 +194,62 @@ const SinglePana = ({ route }) => {
     // backend expects: [{ mobileNumber, gameName, type, open_close, amount, betValue }]
     let betsToSend = [];
 
-    if (mode === "EASY") {
-      betsToSend = easyBets.map((b) =>
+    if (mode === 'EASY') {
+      betsToSend = easyBets.map(b =>
         makeBet({
           mobileNumber,
           gameName,
-          type: "Single Pana",
-          openClose: String(b.type || "").toUpperCase(), // open_close per row
+          type: 'Single Pana',
+          openClose: String(b.type || '').toUpperCase(), // open_close per row
           amount: Number(b.points) || 0, // amount instead of points
           betValue: b.pana, // betValue
-        })
+        }),
       );
-    }  else {
-        const list = [];
+    } else {
+      const list = [];
 
-        for (let i = 0; i < ALL_SINGLE_PANA.length; i++) {
-          const pana = ALL_SINGLE_PANA[i];
-          const raw = String(specialPointsByPana[pana] || "").trim();
+      for (let i = 0; i < ALL_SINGLE_PANA.length; i++) {
+        const pana = ALL_SINGLE_PANA[i];
+        const raw = String(specialPointsByPana[pana] || '').trim();
 
-          if (!raw) continue; // empty => ignore
+        if (!raw) continue; // empty => ignore
 
-          const num = Number(raw);
+        const num = Number(raw);
 
-          // typed something but invalid
-          if (!Number.isFinite(num) || num <= 0) {
-            Alert.alert("Validation", `Invalid points for pana ${pana}.`);
-            return; // ✅ stops BEFORE API call
-          }
-
-          // ✅ min/max: if any one fails, stop everything
-          if (num < minAmount || num > maxAmount) {
-            Alert.alert(
-              "Validation",
-              `Points for pana ${pana} must be between ${minAmount} and ${maxAmount}.`
-            );
-            return; // ✅ stops BEFORE API call
-          }
-
-          list.push(
-            makeBet({
-              mobileNumber,
-              gameName,
-              type: "Single Pana",
-              openClose: selectedType, // OPEN/CLOSE
-              amount: num,
-              betValue: pana,
-            })
-          );
+        // typed something but invalid
+        if (!Number.isFinite(num) || num <= 0) {
+          Alert.alert('Validation', `Invalid points for pana ${pana}.`);
+          return; // ✅ stops BEFORE API call
         }
 
-        betsToSend = list; // only valid bets get here
+        // ✅ min/max: if any one fails, stop everything
+        if (num < minAmount || num > maxAmount) {
+          Alert.alert(
+            'Validation',
+            `Points for pana ${pana} must be between ${minAmount} and ${maxAmount}.`,
+          );
+          return; // ✅ stops BEFORE API call
+        }
+
+        list.push(
+          makeBet({
+            mobileNumber,
+            gameName,
+            type: 'Single Pana',
+            openClose: selectedType, // OPEN/CLOSE
+            amount: num,
+            betValue: pana,
+          }),
+        );
       }
+
+      betsToSend = list; // only valid bets get here
+    }
 
     try {
       // API call
       const res = await placeBets(betsToSend);
-      Alert.alert("Success", "Bets placed successfully!");
+      Alert.alert('Success', 'Bets placed successfully!');
 
       // Update balance safely
       const spent = Number(activeTotals.points) || 0;
@@ -237,27 +257,33 @@ const SinglePana = ({ route }) => {
       updateUser({ balance: nextBalance });
 
       // optional small reset (kept minimal)
-      if (mode === "EASY") {
+      if (mode === 'EASY') {
         setEasyBets([]);
       } else {
-        setSpecialPointsByPana((prev) => {
+        setSpecialPointsByPana(prev => {
           const next = { ...prev };
-          ALL_SINGLE_PANA.forEach((p) => (next[p] = ""));
+          ALL_SINGLE_PANA.forEach(p => (next[p] = ''));
           return next;
         });
       }
     } catch (err) {
       console.error(err);
-      Alert.alert("Error", err?.message || "Failed to place bets.");
+      Alert.alert('Error', err?.message || 'Failed to place bets.');
     }
   };
 
   // -------- RENDER --------
   return (
-    <SafeAreaView style={styles.safe} edges={["bottom"]}>
-      <View style={styles.screen}>
+    <SafeAreaView
+      style={[styles.safe, { backgroundColor: colors.background }]}
+      edges={['bottom']}
+    >
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <DynamicHeader title={`${gameName} - SINGLE PANA`} />
-        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
+        <BettingClosedModal
+          visible={showClosedModal}
+          onClose={closeClosedModal}
+        />
 
         {/* MAIN CONTENT */}
         <View style={styles.content}>
@@ -265,18 +291,20 @@ const SinglePana = ({ route }) => {
           <View style={styles.modeRow}>
             <ModeButton
               label="EASY MODE"
-              active={mode === "EASY"}
-              onPress={() => setMode("EASY")}
+              active={mode === 'EASY'}
+              onPress={() => setMode('EASY')}
+              primary={colors.primary}
             />
             <ModeButton
               label="SPECIAL MODE"
-              active={mode === "SPECIAL"}
-              onPress={() => setMode("SPECIAL")}
+              active={mode === 'SPECIAL'}
+              onPress={() => setMode('SPECIAL')}
+              primary={colors.primary}
             />
           </View>
 
           {/* EASY MODE: label + dropdown */}
-          {mode === "EASY" && (
+          {mode === 'EASY' && (
             <GameTypePicker
               label="Select Game Type:"
               value={selectedType}
@@ -287,7 +315,7 @@ const SinglePana = ({ route }) => {
           )}
 
           {/* SPECIAL MODE: date + dropdown row */}
-          {mode === "SPECIAL" && (
+          {mode === 'SPECIAL' && (
             <GameDateTypeRow
               dateLabel={todayLabel}
               gameTypeValue={selectedType}
@@ -296,7 +324,7 @@ const SinglePana = ({ route }) => {
             />
           )}
 
-          {mode === "EASY" ? (
+          {mode === 'EASY' ? (
             <>
               <SinglePanaEasyForm
                 pana={easyPana}
@@ -304,11 +332,12 @@ const SinglePana = ({ route }) => {
                 points={easyPoints}
                 onChangePoints={setEasyPoints}
                 onPressAdd={handleAddEasyBet}
+                colors={colors}
               />
 
               <View style={styles.tableArea}>
                 <EasyModeTable
-                  bets={easyBets.map((b) => ({
+                  bets={easyBets.map(b => ({
                     id: b.id,
                     digit: b.pana,
                     points: b.points,
@@ -332,12 +361,24 @@ const SinglePana = ({ route }) => {
                   >
                     {/* GROUPED SPECIAL MODE GRID */}
                     <View style={styles.groupsWrapper}>
-                      {GROUP_KEYS.map((key) => {
+                      {GROUP_KEYS.map(key => {
                         const panas = SINGLE_PANA_BY_RESULT_DIGIT[key];
                         return (
                           <View key={key} style={styles.groupSection}>
-                            <View style={styles.groupHeaderPill}>
-                              <Text style={styles.groupHeaderText}>{key}</Text>
+                            <View
+                              style={[
+                                styles.groupHeaderPill,
+                                { backgroundColor: colors.primaryTile },
+                              ]}
+                            >
+                              <Text
+                                style={[
+                                  styles.groupHeaderText,
+                                  { color: colors.text },
+                                ]}
+                              >
+                                {key}
+                              </Text>
                             </View>
 
                             <SpecialModeGrid
@@ -353,13 +394,28 @@ const SinglePana = ({ route }) => {
                 </View>
 
                 {/* ✅ Sticky submit bar */}
-                <View style={styles.specialStickyBar}>
+                <View
+                  style={[
+                    styles.specialStickyBar,
+                    {
+                      backgroundColor: colors.background,
+                      borderTopColor: colors.divider,
+                    },
+                  ]}
+                >
                   <TouchableOpacity
-                    style={styles.specialSubmitButton}
+                    style={[
+                      styles.specialSubmitButton,
+                      { backgroundColor: colors.primary },
+                    ]}
                     onPress={handleSubmit}
                     activeOpacity={0.85}
                   >
-                    <Text style={styles.specialSubmitText}>Submit</Text>
+                    <Text
+                      style={[styles.specialSubmitText, { color: colors.text }]}
+                    >
+                      Submit
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -368,7 +424,7 @@ const SinglePana = ({ route }) => {
         </View>
 
         {/* Bottom bar ONLY for Easy mode */}
-        {mode === "EASY" && (
+        {mode === 'EASY' && (
           <BottomBetBar
             bids={activeTotals.bids}
             points={activeTotals.points}
@@ -390,39 +446,53 @@ const SinglePanaEasyForm = ({
   points,
   onChangePoints,
   onPressAdd,
+  colors,
 }) => {
-  const suggestions = useMemo(
-    () => getSinglePanaSuggestions(pana),
-    [pana]
-  );
+  const suggestions = useMemo(() => getSinglePanaSuggestions(pana), [pana]);
 
   return (
     <View style={formStyles.container}>
       {/* Enter Single Pana row */}
       <View style={formStyles.pointInputRow}>
-        <Text style={formStyles.label}>Enter Single Pana:</Text>
+        <Text style={[formStyles.label, { color: colors.text }]}>
+          Enter Single Pana:
+        </Text>
 
         <View style={formStyles.inputWrapper}>
           <TextInput
-            style={formStyles.input}
+            style={[
+              formStyles.input,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                color: colors.text,
+              },
+            ]}
             keyboardType="number-pad"
             maxLength={3}
             value={pana}
             onChangeText={onChangePana}
             placeholder="Pana"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.textTertiary}
           />
 
           {suggestions.length > 0 && pana.length > 0 && pana.length < 3 && (
-            <View style={formStyles.dropdown}>
+            <View
+              style={[
+                formStyles.dropdown,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
+            >
               <ScrollView keyboardShouldPersistTaps="handled">
-                {suggestions.map((val) => (
+                {suggestions.map(val => (
                   <TouchableOpacity
                     key={val}
                     style={formStyles.item}
                     onPress={() => onChangePana(val)}
                   >
-                    <Text style={formStyles.itemText}>{val}</Text>
+                    <Text style={[formStyles.itemText, { color: colors.text }]}>
+                      {val}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -433,23 +503,32 @@ const SinglePanaEasyForm = ({
 
       {/* Points row */}
       <View style={formStyles.pointInputRow}>
-        <Text style={formStyles.label}>Enter Points:</Text>
+        <Text style={[formStyles.label, { color: colors.text }]}>
+          Enter Points:
+        </Text>
         <TextInput
-          style={formStyles.input}
+          style={[
+            formStyles.input,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              color: colors.text,
+            },
+          ]}
           keyboardType="number-pad"
           value={points}
           onChangeText={onChangePoints}
           placeholder="Point"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.textTertiary}
         />
       </View>
 
       <TouchableOpacity
-        style={formStyles.addButton}
+        style={[formStyles.addButton, { backgroundColor: colors.primary }]}
         onPress={onPressAdd}
         activeOpacity={0.85}
       >
-        <Text style={formStyles.addText}>Add</Text>
+        <Text style={[formStyles.addText, { color: colors.text }]}>Add</Text>
       </TouchableOpacity>
     </View>
   );
@@ -457,16 +536,13 @@ const SinglePanaEasyForm = ({
 
 // ---------- small UI components ----------
 
-const ModeButton = ({ label, active, onPress }) => (
+const ModeButton = ({ label, active, onPress, primary }) => (
   <TouchableOpacity
-    style={[
-      modeStyles.button,
-      { backgroundColor: active ? BLACK : ThemeColor },
-    ]}
+    style={[modeStyles.button, { backgroundColor: active ? BLACK : primary }]}
     activeOpacity={0.85}
     onPress={onPress}
   >
-    <Text style={modeStyles.text}>{label}</Text>
+    <Text style={[modeStyles.text, { color: colors.text }]}>{label}</Text>
   </TouchableOpacity>
 );
 
@@ -475,14 +551,13 @@ const modeStyles = StyleSheet.create({
     flex: 1,
     height: 46,
     borderRadius: 4,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginHorizontal: 4,
   },
   text: {
-    color: "#FFFFFF",
     fontSize: 15,
-    fontWeight: "700",
+    fontWeight: '700',
   },
 });
 
@@ -491,11 +566,9 @@ const modeStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
   },
   screen: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
   },
   content: {
     flex: 1,
@@ -504,7 +577,7 @@ const styles = StyleSheet.create({
   },
 
   modeRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: 16,
   },
 
@@ -529,22 +602,18 @@ const styles = StyleSheet.create({
   specialStickyBar: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#F3F3F3",
     borderTopWidth: 1,
-    borderTopColor: "#E6E6E6",
   },
 
   specialSubmitButton: {
-    backgroundColor: ThemeColor,
     borderRadius: 6,
     paddingVertical: 12,
-    alignItems: "center",
+    alignItems: 'center',
   },
 
   specialSubmitText: {
-    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: '700',
   },
 
   groupsWrapper: {
@@ -555,22 +624,20 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   groupHeaderPill: {
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
     paddingHorizontal: 32,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: "#002010",
     marginBottom: 8,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
     elevation: 4,
   },
   groupHeaderText: {
-    color: "#FFFFFF",
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: '700',
   },
 });
 
@@ -579,30 +646,27 @@ const formStyles = StyleSheet.create({
     marginTop: 12,
   },
   pointInputRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 8,
   },
   label: {
     fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
+    fontWeight: '600',
   },
   inputWrapper: {
     width: 180,
-    position: "relative",
+    position: 'relative',
   },
   input: {
     height: 44,
     width: 180,
     borderRadius: 22,
-    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#DDD",
     fontSize: 16,
     marginBottom: 12,
-    textAlign: "center",
+    textAlign: 'center',
     writingDirection: 'ltr',
     includeFontPadding: false,
     textAlignVertical: 'center',
@@ -610,18 +674,16 @@ const formStyles = StyleSheet.create({
     paddingVertical: 0,
   },
   dropdown: {
-    position: "absolute",
+    position: 'absolute',
     top: 44 + 4,
     left: 0,
     right: 0,
     borderRadius: 8,
-    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#DDD",
     maxHeight: 180,
     zIndex: 10,
     elevation: 5,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   item: {
     paddingVertical: 6,
@@ -629,21 +691,18 @@ const formStyles = StyleSheet.create({
   },
   itemText: {
     fontSize: 14,
-    color: "#333",
   },
   addButton: {
     marginTop: 4,
     height: 44,
     borderRadius: 6,
-    backgroundColor: ThemeColor,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     width: 180,
     alignSelf: 'flex-end',
   },
   addText: {
-    color: "#FFF",
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: '700',
   },
 });

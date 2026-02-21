@@ -33,7 +33,7 @@ import { placeBets, makeBet } from '../../utils/GameService';
 import BettingClosedModal from '../../components/BettingClosedModal';
 import { useBettingGuard } from '../../utils/BettingGuard';
 import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const BLACK = '#000';
 
@@ -42,6 +42,8 @@ const GROUP_KEYS = Object.keys(DOUBLE_PANA_BY_RESULT_DIGIT).sort(
 );
 
 const DoublePana = ({ route }) => {
+  const { colors } = useTheme();
+
   const gameName = route?.params?.gameName || 'GAME';
 
   const { user, updateUser } = useContext(AuthContext);
@@ -122,6 +124,11 @@ const DoublePana = ({ route }) => {
       return;
     }
 
+    if (!ALL_DOUBLE_PANA.includes(clean)) {
+      Alert.alert('Validation', 'Invalid Double Pana. Please enter a valid pana.');
+      return;
+    }
+
     const pts = Number(easyPoints);
     if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
       return;
@@ -181,7 +188,7 @@ const DoublePana = ({ route }) => {
         makeBet({
           mobileNumber,
           gameName,
-          type: 'DOUBLE_PANA', // type=subgame
+          type: 'Double Pana', // type=subgame
           openClose: String(b.type).toUpperCase(),
           amount: Number(b.points) || 0,
           betValue: b.pana,
@@ -255,8 +262,8 @@ const DoublePana = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <View style={styles.screen}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <DynamicHeader title={`${gameName} - DOUBLE PANA`} />
         <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
@@ -338,8 +345,8 @@ const DoublePana = ({ route }) => {
                     const panas = DOUBLE_PANA_BY_RESULT_DIGIT[key] || [];
                     return (
                       <View key={key} style={styles.groupSection}>
-                        <View style={styles.groupHeaderPill}>
-                          <Text style={styles.groupHeaderText}>{key}</Text>
+                        <View style={[styles.groupHeaderPill, { backgroundColor: colors.text }]}>
+                          <Text style={[styles.groupHeaderText, { color: colors.background }]}>{key}</Text>
                         </View>
 
                         <SpecialModeGrid
@@ -364,9 +371,9 @@ const DoublePana = ({ route }) => {
             onSubmit={handleSubmit}
           />
         ) : (
-          <View style={styles.specialBottomBar}>
+          <View style={[styles.specialBottomBar, { backgroundColor: colors.background }]}>
             <TouchableOpacity
-              style={styles.specialSubmitButton}
+              style={[styles.specialSubmitButton, { backgroundColor: colors.primary }]}
               onPress={handleSubmit}
               activeOpacity={0.85}
             >
@@ -389,26 +396,27 @@ const DoublePanaEasyForm = ({
   onChangePoints,
   onPressAdd,
 }) => {
+  const { colors } = useTheme();
   const suggestions = useMemo(() => getDoublePanaSuggestions(pana), [pana]);
 
   return (
     <View style={formStyles.container}>
       <View style={formStyles.pointInputRow}>
-        <Text style={formStyles.label}>Enter Double Pana:</Text>
+        <Text style={[formStyles.label, { color: colors.text }]}>Enter Double Pana:</Text>
 
         <View style={formStyles.inputWrapper}>
           <TextInput
-            style={formStyles.input}
+            style={[formStyles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
             keyboardType="number-pad"
             maxLength={3}
             value={pana}
             onChangeText={onChangePana}
             placeholder="Pana"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.textTertiary}
           />
 
           {suggestions.length > 0 && pana.length > 0 && pana.length < 3 && (
-            <View style={formStyles.dropdown}>
+            <View style={[formStyles.dropdown, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <ScrollView keyboardShouldPersistTaps="handled">
                 {suggestions.map(val => (
                   <TouchableOpacity
@@ -416,7 +424,7 @@ const DoublePanaEasyForm = ({
                     style={formStyles.item}
                     onPress={() => onChangePana(String(val))}
                   >
-                    <Text style={formStyles.itemText}>{val}</Text>
+                    <Text style={[formStyles.itemText, { color: colors.text }]}>{val}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -426,19 +434,19 @@ const DoublePanaEasyForm = ({
       </View>
 
       <View style={formStyles.pointInputRow}>
-        <Text style={formStyles.label}>Enter Points:</Text>
+        <Text style={[formStyles.label, { color: colors.text }]}>Enter Points:</Text>
         <TextInput
-          style={formStyles.input}
+          style={[formStyles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
           keyboardType="number-pad"
           value={points}
           onChangeText={onChangePoints}
           placeholder="Point"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.textTertiary}
         />
       </View>
 
       <TouchableOpacity
-        style={formStyles.addButton}
+        style={[formStyles.addButton, { backgroundColor: colors.primary }]}
         onPress={onPressAdd}
         activeOpacity={0.85}
       >
@@ -449,15 +457,19 @@ const DoublePanaEasyForm = ({
 };
 
 // ---------- mode button ----------
-const ModeButton = ({ label, active, onPress }) => (
-  <TouchableOpacity
-    style={[modeStyles.button, { backgroundColor: active ? BLACK : ThemeColor }]}
-    activeOpacity={0.85}
-    onPress={onPress}
-  >
-    <Text style={modeStyles.text}>{label}</Text>
-  </TouchableOpacity>
-);
+const ModeButton = ({ label, active, onPress }) => {
+  const { colors } = useTheme();
+
+  return (
+    <TouchableOpacity
+      style={[modeStyles.button, { backgroundColor: active ? BLACK : colors.primary }]}
+      activeOpacity={0.85}
+      onPress={onPress}
+    >
+      <Text style={modeStyles.text}>{label}</Text>
+    </TouchableOpacity>
+  );
+};
 
 const modeStyles = StyleSheet.create({
   button: {
@@ -478,11 +490,9 @@ const modeStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
   screen: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
   content: {
     flex: 1,
@@ -516,7 +526,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: '#002010',
     marginBottom: 8,
     shadowColor: '#000',
     shadowOpacity: 0.2,
@@ -525,7 +534,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   groupHeaderText: {
-    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '700',
   },
@@ -534,10 +542,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 10,
-    backgroundColor: '#F3F3F3',
   },
   specialSubmitButton: {
-    backgroundColor: ThemeColor,
     borderRadius: 6,
     paddingVertical: 12,
     alignItems: 'center',
@@ -562,7 +568,6 @@ const formStyles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
   },
   inputWrapper: {
     width: 180,
@@ -572,9 +577,7 @@ const formStyles = StyleSheet.create({
     height: 44,
     width: 180,
     borderRadius: 22,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#DDD',
     fontSize: 16,
     textAlign: 'center',
     writingDirection: 'ltr',
@@ -586,9 +589,7 @@ const formStyles = StyleSheet.create({
     left: 0,
     right: 0,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#DDD',
     maxHeight: 180,
     zIndex: 10,
     elevation: 5,
@@ -600,13 +601,11 @@ const formStyles = StyleSheet.create({
   },
   itemText: {
     fontSize: 14,
-    color: '#333',
   },
   addButton: {
     marginTop: 4,
     height: 44,
     borderRadius: 6,
-    backgroundColor: ThemeColor,
     justifyContent: 'center',
     alignItems: 'center',
     width: 180,

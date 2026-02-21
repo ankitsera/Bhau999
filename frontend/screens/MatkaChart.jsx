@@ -11,21 +11,23 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
-import ThemeHeader from '../components/Header';
+import ThemeHeader from '../components/ThemeHeader';
 import EmptyState from '../components/EmptyState';
 import { GameContext } from '../contexts/GameContext';
-import { ThemeColor } from '../contexts/Themes';
+import { useTheme } from '../contexts/ThemeContext';
 
 const Row = ({ name, onPanel }) => {
+  const { colors } = useTheme();
+
   return (
-    <View style={styles.row}>
-      <Text style={styles.name} numberOfLines={1}>
+    <View style={[styles.row, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
+      <Text style={[styles.name, { color: colors.text }]} numberOfLines={1}>
         {String(name || '').toUpperCase()}
       </Text>
 
       <View style={styles.actions}>
         {/* Jodi removed ✅ */}
-        <Pressable style={styles.btn} onPress={onPanel}>
+        <Pressable style={[styles.btn, { backgroundColor: colors.primary, shadowColor: colors.text }]} onPress={onPanel}>
           <Text style={styles.btnText}>Panel</Text>
         </Pressable>
       </View>
@@ -34,6 +36,8 @@ const Row = ({ name, onPanel }) => {
 };
 
 const MatkaChart = () => {
+  const { colors } = useTheme();
+
   const navigation = useNavigation();
   const { activeGamesUi, isLoadingActiveGames, loadActiveGames } =
     useContext(GameContext);
@@ -60,14 +64,14 @@ const MatkaChart = () => {
   }, [loadActiveGames]);
 
   return (
-    <SafeAreaView style={styles.screen} edges={['bottom']}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={['bottom']}>
       <ThemeHeader title="Game Chart List" />
 
       <View style={styles.body}>
         {isLoadingActiveGames && list.length === 0 ? (
           <View style={styles.loaderWrap}>
-            <ActivityIndicator size="small" color={ThemeColor} />
-            <Text style={styles.loaderText}>Loading...</Text>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={[styles.loaderText, { color: colors.text }]}>Loading...</Text>
           </View>
         ) : (
           <FlatList
@@ -102,7 +106,9 @@ const MatkaChart = () => {
 export default MatkaChart;
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#F6F6F6' },
+  screen: { 
+    flex: 1
+  },
   body: { flex: 1 },
 
   listContent: {
@@ -117,10 +123,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  loaderText: { color: '#111', fontWeight: '700' },
+  loaderText: { fontWeight: '700' },
 
   row: {
-    backgroundColor: '#fff',
     borderRadius: 10,
     paddingVertical: 16,
     paddingHorizontal: 12,
@@ -131,7 +136,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
 
     elevation: 5,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 6,
@@ -139,7 +143,6 @@ const styles = StyleSheet.create({
 
   name: {
     flex: 1,
-    color: '#111',
     fontWeight: '900',
     fontSize: 18,
     paddingRight: 10,
@@ -152,13 +155,11 @@ const styles = StyleSheet.create({
   },
 
   btn: {
-    backgroundColor: ThemeColor,
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 8,
 
     elevation: 4,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 4,

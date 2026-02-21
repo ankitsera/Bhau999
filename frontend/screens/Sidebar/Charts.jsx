@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from "react-native";
-import ThemeHeader from "../../components/Header";
+import ThemeHeader from "../../components/ThemeHeader";
 import EmptyState from "../../components/EmptyState";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import { ThemeColor } from "../../contexts/Themes";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const ROWS = [
   {
@@ -27,6 +27,8 @@ const ROWS = [
 ];
 
 const Row = ({ item, navigation }) => {
+  const { colors } = useTheme();
+
   const handlePress = () => {
     if (item.id && navigation) {
       try {
@@ -39,26 +41,28 @@ const Row = ({ item, navigation }) => {
   };
 
   return (
-    <TouchableOpacity activeOpacity={0.85} style={styles.card} onPress={handlePress}>
-      <View style={styles.leftIconWrap}>
+    <TouchableOpacity activeOpacity={0.85} style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]} onPress={handlePress}>
+      <View style={[styles.leftIconWrap, { backgroundColor: colors.primary }]}>
         <MaterialCommunityIcons name={item.icon} size={24} color="#fff" />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.subtitle}>{item.subtitle}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{item.subtitle}</Text>
       </View>
-      <View style={styles.chevWrap}>
-        <MaterialCommunityIcons name="chevron-right" size={26} color="#444" />
+      <View style={[styles.chevWrap, { backgroundColor: colors.surface }]}>
+        <MaterialCommunityIcons name="chevron-right" size={26} color={colors.textTertiary} />
       </View>
     </TouchableOpacity>
   );
 };
 
 const Charts = ({ navigation }) => {
+  const { colors } = useTheme();
+
   const [selectedId, setSelectedId] = useState(null);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ThemeHeader title="Game Chart" />
       {selectedId ? (
         <EmptyState
@@ -85,18 +89,15 @@ export default Charts;
 
 const styles = StyleSheet.create({
   container: { 
-    flex: 1, 
-    backgroundColor: "#F3F3F3" 
+    flex: 1
   },
   card: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
     borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 14,
     elevation: 5,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.12,
     shadowRadius: 6,
@@ -105,25 +106,21 @@ const styles = StyleSheet.create({
     width: 44, 
     height: 44, 
     borderRadius: 22,
-    backgroundColor: ThemeColor, 
     alignItems: "center", 
     justifyContent: "center",
     marginRight: 12,
   },
   title: { 
-    color: "#111", 
     fontSize: 20, 
     fontWeight: "800" 
   },
   subtitle: { 
-    color: "#333", 
     marginTop: 2 
   },
   chevWrap: {
     width: 42, 
     height: 42, 
     borderRadius: 21, 
-    backgroundColor: "#F1F1F1",
     alignItems: "center", 
     justifyContent: "center", 
     marginLeft: 12,

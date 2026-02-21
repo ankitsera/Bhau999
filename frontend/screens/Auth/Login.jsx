@@ -9,15 +9,21 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { AuthContext } from '../../contexts/AuthContext';
-import { ThemeColor, ThemeColorTile } from '../../contexts/Themes';
+import { useTheme } from '../../contexts/ThemeContext';
 
-const TileIcon = ({ name }) => (
-  <View style={styles.tile}>
-    <MaterialCommunityIcons name={name} size={26} color="#fff" />
-  </View>
-);
+const TileIcon = ({ name }) => {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.tile, { backgroundColor: colors.primaryTile }]}>
+      <MaterialCommunityIcons name={name} size={26} color="#fff" />
+    </View>
+  );
+};
 
 const Login = ({ navigation, route }) => {
+  const { colors } = useTheme();
+
   const { login } = useContext(AuthContext);
   const mobileNumber = route?.params?.mobileNumber || '1234567890';
 
@@ -32,27 +38,31 @@ const Login = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Theme header */}
-      <View style={styles.headerBg} />
+      <View style={[styles.headerBg, { backgroundColor: colors.primary }]} />
 
       {/* White rounded sheet */}
-      <View style={styles.card}>
+      <View style={[styles.card, { backgroundColor: colors.background, shadowColor: colors.text }]}>
         <View style={styles.textHeader}>
-          <Text style={styles.title}>Login Now</Text>
-          <Text style={styles.subtitle}>Sign in your account</Text>
-          <Text style={[styles.subtitle, { marginTop: 4 }]}>
+          <Text style={[styles.title, { color: colors.text }]}>Login Now</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Sign in your account</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary, marginTop: 4 }]}>
             Enter Your Password
           </Text>
         </View>
 
         {/* Phone (read-only) */}
         <View
-          style={[styles.fieldContainer, phoneFocused && styles.inputFocused]}
+          style={[
+            styles.fieldContainer,
+            { backgroundColor: colors.background, shadowColor: colors.text },
+            phoneFocused && [styles.inputFocused, { borderColor: colors.primary }],
+          ]}
         >
           <TileIcon name="cellphone" />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: colors.text }]}
             value={mobileNumber}
             editable={false}
             onFocus={() => setPhoneFocused(true)}
@@ -62,13 +72,17 @@ const Login = ({ navigation, route }) => {
 
         {/* Password (inline, with eye on the right) */}
         <View
-          style={[styles.fieldContainer, passFocused && styles.inputFocused]}
+          style={[
+            styles.fieldContainer,
+            { backgroundColor: colors.background, shadowColor: colors.text },
+            passFocused && [styles.inputFocused, { borderColor: colors.primary }],
+          ]}
         >
           <TileIcon name="key-variant" />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: colors.text }]}
             placeholder="Password"
-            placeholderTextColor="#777"
+            placeholderTextColor={colors.textTertiary}
             secureTextEntry={!showPassword}
             value={password}
             onChangeText={setPassword}
@@ -90,14 +104,14 @@ const Login = ({ navigation, route }) => {
             <MaterialCommunityIcons
               name={showPassword ? 'eye-off-outline' : 'eye-outline'}
               size={22}
-              color="#666"
+              color={colors.textTertiary}
             />
           </TouchableOpacity>
         </View>
 
         {/* Login button */}
         <TouchableOpacity
-          style={styles.loginBtn}
+          style={[styles.loginBtn, { backgroundColor: colors.primaryTile, shadowColor: colors.text }]}
           onPress={onLogin}
           activeOpacity={0.85}
         >
@@ -129,7 +143,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 0,
-    backgroundColor: ThemeColor,
   },
 
   card: {
@@ -181,14 +194,12 @@ const styles = StyleSheet.create({
   },
   inputFocused: {
     borderWidth: 1,
-    borderColor: ThemeColor,
   },
 
   tile: {
     width: 56,
     height: 56,
     borderRadius: 14,
-    backgroundColor: ThemeColorTile,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -206,7 +217,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: ThemeColorTile,
     paddingVertical: 14,
     paddingHorizontal: 28,
     borderRadius: 36,

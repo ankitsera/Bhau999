@@ -1,11 +1,13 @@
 import React from 'react';
 import { Modal, View, Pressable, Text, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { ThemeColor } from '../contexts/Themes';
+import { useTheme } from '../contexts/ThemeContext';
 
 const RED = '#EF4B3E';
 
 const BettingClosedModal = ({ visible, onClose }) => {
+  const { colors } = useTheme();
+
   return (
     <Modal
       visible={!!visible}
@@ -14,23 +16,23 @@ const BettingClosedModal = ({ visible, onClose }) => {
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: colors.background, borderColor: colors.border }]}>
           <Pressable onPress={onClose} hitSlop={10} style={styles.closeBtn}>
-            <MaterialCommunityIcons name="close" size={28} color="#9E9E9E" />
+            <MaterialCommunityIcons name="close" size={28} color={colors.textTertiary} />
           </Pressable>
 
           <View style={styles.iconWrap}>
-            <View style={styles.iconCircle}>
+            <View style={[styles.iconCircle, { backgroundColor: colors.surface }]}>
               <MaterialCommunityIcons name="close" size={46} color={RED} />
             </View>
           </View>
 
-          <Text style={styles.title}>Sorry !</Text>
-          <Text style={styles.msg}>
+          <Text style={[styles.title, { color: colors.error }]}>Sorry !</Text>
+          <Text style={[styles.msg, { color: colors.textSecondary }]}>
             Betting is Closed for today.{'\n'}Please come next day to play.
           </Text>
 
-          <Pressable onPress={onClose} style={styles.okBtn}>
+          <Pressable onPress={onClose} style={[styles.okBtn, { backgroundColor: colors.primary }]}>
             <Text style={styles.okText}>OK</Text>
           </Pressable>
         </View>
@@ -52,12 +54,12 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: '#fff',
     borderRadius: 22,
     paddingHorizontal: 22,
     paddingTop: 24,
     paddingBottom: 18,
     alignItems: 'center',
+    borderWidth: 1,
   },
   closeBtn: {
     position: 'absolute',
@@ -73,14 +75,12 @@ const styles = StyleSheet.create({
     width: 92,
     height: 92,
     borderRadius: 46,
-    backgroundColor: '#FCE6E6',
     alignItems: 'center',
     justifyContent: 'center',
   },
   title: {
     fontSize: 28,
     fontWeight: '900',
-    color: '#D32F2F',
     marginTop: 6,
   },
   msg: {
@@ -88,13 +88,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
     lineHeight: 22,
-    color: '#666',
     fontWeight: '600',
   },
   okBtn: {
     marginTop: 18,
     width: '75%',
-    backgroundColor: ThemeColor,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',

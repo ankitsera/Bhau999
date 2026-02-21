@@ -10,8 +10,8 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AuthContext } from '../contexts/AuthContext';
 import { PaymentsContext } from '../contexts/PaymentsContext';
-import ThemeHeader from '../components/Header';
-import { ThemeColor, ThemeIconBg } from '../contexts/Themes';
+import ThemeHeader from '../components/ThemeHeader';
+import { useTheme } from '../contexts/ThemeContext';
 
 const RED   = '#cc1f1f';
 const GREY  = '#E5E5E5';
@@ -20,6 +20,8 @@ const isIfscSyntaxOk = (v) => /^[A-Z]{4}0[A-Z0-9]{6}$/i.test(v?.trim());
 const isUpiSyntaxOk  = (v) => /^[\w.\-]{2,}@[a-zA-Z][\w\-]{2,}$/i.test(v?.trim());
 
 const BankDetails = ({ navigation }) => {
+  const { colors } = useTheme();
+
   const { user } = useContext(AuthContext);
   const { resolveIFSC, savePayout, loading } = useContext(PaymentsContext);
 
@@ -154,7 +156,7 @@ const BankDetails = ({ navigation }) => {
       : ifscCode.length > 0 && (!isIfscSyntaxOk(ifscCode) || ifscError)
       ? RED
       : bankMeta
-      ? ThemeColor
+      ? colors.primary
       : GREY;
 
   const upiBorderColor =
@@ -165,19 +167,19 @@ const BankDetails = ({ navigation }) => {
       : GREY;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ThemeHeader title="Update Bank Details" />
 
       <View style={styles.form}>
         {/* Holder Name */}
-        <View style={[styles.inputContainer, { borderColor: GREY }]}>
-          <View style={styles.iconWrap}>
-            <MaterialIcons name="person-outline" size={22} color={ThemeColor} />
+        <View style={[styles.inputContainer, { borderColor: GREY, backgroundColor: colors.background }]}>
+          <View style={[styles.iconWrap, { backgroundColor: colors.primaryIconBg }]}>
+            <MaterialIcons name="person-outline" size={22} color={colors.primary} />
           </View>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: colors.text }]}
             placeholder="Account Holder Name"
-            placeholderTextColor="#777"
+            placeholderTextColor={colors.textTertiary}
             value={accountHolderName}
             onChangeText={setHolderName}
             autoCapitalize="words"
@@ -185,14 +187,14 @@ const BankDetails = ({ navigation }) => {
         </View>
 
         {/* Account number */}
-        <View style={[styles.inputContainer, { borderColor: GREY }]}>
-          <View style={styles.iconWrap}>
-            <MaterialCommunityIcons name="bank-outline" size={22} color={ThemeColor} />
+        <View style={[styles.inputContainer, { borderColor: GREY, backgroundColor: colors.background }]}>
+          <View style={[styles.iconWrap, { backgroundColor: colors.primaryIconBg }]}>
+            <MaterialCommunityIcons name="bank-outline" size={22} color={colors.primary} />
           </View>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: colors.text }]}
             placeholder="Bank Account number"
-            placeholderTextColor="#777"
+            placeholderTextColor={colors.textTertiary}
             value={accountNumber}
             keyboardType="numeric"
             onChangeText={setAccountNumber}
@@ -200,14 +202,14 @@ const BankDetails = ({ navigation }) => {
         </View>
 
         {/* IFSC */}
-        <View style={[styles.inputContainer, { borderColor: ifscBorderColor }]}>
-          <View style={styles.iconWrap}>
-            <MaterialCommunityIcons name="bank-outline" size={22} color={ThemeColor} />
+        <View style={[styles.inputContainer, { borderColor: ifscBorderColor, backgroundColor: colors.background }]}>
+          <View style={[styles.iconWrap, { backgroundColor: colors.primaryIconBg }]}>
+            <MaterialCommunityIcons name="bank-outline" size={22} color={colors.primary} />
           </View>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: colors.text }]}
             placeholder="IFSC"
-            placeholderTextColor="#777"
+            placeholderTextColor={colors.textTertiary}
             value={ifscCode}
             onChangeText={setIfsc}
             autoCapitalize="characters"
@@ -223,7 +225,7 @@ const BankDetails = ({ navigation }) => {
           )}
 
           {isIfscSyntaxOk(ifscCode) && ifscQuerying && (
-            <Text style={styles.hint}>Looking up IFSC…</Text>
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>Looking up IFSC…</Text>
           )}
 
           {ifscError && !ifscQuerying && (
@@ -234,23 +236,23 @@ const BankDetails = ({ navigation }) => {
         {/* IFSC lookup results */}
         {bankMeta && (
           <>
-            <View style={styles.inputContainerDisabled}>
-              <View style={[styles.iconWrap, { backgroundColor: "#f4f4f4" }]}>
-                <MaterialCommunityIcons name="bank-check" size={20} color="#777" />
+            <View style={[styles.inputContainerDisabled, { borderColor: GREY, backgroundColor: colors.surface }]}>
+              <View style={[styles.iconWrap, { backgroundColor: colors.surface }]}>
+                <MaterialCommunityIcons name="bank-check" size={20} color={colors.textTertiary} />
               </View>
               <TextInput
-                style={[styles.input, { color: "#555" }]}
+                style={[styles.input, { color: colors.textSecondary }]}
                 value={bankMeta.bank}
                 editable={false}
               />
             </View>
 
-            <View style={styles.inputContainerDisabled}>
-              <View style={[styles.iconWrap, { backgroundColor: "#f4f4f4" }]}>
-                <MaterialCommunityIcons name="map-marker-outline" size={20} color="#777" />
+            <View style={[styles.inputContainerDisabled, { borderColor: GREY, backgroundColor: colors.surface }]}>
+              <View style={[styles.iconWrap, { backgroundColor: colors.surface }]}>
+                <MaterialCommunityIcons name="map-marker-outline" size={20} color={colors.textTertiary} />
               </View>
               <TextInput
-                style={[styles.input, { color: "#555" }]}
+                style={[styles.input, { color: colors.textSecondary }]}
                 value={bankMeta.branch}
                 editable={false}
               />
@@ -260,20 +262,20 @@ const BankDetails = ({ navigation }) => {
 
         {/* OR */}
         <View style={styles.orRow}>
-          <View style={styles.orLine} />
-          <Text style={styles.orText}>OR</Text>
-          <View style={styles.orLine} />
+          <View style={[styles.orLine, { backgroundColor: colors.divider }]} />
+          <Text style={[styles.orText, { color: colors.text }]}>OR</Text>
+          <View style={[styles.orLine, { backgroundColor: colors.divider }]} />
         </View>
 
         {/* UPI */}
-        <View style={[styles.inputContainer, { borderColor: upiBorderColor }]}>
-          <View style={styles.iconWrap}>
-            <MaterialCommunityIcons name="qrcode-scan" size={22} color={ThemeColor} />
+        <View style={[styles.inputContainer, { borderColor: upiBorderColor, backgroundColor: colors.background }]}>
+          <View style={[styles.iconWrap, { backgroundColor: colors.primaryIconBg }]}>
+            <MaterialCommunityIcons name="qrcode-scan" size={22} color={colors.primary} />
           </View>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: colors.text }]}
             placeholder="Enter UPI ID (e.g. name@bank)"
-            placeholderTextColor="#777"
+            placeholderTextColor={colors.textTertiary}
             value={upiId}
             onChangeText={setUpiId}
             autoCapitalize="none"
@@ -299,7 +301,7 @@ const BankDetails = ({ navigation }) => {
         )}
 
         <TouchableOpacity
-          style={[styles.saveBtn, (!canSave || loading) && { opacity: 0.6 }]}
+          style={[styles.saveBtn, { backgroundColor: colors.primary }, (!canSave || loading) && { opacity: 0.6 }]}
           onPress={handleSave}
           disabled={!canSave || loading}
           activeOpacity={0.85}
@@ -326,7 +328,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: ThemeColor,
     borderRadius: 40,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -352,7 +353,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: ThemeIconBg,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,
@@ -386,7 +386,6 @@ const styles = StyleSheet.create({
   },
 
   saveBtn: {
-    backgroundColor: ThemeColor,
     borderRadius: 30,
     paddingVertical: 14,
     width: "60%",

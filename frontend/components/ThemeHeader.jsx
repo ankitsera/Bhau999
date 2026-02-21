@@ -3,25 +3,26 @@ import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
-import { ThemeColor } from "../contexts/Themes";
+import { useTheme } from "../contexts/ThemeContext";
 
 const ThemeHeader = ({ title = "" }) => {
   const { top } = useSafeAreaInsets();
   const navigation = useNavigation();
+  const { colors } = useTheme();
 
   return (
     <View style={[styles.root, { paddingTop: top }]}>
-      <View style={styles.bg} />
+      <View style={[styles.bg, { backgroundColor: colors.primary }]} />
       <View style={styles.row}>
         <Pressable
           onPress={() => navigation?.goBack?.()}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           style={{ paddingRight: 8, marginBottom: 15, }}
         >
-          <MaterialIcons name="arrow-back" size={26} color="#000" />
+          <MaterialIcons name="arrow-back" size={26} color={colors.text} />
         </Pressable>
 
-        <Text numberOfLines={1} style={styles.title}>
+        <Text numberOfLines={1} style={[styles.title, { color: colors.text }]}>
           {title}
         </Text>
 
@@ -41,7 +42,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0, left: 0, right: 0,
     height: 90,
-    backgroundColor: ThemeColor,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,
   },
@@ -53,7 +53,6 @@ const styles = StyleSheet.create({
   },
   title: { 
     flex: 1, 
-    color: "#000", 
     fontSize: 26, 
     fontWeight: "700", 
     marginLeft: 6,

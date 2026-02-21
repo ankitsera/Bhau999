@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import Snackbar from 'react-native-snackbar';
 import {
   View,
@@ -12,9 +12,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import PasswordInput from '../../components/PasswordInput';
 import { AuthContext } from '../../contexts/AuthContext';
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const Signup = ({ navigation, route }) => {
+  const { colors } = useTheme();
+
   const { signup } = useContext(AuthContext);
   const routemobileNumber = route?.params?.mobileNumber || '';
   const isPhoneFromRoute = !!route?.params?.mobileNumber;
@@ -59,12 +61,12 @@ const Signup = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Curved Green Header */}
-      <View style={styles.headerBg}></View>
+      <View style={[styles.headerBg, { backgroundColor: colors.primary }]}></View>
 
       {/* White folding content card */}
-      <View style={styles.content}>
+      <View style={[styles.content, { backgroundColor: colors.background, shadowColor: colors.text }]}>
         {/* Illustration */}
         <Image
           source={require('../../assets/Images/signup.webp')}
@@ -72,39 +74,39 @@ const Signup = ({ navigation, route }) => {
           resizeMode="contain"
         />
 
-        <Text style={styles.title}>CREATE NEW ACCOUNT</Text>
+        <Text style={[styles.title, { color: colors.text }]}>CREATE NEW ACCOUNT</Text>
 
         {/* Phone */}
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
           <MaterialCommunityIcons
             name="cellphone"
             size={22}
-            color={ThemeColor}
+            color={colors.primary}
             style={styles.leftIcon}
           />
           <TextInput
-            style={[styles.input, { color: '#000' }]}
+            style={[styles.input, { color: colors.text }]}
             value={mobileNumber}
             editable={!isPhoneFromRoute}
             placeholder="Phone Number"
-            placeholderTextColor="#777"
+            placeholderTextColor={colors.textTertiary}
             onChangeText={setMobileNumber}
             keyboardType="phone-pad"
           />
         </View>
 
         {/* Username */}
-        <View style={[styles.inputContainer, uFocused && styles.inputFocused]}>
+        <View style={[styles.inputContainer, { backgroundColor: colors.surface, shadowColor: colors.text }, uFocused && [styles.inputFocused, { borderColor: colors.primary }]]}>
           <MaterialCommunityIcons
             name="account-outline"
             size={22}
-            color={ThemeColor}
+            color={colors.primary}
             style={styles.leftIcon}
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: colors.text }]}
             placeholder="Username"
-            placeholderTextColor="#777"
+            placeholderTextColor={colors.textTertiary}
             value={username}
             onChangeText={setUsername}
             onFocus={() => setUFocused(true)}
@@ -128,7 +130,7 @@ const Signup = ({ navigation, route }) => {
 
         {/* Register Button */}
         <TouchableOpacity
-          style={styles.registerButton}
+          style={[styles.registerButton, { backgroundColor: colors.primary }]}
           onPress={handleRegister}
         >
           <Text style={styles.registerText}>Register & Login</Text>
@@ -152,7 +154,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 0,
-    backgroundColor: ThemeColor,
   },
 
   // ----- Content Card -----
@@ -203,7 +204,6 @@ const styles = StyleSheet.create({
   },
   inputFocused: {
     borderWidth: 1,
-    borderColor: ThemeColor,
   },
   leftIcon: { marginRight: 8 },
   input: {
@@ -214,7 +214,6 @@ const styles = StyleSheet.create({
   },
 
   registerButton: {
-    backgroundColor: ThemeColor,
     borderRadius: 25,
     paddingVertical: 12,
     width: '85%',

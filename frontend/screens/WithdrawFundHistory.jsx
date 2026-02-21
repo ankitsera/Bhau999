@@ -16,12 +16,13 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
-import ThemeHeader from '../components/Header';
+import ThemeHeader from '../components/ThemeHeader';
 import PaginationBar from '../components/PaginationBar';
 import EmptyState from '../components/EmptyState';
 
 import { AuthContext } from '../contexts/AuthContext';
 import { PaymentsContext } from '../contexts/PaymentsContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 const PAGE_SIZE = 10;
 
@@ -89,7 +90,9 @@ const isAccepted = s =>
     .toLowerCase()
     .includes('accept');
 
-const WithdrawCard = ({ item, GREEN }) => {
+const WithdrawCard = ({ item, primary }) => {
+  const { colors } = useTheme();
+
   const id = item?.id ?? '--';
   const amountNum = Number(item?.amount || 0) || 0;
   const showAmt = Math.abs(amountNum);
@@ -100,15 +103,15 @@ const WithdrawCard = ({ item, GREEN }) => {
 
   const dt = parseTxDateTime(item?.txDate, item?.txTime);
 
-  const leftColor = isPending(status) ? '#C62828' : GREEN;
+  const leftColor = isPending(status) ? '#C62828' : primary;
   const rightColor = isAccepted(status)
-    ? GREEN
+    ? primary
     : isPending(status)
     ? '#C62828'
-    : '#777';
+    : colors.textTertiary;
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
       <View style={styles.top}>
         <Text style={[styles.id, { color: leftColor }]} numberOfLines={1}>
           {id}
@@ -119,13 +122,13 @@ const WithdrawCard = ({ item, GREEN }) => {
       </View>
 
       <View style={styles.mid}>
-        <Text style={styles.text}>Withdrawal by: {mode}</Text>
+        <Text style={[styles.text, { color: colors.text }]}>Withdrawal by: {mode}</Text>
         <Text style={[styles.status, { color: rightColor }]}>{status}</Text>
       </View>
 
-      {remark ? <Text style={styles.text}>Remark: {remark}</Text> : null}
+      {remark ? <Text style={[styles.text, { color: colors.text }]}>Remark: {remark}</Text> : null}
 
-      <Text style={styles.date}>
+      <Text style={[styles.date, { color: colors.textSecondary }]}>
         {formatDate(dt)} • {formatTime(dt)}
       </Text>
     </View>
@@ -133,11 +136,15 @@ const WithdrawCard = ({ item, GREEN }) => {
 };
 
 const WithdrawFundHistory = () => {
+  const { colors } = useTheme();
+
   const { user } = useContext(AuthContext);
   const mobileNumber = user?.mobileNumber;
 
-  const { GREEN, withdrawals, isLoadingWithdrawals, loadWithdrawals } =
+  const { withdrawals, isLoadingWithdrawals, loadWithdrawals } =
     useContext(PaymentsContext);
+
+  const primary = colors.primary;
 
   const [page, setPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
@@ -196,13 +203,13 @@ const WithdrawFundHistory = () => {
   const hasNext = safePage < totalPages;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ThemeHeader title="Withdraw Fund History" />
 
       {isLoadingWithdrawals && sorted.length === 0 ? (
         <View style={styles.loaderWrap}>
-          <ActivityIndicator size="small" color={GREEN} />
-          <Text style={styles.loaderText}>Loading...</Text>
+          <ActivityIndicator size="small" color={primary} />
+          <Text style={[styles.loaderText, { color: colors.text }]}>Loading...</Text>
         </View>
       ) : sorted.length === 0 ? (
         <EmptyState message="NO WITHDRAW HISTORY FOUND" />
@@ -212,7 +219,7 @@ const WithdrawFundHistory = () => {
           keyExtractor={(item, idx) => makeKey(item, idx)}
           contentContainerStyle={styles.listContent}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          renderItem={({ item }) => <WithdrawCard item={item} GREEN={GREEN} />}
+          renderItem={({ item }) => <WithdrawCard item={item} primary={primary} />}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -236,7 +243,6 @@ export default WithdrawFundHistory;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
   listContent: {
     padding: 12,
@@ -250,17 +256,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   loaderText: {
-    color: '#111',
     fontWeight: '700',
   },
 
   card: {
-    backgroundColor: '#fff',
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 14,
     elevation: 4,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.14,
     shadowRadius: 6,
@@ -287,7 +290,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   text: {
-    color: '#111',
     fontWeight: '800',
   },
   status: {
@@ -296,7 +298,6 @@ const styles = StyleSheet.create({
 
   date: {
     marginTop: 8,
-    color: '#111',
     fontWeight: '800',
   },
 });

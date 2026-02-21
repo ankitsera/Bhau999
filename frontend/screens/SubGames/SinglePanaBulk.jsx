@@ -23,11 +23,13 @@ import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from "../../contexts/ThemeContext";
 
 const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
 const SinglePanaBulk = ({ route }) => {
+  const { colors } = useTheme();
+
   const gameName = route?.params?.gameName || "GAME";
 
   const { user, updateUser } = useContext(AuthContext);
@@ -154,10 +156,16 @@ const SinglePanaBulk = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={["bottom"]}>
-      <View style={styles.screen}>
+    <SafeAreaView
+      style={[styles.safe, { backgroundColor: colors.background }]}
+      edges={["bottom"]}
+    >
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <DynamicHeader title={`${gameName} - SINGLE PANA BULK`} />
-        <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
+        <BettingClosedModal
+          visible={showClosedModal}
+          onClose={closeClosedModal}
+        />
 
         <View style={styles.content}>
           {/* Game type dropdown */}
@@ -171,17 +179,24 @@ const SinglePanaBulk = ({ route }) => {
 
           {/* Points row */}
           <View style={styles.pointInputRow}>
-            <Text style={styles.label}>Enter Points:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>
+              Enter Points:
+            </Text>
             <TextInput
               style={[
                 styles.input,
-                pointsError && styles.errorInput,
+                {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
+                pointsError && [styles.errorInput, { borderColor: colors.error }],
               ]}
               keyboardType="number-pad"
               value={points}
               onChangeText={handlePointsChange}
               placeholder="Point"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.textTertiary}
             />
           </View>
 
@@ -190,11 +205,11 @@ const SinglePanaBulk = ({ route }) => {
             {DIGITS.map((d) => (
               <TouchableOpacity
                 key={d}
-                style={styles.digitTile}
+                style={[styles.digitTile, { backgroundColor: colors.primary }]}
                 activeOpacity={0.85}
                 onPress={() => handleDigitPress(d)}
               >
-                <Text style={styles.digitText}>{d}</Text>
+                <Text style={[styles.digitText, { color: colors.text }]}>{d}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -229,11 +244,9 @@ export default SinglePanaBulk;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
   },
   screen: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
   },
   content: {
     flex: 1,
@@ -250,22 +263,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#333",
   },
   input: {
     height: 44,
     width: 180,
     borderRadius: 22,
-    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#DDD",
     fontSize: 16,
     textAlign: "center",
     writingDirection: "ltr",
     paddingHorizontal: 8,
   },
   errorInput: {
-    borderColor: "#FF4D4F",
   },
 
   grid: {
@@ -277,14 +286,12 @@ const styles = StyleSheet.create({
   digitTile: {
     width: "18%", // 5 per row with gaps
     aspectRatio: 1.3,
-    backgroundColor: ThemeColor,
     borderRadius: 6,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 10,
   },
   digitText: {
-    color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "700",
   },

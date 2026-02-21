@@ -5,35 +5,37 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 
 import SubGameTile from "../components/games/SubGameTile";
 import { SUB_GAME_TYPES } from "../data/SubGameType";
-import ThemeHeader from "../components/Header";
+import ThemeHeader from "../components/ThemeHeader";
 import EmptyState from "../components/EmptyState";
 import { GameContext } from "../contexts/GameContext";
-import { ThemeColor } from "../contexts/Themes";
+import { useTheme } from "../contexts/ThemeContext";
 
 const RED = "#EF4B3E";
 
 const ClosedPopup = ({ visible, onClose }) => {
+  const { colors } = useTheme();
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
-        <View style={styles.modalCard}>
+        <View style={[styles.modalCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
           <Pressable onPress={onClose} hitSlop={10} style={styles.modalCloseBtn}>
-            <MaterialCommunityIcons name="close" size={28} color="#9E9E9E" />
+            <MaterialCommunityIcons name="close" size={28} color={colors.textTertiary} />
           </Pressable>
 
           <View style={styles.modalIconWrap}>
-            <View style={styles.modalIconCircle}>
+            <View style={[styles.modalIconCircle, { backgroundColor: colors.surface }]}>
               <MaterialCommunityIcons name="close" size={46} color={RED} />
             </View>
           </View>
 
-          <Text style={styles.modalTitle}>Sorry !</Text>
-          <Text style={styles.modalMsg}>
+          <Text style={[styles.modalTitle, { color: colors.error }]}>Sorry !</Text>
+          <Text style={[styles.modalMsg, { color: colors.textSecondary }]}>
             Betting is Closed for today.{"\n"}Please come next day to play.
           </Text>
 
-          <Pressable onPress={onClose} style={styles.modalOkBtn}>
-            <Text style={styles.modalOkText}>OK</Text>
+          <Pressable onPress={onClose} style={[styles.modalOkBtn, { backgroundColor: colors.primary }]}>
+            <Text style={[styles.modalOkText, { color: '#fff' }]}>OK</Text>
           </Pressable>
         </View>
       </View>
@@ -42,6 +44,8 @@ const ClosedPopup = ({ visible, onClose }) => {
 };
 
 const GamesSubTypes = () => {
+  const { colors, isDarkMode } = useTheme();
+
   const navigation = useNavigation();
   const route = useRoute();
 
@@ -111,17 +115,17 @@ const GamesSubTypes = () => {
 
   if (isLoadingActiveGames && !game) {
     return (
-      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <StatusBar barStyle="light-content" backgroundColor={ThemeColor} />
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }]}>
+        <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={colors.primary} />
         <ThemeHeader title={title} />
-        <Text style={{ marginTop: 16, color: "#666", fontWeight: "700" }}>Loading...</Text>
+        <Text style={{ marginTop: 16, color: colors.textSecondary, fontWeight: "700" }}>Loading...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={ThemeColor} />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={colors.primary} />
       <ThemeHeader title={title} />
 
       <ClosedPopup
@@ -155,7 +159,6 @@ export default GamesSubTypes;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#EFEFEF",
   },
   gridContent: {
     marginTop: 8,
@@ -172,12 +175,12 @@ const styles = StyleSheet.create({
   modalCard: {
     width: "100%",
     maxWidth: 360,
-    backgroundColor: "#fff",
     borderRadius: 22,
     paddingHorizontal: 22,
     paddingTop: 24,
     paddingBottom: 18,
     alignItems: "center",
+    borderWidth: 1,
   },
   modalCloseBtn: {
     position: "absolute",
@@ -193,14 +196,12 @@ const styles = StyleSheet.create({
     width: 92,
     height: 92,
     borderRadius: 46,
-    backgroundColor: "#FCE6E6",
     alignItems: "center",
     justifyContent: "center",
   },
   modalTitle: {
     fontSize: 28,
     fontWeight: "900",
-    color: "#D32F2F",
     marginTop: 6,
   },
   modalMsg: {
@@ -208,19 +209,16 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 16,
     lineHeight: 22,
-    color: "#666",
     fontWeight: "600",
   },
   modalOkBtn: {
     marginTop: 18,
     width: "75%",
-    backgroundColor: ThemeColor,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
   },
   modalOkText: {
-    color: "#fff",
     fontSize: 18,
     fontWeight: "800",
   },

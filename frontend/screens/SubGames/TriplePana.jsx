@@ -21,9 +21,11 @@ import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from "../../contexts/ThemeContext";
 
 const TriplePana = ({ route }) => {
+  const { colors } = useTheme();
+
   const gameName = route?.params?.gameName || 'GAME';
 
   const { user, updateUser } = useContext(AuthContext);
@@ -143,8 +145,8 @@ const TriplePana = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={["bottom"]}>
-      <View style={styles.screen}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={["bottom"]}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <DynamicHeader title={`${gameName} - TRIPLE PANA`} />
         <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
@@ -168,11 +170,11 @@ const TriplePana = ({ route }) => {
 
           <View style={styles.submitWrap}>
             <TouchableOpacity
-              style={styles.submitBtn}
+              style={[styles.submitBtn, { backgroundColor: colors.primary, shadowColor: colors.text }]}
               onPress={handleSubmit}
               activeOpacity={0.85}
             >
-              <Text style={styles.submitText}>Submit</Text>
+              <Text style={[styles.submitText, { color: colors.text }]}>Submit</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -186,11 +188,9 @@ export default TriplePana;
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
   },
   screen: {
     flex: 1,
-    backgroundColor: "#F3F3F3",
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -202,18 +202,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   submitBtn: {
-    backgroundColor: ThemeColor,
     borderRadius: 6,
     paddingVertical: 12,
     alignItems: "center",
-    shadowColor: "#000",
     shadowOpacity: 0.15,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 3 },
     elevation: 4,
   },
   submitText: {
-    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "700",
   },

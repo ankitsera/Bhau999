@@ -1,5 +1,15 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState, useRef, useMemo } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  Pressable,
+  Dimensions,
+  ScrollView,
+} from "react-native";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const GameTypePicker = ({
   label = "Select Game Type:",
@@ -8,24 +18,128 @@ const GameTypePicker = ({
   onChange,
   containerStyle,
 }) => {
-  const handlePress = () => {
+  const { colors } = useTheme();
+
+  const dropdownRef = useRef(null);
+  const [open, setOpen] = useState(false);
+  const [anchor, setAnchor] = useState(null);
+
+  const { width: screenW, height: screenH } = Dimensions.get("window");
+
+  const menuHeight = useMemo(() => {
+    const rowH = 60;
+    const titleH = label ? 36 : 0;
+    const padding = 20;
+    const h = titleH + padding + (options?.length || 0) * rowH;
+    const maxH = Math.floor(screenH * 0.45);
+    return Math.min(h, maxH);
+  }, [options, screenH, label]);
+
+  const openDropdown = () => {
     if (!options || options.length === 0) return;
-    const idx = options.indexOf(value);
-    const next = options[(idx + 1) % options.length];
+
+    if (dropdownRef.current && dropdownRef.current.measureInWindow) {
+      dropdownRef.current.measureInWindow((x, y, w, h) => {
+        const margin = 8;
+
+        const menuW = Math.max(w, 180);
+        let left = x;
+        if (left + menuW > screenW - margin) left = screenW - margin - menuW;
+        if (left < margin) left = margin;
+
+        const belowTop = y + h + 6;
+        const aboveTop = y - menuHeight - 6;
+
+        const top = belowTop + menuHeight <= screenH - margin ? belowTop : Math.max(margin, aboveTop);
+
+        setAnchor({ left, top, width: menuW });
+        setOpen(true);
+      });
+      return;
+    }
+
+    // fallback (rare)
+    setAnchor({ left: 12, top: 100, width: 220 });
+    setOpen(true);
+  };
+
+  const handlePick = (next) => {
+    setOpen(false);
     onChange && onChange(next);
   };
 
   return (
     <View style={[styles.row, containerStyle]}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? <Text style={[styles.label, { color: colors.text }]}>{label}</Text> : null}
+
       <TouchableOpacity
-        style={styles.dropdown}
+        ref={dropdownRef}
+        style={[styles.dropdown, { backgroundColor: colors.surface, borderColor: colors.border }]}
         activeOpacity={0.85}
-        onPress={handlePress}
+        onPress={openDropdown}
       >
-        <Text style={styles.valueText}>{value}</Text>
-        <Text style={styles.chevron}>⌵</Text>
+        <Text style={[styles.valueText, { color: colors.textSecondary }]}>{value}</Text>
+        <Text style={[styles.chevron, { color: colors.textTertiary }]}>⌵</Text>
       </TouchableOpacity>
+
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setOpen(false)}>
+          {anchor ? (
+            <Pressable
+              style={[
+                styles.menu,
+                {
+                  left: anchor.left,
+                  top: anchor.top,
+                  width: anchor.width,
+                  height: menuHeight,
+                  backgroundColor: colors.background,
+                  borderColor: colors.border,
+                },
+              ]}
+              onPress={() => {}}
+            >
+              {label ? (
+                <Text style={[styles.menuTitle, { color: colors.text }]} numberOfLines={1}>
+                  {label}
+                </Text>
+              ) : null}
+
+              <ScrollView
+                showsVerticalScrollIndicator
+                keyboardShouldPersistTaps="handled"
+              >
+                {options.map((opt) => {
+                  const selected = opt === value;
+                  return (
+                    <TouchableOpacity
+                      key={String(opt)}
+                      style={[
+                        styles.optionRow,
+                        {
+                          borderColor: colors.divider,
+                          backgroundColor: selected ? colors.surface : colors.background,
+                        },
+                      ]}
+                      activeOpacity={0.85}
+                      onPress={() => handlePick(opt)}
+                    >
+                      <Text style={[styles.optionText, { color: selected ? colors.primary : colors.text }]}>
+                        {opt}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </Pressable>
+          ) : null}
+        </Pressable>
+      </Modal>
     </View>
   );
 };
@@ -41,7 +155,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: "600",
-    color: "#333333",
     marginRight: 8,
   },
   dropdown: {
@@ -51,21 +164,47 @@ const styles = StyleSheet.create({
     height: 40,
     width: 180,
     borderRadius: 20,
-    backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#DDDDDD",
     minWidth: 120,
   },
   valueText: {
     flex: 1,
     fontSize: 14,
     fontWeight: "600",
-    color: "#333333",
     textAlign: "center",
   },
   chevron: {
     fontSize: 18,
-    color: "#888888",
     marginLeft: 8,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.15)",
+  },
+  menu: {
+    position: "absolute",
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    overflow: "hidden",
+  },
+  menuTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    marginBottom: 8,
+  },
+  optionRow: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    marginTop: 10,
+  },
+  optionText: {
+    fontSize: 14,
+    fontWeight: "700",
+    textAlign: "center",
   },
 });

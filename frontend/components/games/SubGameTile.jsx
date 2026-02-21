@@ -1,18 +1,20 @@
 import React from "react";
 import { TouchableOpacity, View, Text, StyleSheet, Image } from "react-native";
-import { ThemeColor } from "../../contexts/Themes";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const SubGameTile = ({ label, image, onPress }) => {
+  const { colors } = useTheme();
+
   return (
-    <TouchableOpacity style={styles.tile} onPress={onPress} activeOpacity={0.8}>
-      <View style={styles.circle}>
+    <TouchableOpacity style={[styles.tile, { backgroundColor: colors.surface }]} onPress={onPress} activeOpacity={0.8}>
+      <View style={[styles.circle, { backgroundColor: colors.background }]}>
         {image ? (
           <Image source={image} style={styles.image} />
         ) : (
-          <View style={styles.placeholderImage} />
+          <View style={[styles.placeholderImage, { backgroundColor: colors.border }]} />
         )}
       </View>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>
     </TouchableOpacity>
   );
 };
@@ -23,7 +25,6 @@ const styles = StyleSheet.create({
   tile: {
     flex: 1,
     height: 150,
-    backgroundColor: "#f2f2f2ff",
     // borderColor: "#E2E2E2",
     alignItems: "center",
     justifyContent: "center",
@@ -33,25 +34,22 @@ const styles = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: 34,
-    backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
   },
   image: {
-    width: 100,
-    height: 100,
+    width: 90,
+    height: 90,
     resizeMode: "contain",
   },
   placeholderImage: {
     width: 50,
     height: 50,
-    backgroundColor: "#e0e0e0",
     borderRadius: 25,
   },
   label: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#333333",
   },
 });

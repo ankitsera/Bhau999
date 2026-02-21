@@ -9,33 +9,43 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
-import ThemeHeader from '../../components/Header';
+import ThemeHeader from '../../components/ThemeHeader';
 import EmptyState from '../../components/EmptyState';
 import { GameContext } from '../../contexts/GameContext';
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from '../../contexts/ThemeContext';
 
 /** --- Row component --- */
-const TimeRow = ({ gameName, openTime, closeTime }) => (
-  <View style={styles.rowCard}>
-    <Text style={[styles.cell, styles.gameName]} numberOfLines={1}>
-      {String(gameName || '').toUpperCase()}
-    </Text>
-    <Text style={[styles.cell, styles.timeText]}>{openTime || '--:--'}</Text>
-    <Text style={[styles.cell, styles.timeText]}>{closeTime || '--:--'}</Text>
-  </View>
-);
+const TimeRow = ({ gameName, openTime, closeTime }) => {
+  const { colors } = useTheme();
 
-const ListHeader = () => (
-  <View style={styles.headerChip}>
-    <Text style={[styles.headerText, { flex: 1.2 }]}>Game Name</Text>
-    <Text style={[styles.headerText, { flex: 0.9 }]}>Open Time</Text>
-    <Text style={[styles.headerText, { flex: 0.9, textAlign: 'right' }]}>
-      Close Time
-    </Text>
-  </View>
-);
+  return (
+    <View style={[styles.rowCard, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
+      <Text style={[styles.cell, styles.gameName, { color: colors.text }]} numberOfLines={1}>
+        {String(gameName || '').toUpperCase()}
+      </Text>
+      <Text style={[styles.cell, styles.timeText, { color: colors.text }]}>{openTime || '--:--'}</Text>
+      <Text style={[styles.cell, styles.timeText, { color: colors.text }]}>{closeTime || '--:--'}</Text>
+    </View>
+  );
+};
+
+const ListHeader = () => {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.headerChip, { backgroundColor: colors.primary }]}>
+      <Text style={[styles.headerText, { flex: 1.2 }]}>Game Name</Text>
+      <Text style={[styles.headerText, { flex: 0.9 }]}>Open Time</Text>
+      <Text style={[styles.headerText, { flex: 0.9, textAlign: 'right' }]}>
+        Close Time
+      </Text>
+    </View>
+  );
+};
 
 const TimeTable = () => {
+  const { colors } = useTheme();
+
   // ALL games api data
   const { allGamesUi, isLoadingAllGames, loadAllGames } =
     useContext(GameContext);
@@ -60,12 +70,12 @@ const TimeTable = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ThemeHeader title="Time Table" />
 
       {isLoadingAllGames && (!allGamesUi || allGamesUi.length === 0) ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color={ThemeColor} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : !allGamesUi || allGamesUi.length === 0 ? (
         <View style={styles.center}>
@@ -98,12 +108,10 @@ export default TimeTable;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
 
-  // Top ThemeColor chip (column headers)
+  // Top chip (column headers)
   headerChip: {
-    backgroundColor: ThemeColor,
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -118,14 +126,12 @@ const styles = StyleSheet.create({
 
   // Row card
   rowCard: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'center',
     elevation: 5,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.12,
     shadowRadius: 6,
@@ -133,12 +139,10 @@ const styles = StyleSheet.create({
   cell: { flex: 0.9 },
   gameName: {
     flex: 1.2,
-    color: '#121212',
     fontWeight: '800',
     fontSize: 16,
   },
   timeText: {
-    color: '#1c1c1c',
     fontSize: 15,
     textAlign: 'right',
   },

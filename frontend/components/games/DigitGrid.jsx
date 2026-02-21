@@ -1,20 +1,22 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { ThemeColor } from "../../contexts/Themes";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const DigitGrid = ({ digits, pointsByDigit, onPressDigit }) => {
+  const { colors } = useTheme();
+
   return (
     <View style={styles.grid}>
       {digits.map((d) => (
         <TouchableOpacity
           key={d}
-          style={styles.tile}
+          style={[styles.tile, { backgroundColor: colors.primary }]}
           activeOpacity={0.85}
           onPress={() => onPressDigit(d)}
         >
           <Text style={styles.digitText}>{d}</Text>
           {pointsByDigit[d] ? (
-            <Text style={styles.pointsText}>{pointsByDigit[d]}</Text>
+            <Text style={[styles.pointsText, { color: colors.text }]}>{pointsByDigit[d]}</Text>
           ) : null}
         </TouchableOpacity>
       ))}
@@ -36,7 +38,6 @@ const styles = StyleSheet.create({
     height: 90,
     margin: 6,
     borderRadius: 12,
-    backgroundColor: ThemeColor,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -46,7 +47,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   pointsText: {
-    color: "#000",
     fontSize: 12,
     fontWeight: "700",
     position: "absolute",

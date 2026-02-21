@@ -11,10 +11,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute } from "@react-navigation/native";
 
-import ThemeHeader from "../components/Header";
+import ThemeHeader from "../components/ThemeHeader";
 import EmptyState from "../components/EmptyState";
 import { GameContext } from "../contexts/GameContext";
-import { ThemeColor, ThemeColorTile } from "../contexts/Themes";
+import { useTheme } from "../contexts/ThemeContext";
 
 const DAYS = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
@@ -77,14 +77,16 @@ function addDays(dt, days) {
 }
 
 const HeaderRow = () => {
+  const { colors } = useTheme();
+
   return (
-    <View style={styles.tableHeader}>
-      <View style={[styles.cellDate, styles.hCell]}>
-        <Text style={styles.hText}>Date</Text>
+    <View style={[styles.tableHeader, { backgroundColor: colors.primaryTile }]}>
+      <View style={[styles.cellDate, styles.hCell, { borderRightColor: colors.divider }]}>
+        <Text style={[styles.hText, { color: colors.text }]}>Date</Text>
       </View>
       {DAYS.map((d) => (
-        <View key={d} style={[styles.cellDay, styles.hCell]}>
-          <Text style={styles.hText}>{d}</Text>
+        <View key={d} style={[styles.cellDay, styles.hCell, { borderRightColor: colors.divider }]}>
+          <Text style={[styles.hText, { color: colors.text }]}>{d}</Text>
         </View>
       ))}
     </View>
@@ -92,18 +94,20 @@ const HeaderRow = () => {
 };
 
 const WeekRow = ({ item }) => {
+  const { colors } = useTheme();
+
   // item: { key, start, end, cells: { MON: "123-45-678", ... } }
   return (
-    <View style={styles.tableRow}>
-      <View style={styles.cellDate}>
-        <Text style={styles.dateText}>{formatDDMMYYYY(item.start)}</Text>
-        <Text style={styles.toText}>TO</Text>
-        <Text style={styles.dateText}>{formatDDMMYYYY(item.end)}</Text>
+    <View style={[styles.tableRow, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
+      <View style={[styles.cellDate, { borderRightColor: colors.divider }]}>
+        <Text style={[styles.dateText, { color: colors.text }]}>{formatDDMMYYYY(item.start)}</Text>
+        <Text style={[styles.toText, { color: colors.textTertiary }]}>TO</Text>
+        <Text style={[styles.dateText, { color: colors.text }]}>{formatDDMMYYYY(item.end)}</Text>
       </View>
 
       {DAYS.map((d) => (
-        <View key={d} style={styles.cellDay}>
-          <Text style={styles.cellText} numberOfLines={2}>
+        <View key={d} style={[styles.cellDay, { borderRightColor: colors.divider }]}>
+          <Text style={[styles.cellText, { color: colors.text }]} numberOfLines={2}>
             {item.cells?.[d] || "***-**-***"}
           </Text>
         </View>
@@ -113,6 +117,8 @@ const WeekRow = ({ item }) => {
 };
 
 const GameChartPanel = () => {
+  const { colors } = useTheme();
+
   const route = useRoute();
   const gameName = String(route?.params?.gameName || "").toUpperCase();
 
@@ -205,14 +211,14 @@ const GameChartPanel = () => {
   }, [filtered]);
 
   return (
-    <SafeAreaView style={styles.screen} edges={["bottom"]}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["bottom"]}>
       <ThemeHeader title={`${gameName || "GAME"} CHART`} />
 
       <View style={styles.body}>
         {isLoadingGameHistory && weeks.length === 0 ? (
           <View style={styles.loaderWrap}>
-            <ActivityIndicator size="small" color={ThemeColor} />
-            <Text style={styles.loaderText}>Loading...</Text>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={[styles.loaderText, { color: colors.text }]}>Loading...</Text>
           </View>
         ) : weeks.length === 0 ? (
           <EmptyState text="No chart data yet" />
@@ -242,7 +248,7 @@ const GameChartPanel = () => {
 export default GameChartPanel;
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#F6F6F6" },
+  screen: { flex: 1 },
   body: { flex: 1 },
 
   loaderWrap: {
@@ -251,7 +257,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
   },
-  loaderText: { color: "#111", fontWeight: "700" },
+  loaderText: { fontWeight: "700" },
 
   tableWrap: {
     padding: 10,
@@ -259,20 +265,17 @@ const styles = StyleSheet.create({
 
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: ThemeColorTile, // close to your screenshot header vibe
     borderRadius: 6,
     overflow: "hidden",
   },
 
   tableRow: {
     flexDirection: "row",
-    backgroundColor: "#fff",
     marginTop: 6,
     borderRadius: 6,
     overflow: "hidden",
 
     elevation: 3,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 4,
@@ -283,7 +286,6 @@ const styles = StyleSheet.create({
   },
   hText: {
     fontWeight: "900",
-    color: "#111",
   },
 
   cellDate: {
@@ -293,7 +295,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRightWidth: 1,
-    borderRightColor: "#E6E6E6",
   },
 
   cellDay: {
@@ -303,24 +304,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRightWidth: 1,
-    borderRightColor: "#E6E6E6",
   },
 
   dateText: {
     fontWeight: "900",
-    color: "#111",
     fontSize: 12,
   },
   toText: {
     fontWeight: "900",
-    color: "#666",
     marginVertical: 4,
     fontSize: 11,
   },
 
   cellText: {
     fontWeight: "900",
-    color: "#111",
     fontSize: 12,
     textAlign: "center",
   },

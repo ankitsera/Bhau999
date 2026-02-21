@@ -26,7 +26,7 @@ import BettingClosedModal from '../../components/BettingClosedModal';
 import { useBettingGuard } from '../../utils/BettingGuard';
 import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
 
-import { ThemeColor } from '../../contexts/Themes';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const BLACK = '#000';
 
@@ -46,6 +46,8 @@ const FIRST_DIGIT_MAP = Array.from({ length: 10 }, (_, d) => {
 }, {});
 
 const Jodi = ({ route }) => {
+  const { colors } = useTheme();
+
   const gameName = route?.params?.gameName || 'GAME';
 
   const { user, updateUser } = useContext(AuthContext);
@@ -177,7 +179,7 @@ const Jodi = ({ route }) => {
         makeBet({
           mobileNumber,
           gameName,
-          type: 'JODI',
+          type: 'Jodi',
           openClose: 'CLOSE',
           amount: Number(b.points) || 0,
           betValue: b.digit,
@@ -190,23 +192,21 @@ const Jodi = ({ route }) => {
         const n = JODI_NUMBERS[i];
         const raw = String(specialPointsByJodi[n] || "").trim();
 
-        if (!raw) continue; // empty => ignore
+        if (!raw) continue;
 
         const p = Number(raw);
 
-        // typed something but invalid
         if (!Number.isFinite(p) || p <= 0) {
           Alert.alert("Validation", `Invalid points for Jodi ${n}.`);
-          return; // stop everything (no API call)
+          return;
         }
 
-        // min/max check (all-or-nothing)
         if (p < minAmount || p > maxAmount) {
           Alert.alert(
             "Validation",
             `Points for Jodi ${n} must be between ${minAmount} and ${maxAmount}.`
           );
-          return; // stop everything (no API call)
+          return;
         }
 
         list.push({ jodi: n, points: p });
@@ -228,12 +228,10 @@ const Jodi = ({ route }) => {
       const res = await placeBets(betsToSend);
       Alert.alert('Success', 'Bets placed successfully!');
 
-      // Update balance safely
       const spent = Number(activeTotals.points) || 0;
       const nextBalance = Math.max(0, balance - spent);
       updateUser({ balance: nextBalance });
 
-      // clear placed bets
       setEasyBets([]);
       setSpecialPointsByJodi(
         JODI_NUMBERS.reduce((acc, n) => {
@@ -250,8 +248,8 @@ const Jodi = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safe} edges={['bottom']}>
-      <View style={styles.screen}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['bottom']}>
+      <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <DynamicHeader title={`${gameName} - JODI`} />
         <BettingClosedModal visible={showClosedModal} onClose={closeClosedModal} />
 
@@ -262,11 +260,13 @@ const Jodi = ({ route }) => {
               label="EASY MODE"
               active={mode === 'EASY'}
               onPress={() => setMode('EASY')}
+              primary={colors.primary}
             />
             <ModeButton
               label="SPECIAL MODE"
               active={mode === 'SPECIAL'}
               onPress={() => setMode('SPECIAL')}
+              primary={colors.primary}
             />
           </View>
 
@@ -278,9 +278,10 @@ const Jodi = ({ route }) => {
                 points={easyPoints}
                 onChangePoints={setEasyPoints}
                 onPressAdd={() => {
-                  Keyboard.dismiss(); // fixes “tap twice to Add”
+                  Keyboard.dismiss();
                   handleAddEasyBet();
                 }}
+                colors={colors}
               />
 
               <View style={styles.tableArea}>
@@ -294,26 +295,23 @@ const Jodi = ({ route }) => {
           )}
 
           {mode === 'SPECIAL' && (
-            <>
-              <View style={styles.specialArea}>
-                <ScrollView
-                  showsVerticalScrollIndicator={false}
-                  keyboardShouldPersistTaps="always"
-                  nestedScrollEnabled
-                  contentContainerStyle={styles.specialScrollContent}
-                >
-                  <SpecialModeGrid
-                    digits={JODI_NUMBERS}
-                    pointsByDigit={specialPointsByJodi}
-                    onChangePoint={handleChangeSpecialPoint}
-                  />
-                </ScrollView>
-              </View>
-            </>
+            <View style={styles.specialArea}>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="always"
+                nestedScrollEnabled
+                contentContainerStyle={styles.specialScrollContent}
+              >
+                <SpecialModeGrid
+                  digits={JODI_NUMBERS}
+                  pointsByDigit={specialPointsByJodi}
+                  onChangePoint={handleChangeSpecialPoint}
+                />
+              </ScrollView>
+            </View>
           )}
         </View>
 
-        {/* bottom bar only in easy mode */}
         {mode === 'EASY' ? (
           <BottomBetBar
             bids={activeTotals.bids}
@@ -321,9 +319,9 @@ const Jodi = ({ route }) => {
             onSubmit={handleSubmit}
           />
         ) : (
-          <View style={styles.specialBottom}>
+          <View style={[styles.specialBottom, { backgroundColor: colors.surface, borderTopColor: colors.divider }]}>
             <TouchableOpacity
-              style={styles.specialSubmitButton}
+              style={[styles.specialSubmitButton, { backgroundColor: colors.primary }]}
               onPress={handleSubmit}
               activeOpacity={0.85}
             >
@@ -346,6 +344,7 @@ const JodiEasyForm = ({
   points,
   onChangePoints,
   onPressAdd,
+  colors,
 }) => {
   const suggestions = useMemo(() => {
     const clean = String(jodi || '').replace(/[^0-9]/g, '');
@@ -356,21 +355,21 @@ const JodiEasyForm = ({
   return (
     <View style={formStyles.container}>
       <View style={formStyles.pointInputRow}>
-        <Text style={formStyles.label}>Enter Jodi Digit:</Text>
+        <Text style={[formStyles.label, { color: colors.text }]}>Enter Jodi Digit:</Text>
 
         <View style={formStyles.inputWrapper}>
           <TextInput
-            style={formStyles.input}
+            style={[formStyles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
             keyboardType="number-pad"
             maxLength={2}
             value={jodi}
             onChangeText={onChangeJodi}
             placeholder="Jodi"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.textTertiary}
           />
 
           {suggestions.length > 0 && (
-            <View style={formStyles.suggestionBox}>
+            <View style={[formStyles.suggestionBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
               <ScrollView
                 keyboardShouldPersistTaps="always"
                 nestedScrollEnabled
@@ -383,7 +382,7 @@ const JodiEasyForm = ({
                     onPress={() => onChangeJodi(item)}
                     activeOpacity={0.8}
                   >
-                    <Text style={formStyles.suggestionText}>{item}</Text>
+                    <Text style={[formStyles.suggestionText, { color: colors.text }]}>{item}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -393,19 +392,19 @@ const JodiEasyForm = ({
       </View>
 
       <View style={formStyles.pointInputRow}>
-        <Text style={formStyles.label}>Enter Points:</Text>
+        <Text style={[formStyles.label, { color: colors.text }]}>Enter Points:</Text>
         <TextInput
-          style={formStyles.input}
+          style={[formStyles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
           keyboardType="number-pad"
           value={points}
           onChangeText={onChangePoints}
           placeholder="Point"
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.textTertiary}
         />
       </View>
 
       <TouchableOpacity
-        style={formStyles.addButton}
+        style={[formStyles.addButton, { backgroundColor: colors.primary }]}
         onPress={onPressAdd}
         activeOpacity={0.85}
       >
@@ -417,9 +416,9 @@ const JodiEasyForm = ({
 
 /* ----------------- mode button ----------------- */
 
-const ModeButton = ({ label, active, onPress }) => (
+const ModeButton = ({ label, active, onPress, primary }) => (
   <TouchableOpacity
-    style={[modeStyles.button, { backgroundColor: active ? BLACK : ThemeColor }]}
+    style={[modeStyles.button, { backgroundColor: active ? BLACK : primary }]}
     activeOpacity={0.85}
     onPress={onPress}
   >
@@ -448,11 +447,9 @@ const modeStyles = StyleSheet.create({
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
   screen: {
     flex: 1,
-    backgroundColor: '#F3F3F3',
   },
   content: {
     flex: 1,
@@ -479,14 +476,11 @@ const styles = StyleSheet.create({
   specialBottom: {
     height: 64,
     borderTopWidth: 1,
-    borderTopColor: '#D9D9D9',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F9F9F9',
     paddingHorizontal: 16,
   },
   specialSubmitButton: {
-    backgroundColor: ThemeColor,
     borderRadius: 6,
     paddingVertical: 12,
     alignItems: 'center',
@@ -499,7 +493,7 @@ const styles = StyleSheet.create({
   },
 });
 
-/* ----------------- form styles (matches your SingleDigit EasyModeForm) ----------------- */
+/* ----------------- form styles ----------------- */
 
 const formStyles = StyleSheet.create({
   container: {
@@ -513,7 +507,6 @@ const formStyles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 4,
   },
 
@@ -526,9 +519,7 @@ const formStyles = StyleSheet.create({
     height: 44,
     width: 180,
     borderRadius: 22,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#DDD',
     fontSize: 16,
     marginBottom: 12,
     textAlign: 'center',
@@ -540,9 +531,7 @@ const formStyles = StyleSheet.create({
     left: 0,
     right: 0,
     borderRadius: 8,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#DDD',
     maxHeight: 160,
     zIndex: 50,
     elevation: 8,
@@ -555,14 +544,12 @@ const formStyles = StyleSheet.create({
   },
   suggestionText: {
     fontSize: 14,
-    color: '#333',
   },
 
   addButton: {
     marginTop: 12,
     height: 44,
     borderRadius: 6,
-    backgroundColor: ThemeColor,
     justifyContent: 'center',
     alignItems: 'center',
     width: 180,

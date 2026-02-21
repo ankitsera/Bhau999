@@ -5,12 +5,13 @@ import { useNavigation } from "@react-navigation/native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { AuthContext } from "../contexts/AuthContext";
-import { ThemeColor } from "../contexts/Themes";
+import { useTheme } from "../contexts/ThemeContext";
 
 const DynamicHeader = ({ title = "", speed = 60, gap = 80 }) => {
   const navigation = useNavigation();
   const { top } = useSafeAreaInsets();
   const { user } = useContext(AuthContext);
+  const { colors } = useTheme();
 
   const balance = typeof user?.balance === "number" ? user.balance : 0;
   const [textW, setTextW] = useState(0);
@@ -39,7 +40,7 @@ const DynamicHeader = ({ title = "", speed = 60, gap = 80 }) => {
 
   return (
     <View style={[styles.root, { paddingTop: top }]}>
-      <View style={styles.bg} />
+      <View style={[styles.bg, { backgroundColor: colors.primary }]} />
 
       <View style={styles.row}>
         <Pressable
@@ -47,7 +48,7 @@ const DynamicHeader = ({ title = "", speed = 60, gap = 80 }) => {
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           style={styles.left}
         >
-          <MaterialIcons name="arrow-back" size={26} color="#000" />
+          <MaterialIcons name="arrow-back" size={26} color={colors.text} />
         </Pressable>
 
         <View style={styles.center}>
@@ -64,7 +65,7 @@ const DynamicHeader = ({ title = "", speed = 60, gap = 80 }) => {
 
             <Text
               numberOfLines={1}
-              style={styles.title}
+              style={[styles.title, { color: colors.text }]}
               onLayout={(e) => setTextW(e.nativeEvent.layout.width)}
             >
               {title}
@@ -72,15 +73,15 @@ const DynamicHeader = ({ title = "", speed = 60, gap = 80 }) => {
 
             <View style={{ width: gap }} />
 
-            <Text numberOfLines={1} style={styles.title}>
+            <Text numberOfLines={1} style={[styles.title, { color: colors.text }]}>
               {title}
             </Text>
           </Animated.View>
         </View>
 
         <View style={styles.wallet}>
-          <MaterialCommunityIcons name="wallet-outline" size={22} color="#000" />
-          <Text style={styles.walletText}>{balance.toFixed(1)}</Text>
+          <MaterialCommunityIcons name="wallet-outline" size={22} color={colors.text} />
+          <Text style={[styles.walletText, { color: colors.text }]}>{balance.toFixed(1)}</Text>
         </View>
       </View>
     </View>
@@ -99,7 +100,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 90,
-    backgroundColor: ThemeColor,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,
   },
@@ -120,7 +120,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    color: "#000",
     fontSize: 24,
     fontWeight: "600",
     flexWrap: 'nowrap',
@@ -134,7 +133,6 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   walletText: {
-    color: "#000",
     fontSize: 18,
     fontWeight: "600",
     marginLeft: 6,

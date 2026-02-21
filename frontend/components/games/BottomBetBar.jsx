@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { ThemeColor } from "../../contexts/Themes";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const BottomBetBar = ({
   bids,
@@ -10,27 +10,30 @@ const BottomBetBar = ({
   disabled = false,
   loading = false,
 }) => {
+  const { colors } = useTheme();
+
   const handlePress = () => {
     if (disabled || loading) return;
     onSubmit && onSubmit();
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { borderTopColor: colors.divider, backgroundColor: colors.surface }]}>
       <View style={styles.left}>
         <View style={styles.item}>
-          <Text style={styles.label}>Bids</Text>
-          <Text style={styles.value}>{bids ?? 0}</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>Bids</Text>
+          <Text style={[styles.value, { color: colors.text }]}>{bids ?? 0}</Text>
         </View>
         <View style={styles.item}>
-          <Text style={styles.label}>Points</Text>
-          <Text style={styles.value}>{points ?? 0}</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>Points</Text>
+          <Text style={[styles.value, { color: colors.text }]}>{points ?? 0}</Text>
         </View>
       </View>
 
       <TouchableOpacity
         style={[
           styles.button,
+          { backgroundColor: colors.primary },
           (disabled || loading) && { opacity: 0.6 },
         ]}
         onPress={handlePress}
@@ -50,11 +53,9 @@ const styles = StyleSheet.create({
   container: {
     height: 64,
     borderTopWidth: 1,
-    borderTopColor: "#D9D9D9",
     paddingHorizontal: 18,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F9F9F9",
   },
   left: {
     flexDirection: "row",
@@ -65,15 +66,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    color: "#444",
   },
   value: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#000",
   },
   button: {
-    backgroundColor: ThemeColor,
     borderRadius: 6,
     paddingHorizontal: 22,
     paddingVertical: 9,

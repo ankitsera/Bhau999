@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 
-import ThemeHeader from "../components/Header";
+import ThemeHeader from "../components/ThemeHeader";
 import EmptyState from "../components/EmptyState";
 import { GameContext } from "../contexts/GameContext";
 import { ThemeColor } from "../contexts/Themes";

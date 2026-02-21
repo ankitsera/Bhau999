@@ -13,9 +13,11 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import Snackbar from "react-native-snackbar";
 import { AuthContext } from "../../contexts/AuthContext";
 import { getCallSupport, getWhatsappSupport } from "../../utils/AppConfigService";
-import { ThemeColor } from "../../contexts/Themes";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const UserCheck = ({ navigation }) => {
+  const { colors } = useTheme();
+
   const [mobileNumber, setMobileNumber] = useState("");
   const { userCheck } = useContext(AuthContext);
 
@@ -78,12 +80,12 @@ const UserCheck = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaProvider style={styles.container}>
+    <SafeAreaProvider style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Theme Header */}
-      <View style={styles.headerBg}></View>
+      <View style={[styles.headerBg, { backgroundColor: colors.primary }]}></View>
 
       {/* Main Content */}
-      <View style={styles.content}>
+      <View style={[styles.content, { backgroundColor: colors.background, shadowColor: colors.text }]}>
         {/* Illustration */}
         <Image
           source={require("../../assets/Images/UserCheck.webp")} // Replace with your local image
@@ -92,16 +94,16 @@ const UserCheck = ({ navigation }) => {
         />
 
         {/* Title */}
-        <Text style={styles.title}>ENTER YOUR MOBILE NUMBER</Text>
+        <Text style={[styles.title, { color: colors.text }]}>ENTER YOUR MOBILE NUMBER</Text>
 
         {/* Input */}
-        <View style={styles.inputContainer}>
-          <MaterialCommunityIcons name="cellphone" size={22} color={ThemeColor} style={styles.icon} />
+        <View style={[styles.inputContainer, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
+          <MaterialCommunityIcons name="cellphone" size={22} color={colors.primary} style={styles.icon} />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: colors.text }]}
             placeholder="Phone Number"
             keyboardType="phone-pad"
-            placeholderTextColor="#777"
+            placeholderTextColor={colors.textTertiary}
             value={mobileNumber}
             onChangeText={(text) => {
               const digits = String(text || "").replace(/[^0-9]/g, "");
@@ -126,30 +128,30 @@ const UserCheck = ({ navigation }) => {
         </View>
 
         {/* Login Button */}
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+        <TouchableOpacity style={[styles.loginButton, { backgroundColor: colors.primary }]} onPress={handleLogin}>
           <Text style={styles.loginText}>Login</Text>
         </TouchableOpacity>
 
         {/* Bottom Section */}
         <View style={styles.bottomContainer}>
-          <View style={styles.separator} />
+          <View style={[styles.separator, { backgroundColor: colors.divider }]} />
           <View style={styles.iconRow}>
-            <TouchableOpacity style={styles.circleButton}
+            <TouchableOpacity style={[styles.circleButton, { backgroundColor: colors.background, shadowColor: colors.text }]}
               onPress={openDialer}
             >
-              <MaterialCommunityIcons name="phone-outline" size={22} color="#000" />
+              <MaterialCommunityIcons name="phone-outline" size={22} color={colors.text} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.circleButton}
+            <TouchableOpacity style={[styles.circleButton, { backgroundColor: colors.background, shadowColor: colors.text }]}
               onPress={openWhatsapp}
             >
-              <MaterialCommunityIcons name="whatsapp" size={22} color="#000" />
+              <MaterialCommunityIcons name="whatsapp" size={22} color={colors.text} />
             </TouchableOpacity>
           </View>
           <View style={styles.bottomText}>
-            <Text style={{fontWeight:"bold"}}>Don't have an account</Text> 
+            <Text style={{fontWeight:"bold", color: colors.text}}>Don't have an account</Text> 
             <TouchableOpacity
               onPress={()=>{navigation.navigate("Signup")}}>
-              <Text style={styles.signUp}>Sign Up</Text>
+              <Text style={[styles.signUp, { color: colors.primary }]}>Sign Up</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -172,7 +174,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 0,
-    backgroundColor: ThemeColor,
   },
 
   // ----- Content Card -----
@@ -226,7 +227,6 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   loginButton: {
-    backgroundColor: ThemeColor,
     borderRadius: 25,
     paddingVertical: 12,
     width: "85%",
@@ -276,6 +276,5 @@ const styles = StyleSheet.create({
   signUp: {
     fontSize: 17,
     fontWeight: "bold",
-    color: ThemeColor,
   },
 });

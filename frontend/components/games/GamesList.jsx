@@ -12,31 +12,33 @@ import {
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import EmptyState from "../../components/EmptyState";
 import { GameContext } from "../../contexts/GameContext";
-import { ThemeColor } from "../../contexts/Themes";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const RED = "#EF4B3E";
 
 const ClosedPopup = ({ visible, onClose }) => {
+  const { colors } = useTheme();
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
-        <View style={styles.modalCard}>
+        <View style={[styles.modalCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
           <Pressable onPress={onClose} hitSlop={10} style={styles.modalCloseBtn}>
-            <MaterialCommunityIcons name="close" size={28} color="#9E9E9E" />
+            <MaterialCommunityIcons name="close" size={28} color={colors.textTertiary} />
           </Pressable>
 
           <View style={styles.modalIconWrap}>
-            <View style={styles.modalIconCircle}>
+            <View style={[styles.modalIconCircle, { backgroundColor: colors.surface }]}>
               <MaterialCommunityIcons name="close" size={46} color={RED} />
             </View>
           </View>
 
-          <Text style={styles.modalTitle}>Sorry !</Text>
-          <Text style={styles.modalMsg}>
+          <Text style={[styles.modalTitle, { color: colors.error }]}>Sorry !</Text>
+          <Text style={[styles.modalMsg, { color: colors.textSecondary }]}>
             Betting is Closed for today.{"\n"}Please come next day to play.
           </Text>
 
-          <Pressable onPress={onClose} style={styles.modalOkBtn}>
+          <Pressable onPress={onClose} style={[styles.modalOkBtn, { backgroundColor: colors.primary }]}>
             <Text style={styles.modalOkText}>OK</Text>
           </Pressable>
         </View>
@@ -46,6 +48,8 @@ const ClosedPopup = ({ visible, onClose }) => {
 };
 
 const GameCard = ({ item, navigation, onPressClosed }) => {
+  const { colors } = useTheme();
+
   const handlePress = () => {
     if (item.isClosed) {
       onPressClosed?.();
@@ -57,9 +61,9 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
   };
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePress} activeOpacity={0.85}>
+    <TouchableOpacity style={[styles.card, { backgroundColor: colors.surface }]} onPress={handlePress} activeOpacity={0.85}>
       <View style={styles.cardTop}>
-        <Text style={styles.title}>{item.gameName}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{item.gameName}</Text>
         <Text style={[styles.statusText, { color: item.statusColor }]}>
           {item.statusText}
         </Text>
@@ -67,17 +71,17 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
 
       <View style={styles.cardBody}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.result}>{item.resultText}</Text>
+          <Text style={[styles.result, { color: colors.primary }]}>{item.resultText}</Text>
 
           <View style={styles.timeRow}>
             <View>
-              <Text style={styles.timeLabel}>Open Bids</Text>
-              <Text style={styles.timeValue}>{item.openTimeText}</Text>
+              <Text style={[styles.timeLabel, { color: colors.textSecondary }]}>Open Bids</Text>
+              <Text style={[styles.timeValue, { color: colors.textSecondary }]}>{item.openTimeText}</Text>
             </View>
 
             <View style={{ marginLeft: 18 }}>
-              <Text style={styles.timeLabel}>Close Bids</Text>
-              <Text style={styles.timeValue}>{item.closeTimeText}</Text>
+              <Text style={[styles.timeLabel, { color: colors.textSecondary }]}>Close Bids</Text>
+              <Text style={[styles.timeValue, { color: colors.textSecondary }]}>{item.closeTimeText}</Text>
             </View>
           </View>
         </View>
@@ -91,6 +95,8 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
 };
 
 const GamesList = ({ navigation, refreshing, onRefresh }) => {
+  const { colors } = useTheme();
+
   const { activeGamesUi, isLoadingActiveGames, loadActiveGames } =
     useContext(GameContext);
 
@@ -105,7 +111,7 @@ const GamesList = ({ navigation, refreshing, onRefresh }) => {
   if (isLoadingActiveGames) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={ThemeColor} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -155,7 +161,6 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 14,
@@ -173,7 +178,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "900",
-    color: "#141414",
     flex: 1,
     paddingRight: 10,
   },
@@ -189,7 +193,6 @@ const styles = StyleSheet.create({
   result: {
     fontSize: 22,
     fontWeight: "900",
-    color: ThemeColor,
   },
   timeRow: {
     flexDirection: "row",
@@ -197,12 +200,10 @@ const styles = StyleSheet.create({
   },
   timeLabel: {
     fontSize: 14,
-    color: "#2c2c2c",
     fontWeight: "700",
   },
   timeValue: {
     fontSize: 14,
-    color: "#2f2f2f",
     fontWeight: "600",
   },
   circle: {
@@ -225,12 +226,12 @@ const styles = StyleSheet.create({
   modalCard: {
     width: "100%",
     maxWidth: 360,
-    backgroundColor: "#fff",
     borderRadius: 22,
     paddingHorizontal: 22,
     paddingTop: 24,
     paddingBottom: 18,
     alignItems: "center",
+    borderWidth: 1,
   },
   modalCloseBtn: {
     position: "absolute",
@@ -246,14 +247,12 @@ const styles = StyleSheet.create({
     width: 92,
     height: 92,
     borderRadius: 46,
-    backgroundColor: "#FCE6E6",
     alignItems: "center",
     justifyContent: "center",
   },
   modalTitle: {
     fontSize: 28,
     fontWeight: "900",
-    color: "#D32F2F",
     marginTop: 6,
   },
   modalMsg: {
@@ -261,13 +260,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 16,
     lineHeight: 22,
-    color: "#666",
     fontWeight: "600",
   },
   modalOkBtn: {
     marginTop: 18,
     width: "75%",
-    backgroundColor: ThemeColor,
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
