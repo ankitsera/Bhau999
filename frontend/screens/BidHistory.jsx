@@ -26,6 +26,8 @@ import { AuthContext } from '../contexts/AuthContext';
 import { GameContext } from '../contexts/GameContext';
 import { useTheme } from '../contexts/ThemeContext';
 
+import DateFilterRow, { matchesSingleDateFilter } from '../components/DateFilterRow';
+
 const PAGE_SIZE = 8;
 
 const parseLocalDateTime = val => {
@@ -288,6 +290,7 @@ const BidHistory = () => {
     openClose: new Set(), // "OPEN","CLOSE"
     result: new Set(), // "WIN","LOOSE","PENDING"
     games: new Set(), // "TIME BAZAR", ...
+    date: null, // Date | null
   });
 
   // ✅ draft filters (used inside modal before hitting "Filter")
@@ -295,6 +298,7 @@ const BidHistory = () => {
     openClose: new Set(),
     result: new Set(),
     games: new Set(),
+    date: null,
   });
 
   const fetchData = useCallback(async () => {
@@ -331,18 +335,24 @@ const BidHistory = () => {
   // ✅ apply filters BEFORE dedupe/sort/pagination so UX is clean
   const filteredRaw = useMemo(() => {
     const arr = Array.isArray(bidHistory) ? bidHistory : [];
-    if (
-      filters.openClose.size === 0 &&
-      filters.result.size === 0 &&
-      filters.games.size === 0
-    ) {
-      return arr;
-    }
+
+    const hasAny =
+      filters.openClose.size ||
+      filters.result.size ||
+      filters.games.size ||
+      (filters.date instanceof Date);
+
+    if (!hasAny) return arr;
 
     return arr.filter(it => {
       if (!matchesResultFilter(it, filters.result)) return false;
       if (!matchesOpenCloseFilter(it, filters.openClose)) return false;
       if (!matchesGameFilter(it, filters.games)) return false;
+
+      // ✅ Date filter
+      const dt = parseLocalDateTime(it?.betTime || it?.bet_time);
+      if (!matchesSingleDateFilter(dt, filters.date)) return false;
+
       return true;
     });
   }, [bidHistory, filters]);
@@ -388,7 +398,8 @@ const BidHistory = () => {
   const hasNext = safePage < totalPages;
 
   const activeFilterCount = useMemo(() => {
-    return filters.openClose.size + filters.result.size + filters.games.size;
+    const dateCount = filters.date instanceof Date ? 1 : 0;
+    return filters.openClose.size + filters.result.size + filters.games.size + dateCount;
   }, [filters]);
 
   const openFilter = useCallback(() => {
@@ -397,6 +408,7 @@ const BidHistory = () => {
       openClose: new Set(filters.openClose),
       result: new Set(filters.result),
       games: new Set(filters.games),
+      date: filters.date instanceof Date ? new Date(filters.date) : null,
     });
     setIsFilterOpen(true);
   }, [filters]);
@@ -410,6 +422,7 @@ const BidHistory = () => {
       openClose: new Set(draft.openClose),
       result: new Set(draft.result),
       games: new Set(draft.games),
+      date: draft.date instanceof Date ? new Date(draft.date) : null,
     });
     setIsFilterOpen(false);
     setPage(1);
@@ -420,6 +433,7 @@ const BidHistory = () => {
       openClose: new Set(),
       result: new Set(),
       games: new Set(),
+      date: null,
     });
   }, []);
 
@@ -429,6 +443,7 @@ const BidHistory = () => {
         openClose: new Set(prev.openClose),
         result: new Set(prev.result),
         games: new Set(prev.games),
+        date: prev.date instanceof Date ? new Date(prev.date) : null,
       };
       const set = next[key];
       if (set.has(value)) set.delete(value);
@@ -458,7 +473,7 @@ const BidHistory = () => {
           <Pressable
             style={[styles.clearBtn, { backgroundColor: colors.surface }]}
             onPress={() => {
-              setFilters({ openClose: new Set(), result: new Set(), games: new Set() });
+              setFilters({ openClose: new Set(), result: new Set(), games: new Set(), date: null });
               setPage(1);
             }}
           >
@@ -515,6 +530,15 @@ const BidHistory = () => {
           </View>
 
           <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+            {/* ✅ Date filter row */}
+            <DateFilterRow
+              label="By Date"
+              value={draft.date}
+              onChange={date => setDraft(prev => ({ ...prev, date }))}
+            />
+
+            <View style={[styles.hr, { backgroundColor: colors.divider }]} />
+
             <Text style={[styles.sectionTitle, { color: colors.text }]}>By Game Type</Text>
             <View style={styles.row2Col}>
               <CheckRow
@@ -619,7 +643,7 @@ const styles = StyleSheet.create({
   // ✅ filter bar (kept below header for now)
   filterBar: {
     position: 'absolute',
-    top: 45,
+    top: 35,
     right: 25,
     zIndex: 10,
     flexDirection: 'row',

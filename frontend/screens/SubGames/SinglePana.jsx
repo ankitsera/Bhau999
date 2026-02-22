@@ -542,7 +542,7 @@ const ModeButton = ({ label, active, onPress, primary }) => (
     activeOpacity={0.85}
     onPress={onPress}
   >
-    <Text style={[modeStyles.text, { color: colors.text }]}>{label}</Text>
+    <Text style={modeStyles.text}>{label}</Text>
   </TouchableOpacity>
 );
 
@@ -556,6 +556,7 @@ const modeStyles = StyleSheet.create({
     marginHorizontal: 4,
   },
   text: {
+    color: '#fff',
     fontSize: 15,
     fontWeight: '700',
   },

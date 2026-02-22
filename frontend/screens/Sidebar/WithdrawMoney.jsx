@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useMemo } from 'react';
+import React, { useState, useContext, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Linking,
   Alert,
   ActivityIndicator,
+  FlatList,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -25,6 +26,123 @@ import {
   getMinimumWithdrawalAmount,
 } from '../../utils/AppConfigService';
 import { useTheme } from '../../contexts/ThemeContext';
+
+import { WITHDRAW_MONEY_CAROUSEL_DUMMY } from '../../data/withdrawMoneyCarouselDummy';
+
+/* ------------------ Carousel helpers ------------------ */
+const maskMobile = (m) => {
+  const s = String(m || "").replace(/\D/g, "");
+  if (s.length < 10) return s || "--";
+  return `${s.slice(0, 2)}****${s.slice(-4)}`;
+};
+
+const TopCarouselBar = ({ data, statusText = "Deposit Successfully" }) => {
+  const { colors } = useTheme();
+  const listRef = useRef(null);
+  const idxRef = useRef(0);
+
+  const [wrapW, setWrapW] = useState(0);
+
+  const GAP = 12;
+
+  // item width = exact measured width of container
+  const ITEM_W = useMemo(() => Math.max(240, Math.floor(wrapW || 0)), [wrapW]);
+  const INTERVAL = ITEM_W + GAP;
+
+  useEffect(() => {
+    if (!Array.isArray(data) || data.length === 0) return;
+    if (!ITEM_W) return;
+
+    const t = setInterval(() => {
+      idxRef.current = (idxRef.current + 1) % data.length;
+      try {
+        listRef.current?.scrollToOffset?.({
+          offset: idxRef.current * INTERVAL,
+          animated: true,
+        });
+      } catch {}
+    }, 5500);
+
+    return () => clearInterval(t);
+  }, [data, ITEM_W, INTERVAL]);
+
+  const renderItem = ({ item, index }) => {
+    const mobile = maskMobile(item?.mobile);
+    const amount = Number(item?.amount || 0) || 0;
+
+    return (
+      <View style={{ width: ITEM_W }}>
+        <View
+          style={[
+            styles.carouselPill,
+            {
+              backgroundColor: colors.background,
+              borderColor: colors.primary,
+              shadowColor: colors.text,
+            },
+          ]}
+        >
+          <Text style={[styles.carouselMobile, { color: colors.primary }]}>
+            {mobile}
+          </Text>
+
+          <Text style={[styles.carouselPointer, { color: colors.text }]}>👉</Text>
+
+          <Text style={[styles.carouselAmt, { color: colors.text }]}>₹{amount}</Text>
+
+          <View
+            style={[
+              styles.carouselStatusPill,
+              { backgroundColor: colors.primary },
+            ]}
+          >
+            <Text style={[styles.carouselStatusText, { color: colors.text }]}>
+              {statusText}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  if (!Array.isArray(data) || data.length === 0) return null;
+
+  return (
+    <View
+      style={styles.carouselWrap}
+      onLayout={(e) => {
+        const w = e?.nativeEvent?.layout?.width || 0;
+        if (w && w !== wrapW) setWrapW(w);
+      }}
+    >
+      {ITEM_W ? (
+        <FlatList
+          ref={listRef}
+          data={data}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(it, i) => `${it?.mobile || "m"}-${it?.amount || "a"}-${i}`}
+          renderItem={renderItem}
+          ItemSeparatorComponent={() => <View style={{ width: GAP }} />}
+          snapToInterval={INTERVAL}
+          decelerationRate="fast"
+          snapToAlignment="start"
+          getItemLayout={(_, index) => ({
+            length: INTERVAL,
+            offset: INTERVAL * index,
+            index,
+          })}
+          onMomentumScrollEnd={(e) => {
+            const x = e?.nativeEvent?.contentOffset?.x || 0;
+            const nextIdx = Math.round(x / INTERVAL);
+            idxRef.current = Math.max(0, Math.min(nextIdx, data.length - 1));
+          }}
+        />
+      ) : null}
+    </View>
+  );
+};
+/* ------------------ end carousel ------------------ */
 
 function isWithinWithdrawalWindow(now = new Date(), open, close) {
   const start = new Date(now);
@@ -254,6 +372,9 @@ const WithdrawMoney = ({ navigation }) => {
         contentContainerStyle={{ padding: 16, paddingBottom: 160 }}
         showsVerticalScrollIndicator={false}
       >
+        {/* ✅ TOP CAROUSEL */}
+        <TopCarouselBar data={WITHDRAW_MONEY_CAROUSEL_DUMMY} statusText="Withdraw Successfully" />
+
         <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
           <View style={[styles.innerCard, { backgroundColor: colors.background, shadowColor: colors.text }]}>
             <Text style={[styles.name, { color: colors.text }]}>
@@ -427,6 +548,52 @@ export default WithdrawMoney;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+
+  // ✅ carousel
+  // ✅ carousel
+  carouselWrap: {
+    marginTop: 6,
+    marginBottom: 14,
+    // IMPORTANT: your ScrollView already has padding:16
+    // so this wrapper width will be "screen - 32"
+  },
+  carouselPill: {
+    borderWidth: 2,
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+  },
+  carouselMobile: {
+    fontSize: 16,
+    fontWeight: "900",
+    letterSpacing: 0.3,
+  },
+  carouselPointer: {
+    fontSize: 16,
+    fontWeight: "900",
+  },
+  carouselAmt: {
+    fontSize: 16,
+    fontWeight: "900",
+  },
+  carouselStatusPill: {
+    marginLeft: "auto",
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
+  },
+  carouselStatusText: {
+    fontSize: 14,
+    fontWeight: "900",
+  },
+
   headerRoot: { width: '100%' },
   headerBg: {
     position: 'absolute',

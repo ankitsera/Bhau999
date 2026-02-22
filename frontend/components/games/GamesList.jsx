@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -16,30 +16,140 @@ import { useTheme } from "../../contexts/ThemeContext";
 
 const RED = "#EF4B3E";
 
-const ClosedPopup = ({ visible, onClose }) => {
+/* ------------------ time helpers ------------------ */
+
+// "10:20 AM" -> { h24, m } or null
+const parseTime12h = (t) => {
+  const s = String(t || "").trim().toUpperCase();
+  if (!s || s === "--:--") return null;
+
+  // expected: "HH:MM AM" or "H:MM AM"
+  const parts = s.split(" ");
+  if (parts.length < 2) return null;
+
+  const timePart = parts[0];
+  const ampm = parts[1];
+
+  const [hhRaw, mmRaw] = timePart.split(":");
+  const hh = Number(hhRaw);
+  const mm = Number(mmRaw);
+
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+  if (ampm !== "AM" && ampm !== "PM") return null;
+
+  let h = hh % 12;
+  if (ampm === "PM") h += 12;
+
+  return { h24: h, m: mm };
+};
+
+// {h24,m} -> "HH:MM AM"
+const formatTime12hFrom24 = ({ h24, m }) => {
+  if (!Number.isFinite(h24) || !Number.isFinite(m)) return "--:--";
+  let h = h24 % 24;
+  const ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} ${ampm}`;
+};
+
+// add minutes to "10:20 AM" => "10:30 AM"
+const addMinutesTo12h = (t, minsToAdd = 10) => {
+  const parsed = parseTime12h(t);
+  if (!parsed) return "--:--";
+
+  let total = parsed.h24 * 60 + parsed.m + (Number(minsToAdd) || 0);
+  total = ((total % (24 * 60)) + (24 * 60)) % (24 * 60); // safe wrap
+
+  const h24 = Math.floor(total / 60);
+  const m = total % 60;
+  return formatTime12hFrom24({ h24, m });
+};
+
+/* ------------------ Modal ------------------ */
+
+const ClosedPopup = ({ visible, onClose, game }) => {
   const { colors } = useTheme();
 
+  const gameName = String(game?.gameName || "GAME").toUpperCase();
+
+  const openBidLast = game?.openTimeText || "--:--";
+  const closeBidLast = game?.closeTimeText || "--:--";
+
+  const openResult = useMemo(() => addMinutesTo12h(openBidLast, 10), [openBidLast]);
+  const closeResult = useMemo(() => addMinutesTo12h(closeBidLast, 10), [closeBidLast]);
+
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={!!visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <View style={styles.modalOverlay}>
-        <View style={[styles.modalCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
-          <Pressable onPress={onClose} hitSlop={10} style={styles.modalCloseBtn}>
-            <MaterialCommunityIcons name="close" size={28} color={colors.textTertiary} />
+        <View
+          style={[
+            styles.modalCard2,
+            { backgroundColor: colors.surface, shadowColor: colors.text },
+          ]}
+        >
+          {/* close icon top-right */}
+          <Pressable onPress={onClose} hitSlop={10} style={styles.modalCloseBtn2}>
+            <MaterialCommunityIcons name="close" size={26} color={colors.textTertiary} />
           </Pressable>
 
-          <View style={styles.modalIconWrap}>
-            <View style={[styles.modalIconCircle, { backgroundColor: colors.surface }]}>
-              <MaterialCommunityIcons name="close" size={46} color={RED} />
+          {/* big X circle */}
+          <View style={[styles.iconCircle2, { backgroundColor: "#F8D7DA" }]}>
+            <MaterialCommunityIcons name="close" size={44} color={RED} />
+          </View>
+
+          <Text style={[styles.closedTitle2, { color: RED }]}>
+            Bidding Is Closed For Today
+          </Text>
+
+          <Text style={[styles.gameName2, { color: colors.text }]} numberOfLines={1}>
+            {gameName}
+          </Text>
+
+          {/* time rows */}
+          <View style={styles.timeTable2}>
+            <View style={styles.timeRow2}>
+              <Text style={[styles.timeLabel2, { color: colors.textSecondary }]}>
+                Open Result Time :
+              </Text>
+              <Text style={[styles.timeValue2, { color: colors.text }]}>{openResult}</Text>
+            </View>
+
+            <View style={styles.timeRow2}>
+              <Text style={[styles.timeLabel2, { color: colors.textSecondary }]}>
+                Open Bid Last Time :
+              </Text>
+              <Text style={[styles.timeValue2, { color: colors.text }]}>{openBidLast}</Text>
+            </View>
+
+            <View style={styles.timeRow2}>
+              <Text style={[styles.timeLabel2, { color: colors.textSecondary }]}>
+                Close Result Time :
+              </Text>
+              <Text style={[styles.timeValue2, { color: colors.text }]}>{closeResult}</Text>
+            </View>
+
+            <View style={styles.timeRow2}>
+              <Text style={[styles.timeLabel2, { color: colors.textSecondary }]}>
+                Close Bid Last Time :
+              </Text>
+              <Text style={[styles.timeValue2, { color: colors.text }]}>{closeBidLast}</Text>
             </View>
           </View>
 
-          <Text style={[styles.modalTitle, { color: colors.error }]}>Sorry !</Text>
-          <Text style={[styles.modalMsg, { color: colors.textSecondary }]}>
-            Betting is Closed for today.{"\n"}Please come next day to play.
-          </Text>
-
-          <Pressable onPress={onClose} style={[styles.modalOkBtn, { backgroundColor: colors.primary }]}>
-            <Text style={styles.modalOkText}>OK</Text>
+          <Pressable
+            onPress={onClose}
+            style={[
+              styles.modalOkBtn2,
+              { backgroundColor: colors.primary }, // keep theme
+            ]}
+          >
+            <Text style={[styles.modalOkText2, { color: colors.text }]}>OK</Text>
           </Pressable>
         </View>
       </View>
@@ -47,21 +157,25 @@ const ClosedPopup = ({ visible, onClose }) => {
   );
 };
 
+/* ------------------ Card ------------------ */
+
 const GameCard = ({ item, navigation, onPressClosed }) => {
   const { colors } = useTheme();
 
   const handlePress = () => {
     if (item.isClosed) {
-      onPressClosed?.();
+      onPressClosed?.(item);
       return;
     }
-
-    // ✅ better way: pass only gameName
     navigation.navigate("Games Sub Types", { gameName: item.gameName });
   };
 
   return (
-    <TouchableOpacity style={[styles.card, { backgroundColor: colors.surface }]} onPress={handlePress} activeOpacity={0.85}>
+    <TouchableOpacity
+      style={[styles.card, { backgroundColor: colors.surface }]}
+      onPress={handlePress}
+      activeOpacity={0.85}
+    >
       <View style={styles.cardTop}>
         <Text style={[styles.title, { color: colors.text }]}>{item.gameName}</Text>
         <Text style={[styles.statusText, { color: item.statusColor }]}>
@@ -75,13 +189,21 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
 
           <View style={styles.timeRow}>
             <View>
-              <Text style={[styles.timeLabel, { color: colors.textSecondary }]}>Open Bids</Text>
-              <Text style={[styles.timeValue, { color: colors.textSecondary }]}>{item.openTimeText}</Text>
+              <Text style={[styles.timeLabel, { color: colors.textSecondary }]}>
+                Open Bids
+              </Text>
+              <Text style={[styles.timeValue, { color: colors.textSecondary }]}>
+                {item.openTimeText}
+              </Text>
             </View>
 
             <View style={{ marginLeft: 18 }}>
-              <Text style={[styles.timeLabel, { color: colors.textSecondary }]}>Close Bids</Text>
-              <Text style={[styles.timeValue, { color: colors.textSecondary }]}>{item.closeTimeText}</Text>
+              <Text style={[styles.timeLabel, { color: colors.textSecondary }]}>
+                Close Bids
+              </Text>
+              <Text style={[styles.timeValue, { color: colors.textSecondary }]}>
+                {item.closeTimeText}
+              </Text>
             </View>
           </View>
         </View>
@@ -101,6 +223,7 @@ const GamesList = ({ navigation, refreshing, onRefresh }) => {
     useContext(GameContext);
 
   const [showClosedModal, setShowClosedModal] = useState(false);
+  const [closedGame, setClosedGame] = useState(null);
 
   useEffect(() => {
     // context also polls, but this ensures first paint isn’t empty
@@ -124,7 +247,11 @@ const GamesList = ({ navigation, refreshing, onRefresh }) => {
     <View style={{ flex: 1 }}>
       <ClosedPopup
         visible={showClosedModal}
-        onClose={() => setShowClosedModal(false)}
+        game={closedGame}
+        onClose={() => {
+          setShowClosedModal(false);
+          setClosedGame(null);
+        }}
       />
 
       <FlatList
@@ -136,7 +263,10 @@ const GamesList = ({ navigation, refreshing, onRefresh }) => {
           <GameCard
             item={item}
             navigation={navigation}
-            onPressClosed={() => setShowClosedModal(true)}
+            onPressClosed={(g) => {
+              setClosedGame(g);
+              setShowClosedModal(true);
+            }}
           />
         )}
         contentContainerStyle={styles.listContent}
@@ -223,55 +353,84 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 18,
   },
-  modalCard: {
+
+  modalCard2: {
     width: "100%",
-    maxWidth: 360,
-    borderRadius: 22,
-    paddingHorizontal: 22,
-    paddingTop: 24,
-    paddingBottom: 18,
+    maxWidth: 380,
+    borderRadius: 14,
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 16,
     alignItems: "center",
-    borderWidth: 1,
+    elevation: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
   },
-  modalCloseBtn: {
+
+  modalCloseBtn2: {
     position: "absolute",
-    top: 14,
-    right: 14,
+    top: 10,
+    right: 10,
     padding: 6,
   },
-  modalIconWrap: {
-    marginTop: 10,
-    marginBottom: 8,
-  },
-  modalIconCircle: {
-    width: 92,
-    height: 92,
-    borderRadius: 46,
+
+  iconCircle2: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     alignItems: "center",
     justifyContent: "center",
-  },
-  modalTitle: {
-    fontSize: 28,
-    fontWeight: "900",
     marginTop: 6,
   },
-  modalMsg: {
-    marginTop: 10,
+
+  closedTitle2: {
+    marginTop: 12,
+    fontSize: 20,
+    fontWeight: "900",
     textAlign: "center",
-    fontSize: 16,
-    lineHeight: 22,
-    fontWeight: "600",
   },
-  modalOkBtn: {
-    marginTop: 18,
-    width: "75%",
+
+  gameName2: {
+    marginTop: 10,
+    fontSize: 22,
+    fontWeight: "900",
+    textAlign: "center",
+    letterSpacing: 0.4,
+  },
+
+  timeTable2: {
+    width: "100%",
+    marginTop: 12,
+    paddingHorizontal: 6,
+  },
+
+  timeRow2: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 6,
+  },
+
+  timeLabel2: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  timeValue2: {
+    fontSize: 15,
+    fontWeight: "900",
+  },
+
+  modalOkBtn2: {
+    marginTop: 16,
+    width: "100%",
+    borderRadius: 6,
     paddingVertical: 12,
-    borderRadius: 10,
     alignItems: "center",
   },
-  modalOkText: {
-    color: "#fff",
+
+  modalOkText2: {
     fontSize: 18,
-    fontWeight: "800",
+    fontWeight: "900",
   },
 });
