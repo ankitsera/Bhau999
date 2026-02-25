@@ -8,12 +8,13 @@ import {
   StatusBar,
   Modal,
   Pressable,
+  Linking,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { AuthContext } from '../contexts/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Share, Alert } from 'react-native';
-import { getShareUrl } from '../utils/AppConfigService';
+import { getShareUrl, getTelegramChannel } from '../utils/AppConfigService';
 import { useTheme } from '../contexts/ThemeContext';
 
 const SideBarNavigation = ({ navigation, closeSidebar }) => {
@@ -31,10 +32,10 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
   const menuItems = [
     { name: 'Home', icon: 'home' },
     { name: 'Add Money', icon: 'currency-rupee' },
-    { name: 'Withdraw Money', icon: 'logout' },
+    { name: 'Withdraw Money', icon: 'subtitles-off' },
     { name: 'My Bids', icon: 'history' },
     { name: 'Passbook', icon: 'compare-arrows' },
-    { name: 'Funds', icon: 'account-balance' },
+    { name: 'Telegram', icon: 'telegram' },
     { name: 'Notifications', icon: 'notifications' },
     { name: 'Charts', icon: 'bar-chart' },
     { name: 'Game Rate', icon: 'attach-money' },
@@ -43,7 +44,6 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
     { name: 'Settings', icon: 'settings' },
     { name: 'Share App', icon: 'share' },
 
-    // Theme menu
     { name: 'Change Theme', icon: 'palette', isTheme: true },
 
     { name: 'Logout', icon: 'logout' },
@@ -71,14 +71,21 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
     }
   };
 
-  const openThemeModal = () => {
-    // keep sidebar open? IMO close it so the modal feels clean.
-    setThemeModalVisible(true);
-  };
+  const openThemeModal = () => setThemeModalVisible(true);
 
   const pickTheme = mode => {
     setThemeMode(mode); // "system" | "light" | "dark"
     setThemeModalVisible(false);
+  };
+  
+
+  const openTelegram = async () => {
+    const telegramUrl = await getTelegramChannel();
+    if (!telegramUrl) {
+      Alert.alert('Error', 'Telegram channel link is not configured.');
+      return;
+    }
+    Linking.openURL(telegramUrl).catch(() => {});
   };
 
   const handleSidebarClick = async item => {
@@ -95,39 +102,45 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
       logout(navigation);
       return;
     }
-    
+
     if (menu === 'Share App') {
       await shareApp();
       return;
     }
-    
+
+    if (menu === 'Telegram') {
+      openTelegram();
+      return;
+    }
+
     navigation.navigate(menu);
   };
 
-  const renderMenuItem = ({ item }) => (
-    <View>
-      <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+  // ✅ minimal row (no background, no divider, no icon circle)
+  const renderMenuItem = ({ item }) => {
+    const isTheme = !!item?.isTheme;
 
+    return (
       <TouchableOpacity
-        style={[styles.menuItem, { backgroundColor: colors.surface }]}
+        style={styles.menuRow}
         activeOpacity={0.75}
         onPress={() => handleSidebarClick(item)}
       >
-        <View style={[styles.iconCircle, { backgroundColor: colors.primary }]}>
-          <MaterialIcons name={item.icon} size={20} color="#fff" />
-        </View>
+        <MaterialIcons
+          name={item.icon}
+          size={22}
+          color={colors.primary}
+          style={{ marginRight: 12 }}
+        />
 
         <View style={{ flex: 1 }}>
-          <Text
-            style={[styles.menuText, { color: colors.text }]}
-            numberOfLines={1}
-          >
+          <Text style={[styles.menuText, { color: colors.text }]} numberOfLines={1}>
             {item.name}
           </Text>
 
-          {item.isTheme ? (
+          {isTheme ? (
             <Text
-              style={[styles.menuSubText, { color: colors.textTertiary }]}
+              style={[styles.menuSubText, { color: colors.textSecondary }]}
               numberOfLines={1}
             >
               {themeSubtitle}
@@ -135,7 +148,7 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
           ) : null}
         </View>
 
-        {item.isTheme ? (
+        {isTheme ? (
           <MaterialIcons
             name="chevron-right"
             size={22}
@@ -143,70 +156,50 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
           />
         ) : null}
       </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   const ThemeOption = ({ mode, title, desc, icon }) => {
     const selected = themeMode === mode;
 
     return (
       <TouchableOpacity
-        activeOpacity={0.8}
+        activeOpacity={0.85}
         onPress={() => pickTheme(mode)}
-        style={[
-          styles.themeOption,
-          {
-            backgroundColor: colors.surface,
-            borderColor: selected ? colors.primary : colors.border,
-          },
-        ]}
+        style={styles.themeRow}
       >
-        <View
-          style={[
-            styles.themeIconCircle,
-            { backgroundColor: selected ? colors.primary : colors.border },
-          ]}
-        >
-          <MaterialIcons
-            name={icon}
-            size={18}
-            color={selected ? '#fff' : colors.text}
-          />
-        </View>
+        <MaterialIcons
+          name={icon}
+          size={22}
+          color={selected ? colors.primary : colors.textTertiary}
+          style={{ marginRight: 12 }}
+        />
 
         <View style={{ flex: 1 }}>
-          <Text style={[styles.themeTitle, { color: colors.text }]}>
-            {title}
-          </Text>
+          <Text style={[styles.themeTitle, { color: colors.text }]}>{title}</Text>
           <Text style={[styles.themeDesc, { color: colors.textSecondary }]}>
             {desc}
           </Text>
         </View>
 
         {selected ? (
-          <MaterialIcons name="check-circle" size={20} color={colors.primary} />
+          <MaterialIcons name="check" size={22} color={colors.primary} />
         ) : null}
       </TouchableOpacity>
     );
   };
 
   return (
-    <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: colors.background }]}
-    >
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <StatusBar
         backgroundColor={colors.background}
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
       />
 
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        {/* ---------- USER INFO SECTION ---------- */}
-        <View
-          style={[styles.userSection, { backgroundColor: colors.background }]}
-        >
-          <View
-            style={[styles.userCircle, { backgroundColor: colors.primary }]}
-          >
+        {/* USER INFO */}
+        <View style={styles.userSection}>
+          <View style={[styles.userCircle, { backgroundColor: colors.primary }]}>
             <MaterialIcons name="person" size={24} color="#fff" />
           </View>
 
@@ -240,7 +233,6 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
             renderItem={renderMenuItem}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.menuList}
-            scrollEnabled
           />
         </View>
       </View>
@@ -259,10 +251,7 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
           <Pressable
             style={[
               styles.modalCard,
-              {
-                backgroundColor: colors.background,
-                borderColor: colors.border,
-              },
+              { backgroundColor: colors.background, borderColor: colors.border },
             ]}
             onPress={() => {}}
           >
@@ -282,9 +271,7 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
             <ThemeOption
               mode="system"
               title="System"
-              desc={`Follow device (${
-                isDarkMode ? 'Dark' : 'Light'
-              } right now)`}
+              desc={`Follow device (${isDarkMode ? 'Dark' : 'Light'} right now)`}
               icon="settings-suggest"
             />
             <ThemeOption
@@ -307,15 +294,10 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
+  safeArea: { flex: 1 },
+  container: { flex: 1 },
 
-  container: {
-    flex: 1,
-  },
-
-  // --- USER SECTION ---
+  // USER SECTION (kept clean)
   userSection: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -330,57 +312,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  userInfo: {
-    flex: 1,
-  },
-  username: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  mobile: {
-    fontSize: 14,
-    marginTop: 1,
-  },
-  since: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  closeBtn: {
-    marginLeft: 10,
-  },
+  userInfo: { flex: 1 },
+  username: { fontSize: 16, fontWeight: '700' },
+  mobile: { fontSize: 14, marginTop: 1 },
+  since: { fontSize: 13, marginTop: 2 },
+  closeBtn: { marginLeft: 10 },
 
-  // --- MENU SECTION ---
+  // MENU (clean list)
   menuList: {
-    paddingVertical: 8,
+    paddingTop: 6,
+    paddingBottom: 14,
+    paddingHorizontal: 14,
   },
-  menuItem: {
+  menuRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 14,
-    marginHorizontal: 10,
-    marginVertical: 6,
-    borderRadius: 12,
+    paddingHorizontal: 2,
   },
   menuText: {
     fontSize: 15.5,
-    fontWeight: '600',
+    fontWeight: '400',
   },
   menuSubText: {
     fontSize: 12.5,
     marginTop: 2,
-  },
-
-  divider: {
-    height: 1,
+    fontWeight: '400',
   },
 
   // Modal
@@ -399,28 +356,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 6,
   },
   modalTitle: {
     fontSize: 16,
     fontWeight: '700',
   },
 
-  themeOption: {
+  // Theme rows (minimal)
+  themeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-    marginTop: 10,
-  },
-  themeIconCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 2,
   },
   themeTitle: {
     fontSize: 14.5,
@@ -429,6 +377,7 @@ const styles = StyleSheet.create({
   themeDesc: {
     fontSize: 12.5,
     marginTop: 2,
+    fontWeight: '600',
   },
 });
 

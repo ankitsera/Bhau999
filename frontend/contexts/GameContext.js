@@ -255,13 +255,9 @@ const toActiveGameUi = (g) => {
   const isClosed = len === 0;
   const statusText = isClosed
     ? "Closed for today"
-    : len === 1
-    ? "Close is Running"
-    : "Bet is Running";
+    : "Running Now"; // you can customize this text based on allowed types if needed
 
   const statusColor = isClosed ? RED : ThemeColor;
-  const iconName = isClosed ? "close" : "play";
-
   // normalize pana keys
   const openPana = g?.openPana ?? g?.open_pana ?? null;
   const closePana = g?.closePana ?? g?.close_pana ?? null;
@@ -280,7 +276,6 @@ const toActiveGameUi = (g) => {
 
     statusText,
     statusColor,
-    iconName,
   };
 };
 

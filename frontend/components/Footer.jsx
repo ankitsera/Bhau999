@@ -29,7 +29,7 @@ const Footer = ({ navigation, active = "Home", onSupportPress }) => {
           />
           <TabItem
             label="Passbook"
-            icon={<MaterialCommunityIcons name="credit-card-multiple-outline" size={26} color={colors.textSecondary} />}
+            icon={<MaterialCommunityIcons name="checkbook" size={26} color={colors.textSecondary} />}
             onPress={() => navigation.navigate("Passbook")}
             colors={colors}
           />
@@ -39,7 +39,7 @@ const Footer = ({ navigation, active = "Home", onSupportPress }) => {
         <View style={styles.sideTabs}>
           <TabItem
             label="Funds"
-            icon={<MaterialCommunityIcons name="bank" size={26} color={colors.textSecondary} />}
+            icon={<MaterialCommunityIcons name="bank-outline" size={26} color={colors.textSecondary} />}
             onPress={() => navigation.navigate("Funds")}
             colors={colors}
           />

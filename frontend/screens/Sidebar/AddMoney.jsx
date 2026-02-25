@@ -43,9 +43,16 @@ const TopCarouselBar = ({ data, statusText = "Deposit Successfully" }) => {
   const [wrapW, setWrapW] = useState(0);
 
   const GAP = 12;
+  const SIDE_PAD = 0;      // ScrollView already has padding: 16
+  const PEEK = 0;         // how much next card peeks on right
 
-  // item width = exact measured width of container
-  const ITEM_W = useMemo(() => Math.max(240, Math.floor(wrapW || 0)), [wrapW]);
+  const ITEM_W = useMemo(() => {
+    const w = Math.floor(wrapW || 0);
+    if (!w) return 0;
+    // keep it responsive + never too tiny
+    return Math.max(240, w - PEEK);
+  }, [wrapW]);
+
   const INTERVAL = ITEM_W + GAP;
 
   useEffect(() => {
@@ -65,7 +72,7 @@ const TopCarouselBar = ({ data, statusText = "Deposit Successfully" }) => {
     return () => clearInterval(t);
   }, [data, ITEM_W, INTERVAL]);
 
-  const renderItem = ({ item, index }) => {
+  const renderItem = ({ item }) => {
     const mobile = maskMobile(item?.mobile);
     const amount = Number(item?.amount || 0) || 0;
 
@@ -81,21 +88,38 @@ const TopCarouselBar = ({ data, statusText = "Deposit Successfully" }) => {
             },
           ]}
         >
-          <Text style={[styles.carouselMobile, { color: colors.primary }]}>
-            {mobile}
-          </Text>
+          {/* left group */}
+          <View style={styles.carouselLeft}>
+            <Text
+              style={[styles.carouselMobile, { color: colors.primary }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {mobile}
+            </Text>
 
-          <Text style={[styles.carouselPointer, { color: colors.text }]}>👉</Text>
+            <Text style={[styles.carouselPointer, { color: colors.text }]}>👉</Text>
 
-          <Text style={[styles.carouselAmt, { color: colors.text }]}>₹{amount}</Text>
+            <Text
+              style={[styles.carouselAmt, { color: colors.text }]}
+              numberOfLines={1}
+            >
+              ₹{amount}
+            </Text>
+          </View>
 
+          {/* right pill */}
           <View
             style={[
               styles.carouselStatusPill,
-              { backgroundColor: colors.primary },
+              { backgroundColor: "#22c55e" },
             ]}
           >
-            <Text style={[styles.carouselStatusText, { color: colors.text }]}>
+            <Text
+              style={[styles.carouselStatusText, { color: colors.text }]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {statusText}
             </Text>
           </View>
@@ -114,7 +138,7 @@ const TopCarouselBar = ({ data, statusText = "Deposit Successfully" }) => {
         if (w && w !== wrapW) setWrapW(w);
       }}
     >
-      {ITEM_W ? (
+      {!!ITEM_W && (
         <FlatList
           ref={listRef}
           data={data}
@@ -123,9 +147,11 @@ const TopCarouselBar = ({ data, statusText = "Deposit Successfully" }) => {
           keyExtractor={(it, i) => `${it?.mobile || "m"}-${it?.amount || "a"}-${i}`}
           renderItem={renderItem}
           ItemSeparatorComponent={() => <View style={{ width: GAP }} />}
+          contentContainerStyle={{ paddingHorizontal: SIDE_PAD }}
           snapToInterval={INTERVAL}
           decelerationRate="fast"
           snapToAlignment="start"
+          bounces={false}
           getItemLayout={(_, index) => ({
             length: INTERVAL,
             offset: INTERVAL * index,
@@ -137,7 +163,7 @@ const TopCarouselBar = ({ data, statusText = "Deposit Successfully" }) => {
             idxRef.current = Math.max(0, Math.min(nextIdx, data.length - 1));
           }}
         />
-      ) : null}
+      )}
     </View>
   );
 };
@@ -306,7 +332,7 @@ const AddMoney = ({ navigation }) => {
               <Text style={[styles.helpText, { color: colors.text }]}>Call</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.helpBtn, { backgroundColor: colors.background, shadowColor: colors.text }]} onPress={openWhatsapp}>
-              <MaterialCommunityIcons name="whatsapp" size={20} color={colors.primary} />
+              <MaterialCommunityIcons name="whatsapp" size={20} color='#1ed514' />
               <Text style={[styles.helpText, { color: colors.text }]}>Whatsapp</Text>
             </TouchableOpacity>
           </View>
@@ -395,44 +421,53 @@ export const styles = StyleSheet.create({
   carouselWrap: {
     marginTop: 6,
     marginBottom: 14,
-    // IMPORTANT: your ScrollView already has padding:16
-    // so this wrapper width will be "screen - 32"
   },
   carouselPill: {
     borderWidth: 2,
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     elevation: 4,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.12,
     shadowRadius: 6,
   },
+  carouselLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+    minWidth: 0, // 🔥 allows text truncation in RN
+  },
   carouselMobile: {
     fontSize: 16,
-    fontWeight: "900",
+    fontWeight: '900',
     letterSpacing: 0.3,
+    flexShrink: 1,
+    minWidth: 0,
   },
   carouselPointer: {
     fontSize: 16,
-    fontWeight: "900",
+    fontWeight: '900',
   },
   carouselAmt: {
     fontSize: 16,
-    fontWeight: "900",
+    fontWeight: '900',
+    flexShrink: 0,
   },
   carouselStatusPill: {
-    marginLeft: "auto",
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 6,
+    marginLeft: 10,
+    maxWidth: '45%', // 🔥 prevents overflow on small screens
   },
   carouselStatusText: {
     fontSize: 14,
-    fontWeight: "900",
+    fontWeight: '900',
   },
 
   // header

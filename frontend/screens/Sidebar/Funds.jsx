@@ -23,7 +23,7 @@ const ITEMS = [
     id: "withdraw",
     title: "Withdraw Fund",
     subtitle: "You can withdraw winnings",
-    icon: "cash-minus",
+    icon: "bank-minus",
     onPress: (nav) => nav.navigate("Withdraw Money"),
   },
   {
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 14,
     paddingHorizontal: 12,
-    paddingVertical: 14,
+    paddingVertical: 10,
     elevation: 5,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.12,
@@ -133,8 +133,8 @@ const styles = StyleSheet.create({
   },
 
   leftIconWrap: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
@@ -142,16 +142,17 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "800",
   },
   subtitle: {
     marginTop: 2,
+    fontSize: 12,
   },
 
   chevWrap: {
-    width: 42,
-    height: 42,
+    width: 38,
+    height: 38,
     borderRadius: 21,
     alignItems: "center",
     justifyContent: "center",

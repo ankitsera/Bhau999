@@ -1,15 +1,15 @@
 import { StyleSheet } from 'react-native';
 
 // Global Theme Colors
-export const ThemeColor = '#b07312';
-export const ThemeColorTile = '#ca9034';
-export const ThemeIconBg = '#f2ede5';
+export const ThemeColor = '#FFAC2E';
+export const ThemeColorTile = '#FFB84D';
+export const ThemeIconBg = '#FFF4E0';
 
 // Light Mode Colors Palette
 export const lightColors = {
-  primary: '#b07312',
-  primaryTile: '#ca9034',
-  primaryIconBg: '#f2ede5',
+  primary: '#FFAC2E',
+  primaryTile: '#FFB84D',
+  primaryIconBg: '#FFF4E0',
   background: '#ffffff',
   surface: '#f8f8f8',
   text: '#000000',
@@ -27,9 +27,9 @@ export const lightColors = {
 
 // Dark Mode Colors Palette
 export const darkColors = {
-  primary: '#b07312',
-  primaryTile: '#ca9034',
-  primaryIconBg: '#3a2f1f',
+  primary: '#FFAC2E',
+  primaryTile: '#FFB84D',
+  primaryIconBg: '#2D1F0A',
   background: '#0a0a0a',
   surface: '#1a1a1a',
   text: '#ffffff',
@@ -57,7 +57,7 @@ export const lightTheme = StyleSheet.create({
     color: '#000000',
   },
   button: {
-    backgroundColor: '#000000',
+    backgroundColor: '#FFAC2E',
     color: '#ffffff',
     padding: 10,
     borderRadius: 5,
@@ -82,7 +82,7 @@ export const darkTheme = StyleSheet.create({
     color: '#ffffff',
   },
   button: {
-    backgroundColor: '#ffffff',
+    backgroundColor: '#FFAC2E',
     color: '#000000',
     padding: 10,
     borderRadius: 5,

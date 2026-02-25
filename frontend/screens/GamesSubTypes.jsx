@@ -110,7 +110,7 @@ const GamesSubTypes = () => {
   const title = gameName || "GAME";
 
   if (!gameName) {
-    return <EmptyState icon="gamepad-variant" message="MISSING GAME" />;
+    return <EmptyState message="MISSING GAME" />;
   }
 
   if (isLoadingActiveGames && !game) {

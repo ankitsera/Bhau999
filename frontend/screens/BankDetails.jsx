@@ -5,6 +5,8 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
+  Image,
+  ScrollView,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -13,13 +15,12 @@ import { PaymentsContext } from '../contexts/PaymentsContext';
 import ThemeHeader from '../components/ThemeHeader';
 import { useTheme } from '../contexts/ThemeContext';
 
-const RED   = '#cc1f1f';
-const GREY  = '#E5E5E5';
+const RED = '#cc1f1f';
+const GREY = '#E5E5E5';
 
 const isIfscSyntaxOk = (v) => /^[A-Z]{4}0[A-Z0-9]{6}$/i.test(v?.trim());
-const isUpiSyntaxOk  = (v) => /^[\w.\-]{2,}@[a-zA-Z][\w\-]{2,}$/i.test(v?.trim());
 
-const BankDetails = ({ navigation }) => {
+const BankDetails = () => {
   const { colors } = useTheme();
 
   const { user } = useContext(AuthContext);
@@ -29,7 +30,6 @@ const BankDetails = ({ navigation }) => {
   const [accountHolderName, setHolderName] = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [ifscCode, setIfsc] = useState('');
-  const [upiId, setUpiId] = useState('');
 
   // IFSC resolution
   const [bankMeta, setBankMeta] = useState(null);
@@ -43,14 +43,16 @@ const BankDetails = ({ navigation }) => {
     setHolderName(user.accountHolderName || '');
     setAccountNumber(user.accountNumber || '');
     setIfsc(user.ifscCode || '');
-    setUpiId(user.upiId || '');
 
     if (user.ifscCode) {
       (async () => {
         try {
           setIfscQuerying(true);
+          setIfscError(null);
           const meta = await resolveIFSC(user.ifscCode);
           if (meta?.bank && meta?.branch) setBankMeta(meta);
+        } catch {
+          setBankMeta(null);
         } finally {
           setIfscQuerying(false);
         }
@@ -58,48 +60,10 @@ const BankDetails = ({ navigation }) => {
     }
   }, [user, resolveIFSC]);
 
-  // ---- VALIDATION ----
-
-  const bankValid = useMemo(
-    () =>
-      accountHolderName.trim().length > 1 &&
-      accountNumber.trim().length >= 9 &&
-      isIfscSyntaxOk(ifscCode) &&
-      !!bankMeta,
-    [accountHolderName, accountNumber, ifscCode, bankMeta]
-  );
-
-  const upiValid = useMemo(() => isUpiSyntaxOk(upiId), [upiId]);
-
-  // detect typed fields (even partial)
-  const hasBankInput =
-    accountHolderName.trim().length > 0 ||
-    accountNumber.trim().length > 0 ||
-    ifscCode.trim().length > 0;
-
-  const hasUpiInput = upiId.trim().length > 0;
-
-  const hasIfscError =
-    (ifscCode.length > 0 && !isIfscSyntaxOk(ifscCode)) || !!ifscError;
-
-  const hasUpiError = hasUpiInput && !upiValid;
-
-  // full conflict = both methods valid
-  const fullConflict = bankValid && upiValid;
-
-  // partial conflict = one valid, the other has any input but is not valid
-  const partialBankConflict = upiValid && hasBankInput && !bankValid;
-  const partialUpiConflict  = bankValid && hasUpiInput && !upiValid;
-
-  const partialConflict = partialBankConflict || partialUpiConflict;
-
-  // final gate
-  const hasAnyError = hasIfscError || hasUpiError || fullConflict || partialConflict;
-  const canSave = (bankValid || upiValid) && !hasAnyError;
-
   // ---- IFSC lookup (debounced) ----
   useEffect(() => {
     let cancelled = false;
+
     setIfscError(null);
     setBankMeta(null);
 
@@ -110,6 +74,7 @@ const BankDetails = ({ navigation }) => {
       try {
         setIfscQuerying(true);
         const meta = await resolveIFSC(v);
+
         if (!cancelled) {
           if (meta?.bank && meta?.branch) setBankMeta(meta);
           else setIfscError('IFSC not found');
@@ -127,53 +92,59 @@ const BankDetails = ({ navigation }) => {
     };
   }, [ifscCode, resolveIFSC]);
 
+  // ---- VALIDATION ----
+  const bankValid = useMemo(
+    () =>
+      accountHolderName.trim().length > 1 &&
+      accountNumber.trim().length >= 9 &&
+      isIfscSyntaxOk(ifscCode) &&
+      !!bankMeta,
+    [accountHolderName, accountNumber, ifscCode, bankMeta]
+  );
+
+  const canSave = bankValid && !ifscQuerying && !ifscError;
+
   // ---- SAVE ----
   const handleSave = async () => {
     if (!canSave) return;
 
-    if (bankValid) {
-      await savePayout({
-        type: "bank",
-        accountHolderName: accountHolderName.trim(),
-        accountNumber: accountNumber.trim(),
-        ifscCode: ifscCode.trim().toUpperCase(),
-      });
-      return;
-    }
-
-    if (upiValid) {
-      await savePayout({
-        type: "upi",
-        upiId: upiId.trim(),
-      });
-    }
+    await savePayout({
+      type: 'bank',
+      accountHolderName: accountHolderName.trim(),
+      accountNumber: accountNumber.trim(),
+      ifscCode: ifscCode.trim().toUpperCase(),
+    });
   };
 
   // ---- BORDER COLORS ----
   const ifscBorderColor =
-    fullConflict || partialConflict
-      ? RED
-      : ifscCode.length > 0 && (!isIfscSyntaxOk(ifscCode) || ifscError)
+    ifscCode.length > 0 && (!isIfscSyntaxOk(ifscCode) || ifscError)
       ? RED
       : bankMeta
       ? colors.primary
-      : GREY;
-
-  const upiBorderColor =
-    fullConflict || partialConflict
-      ? RED
-      : upiId.length > 0 && !upiValid
-      ? RED
       : GREY;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ThemeHeader title="Update Bank Details" />
 
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
+      {/* Logo */}
+      <View style={styles.logoWrap}>
+        <Image
+          source={require('../assets/Images/logo_no_bg.webp')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
+
       <View style={styles.form}>
-        {/* Holder Name */}
-        <View style={[styles.inputContainer, { borderColor: GREY, backgroundColor: colors.background }]}>
-          <View style={[styles.iconWrap, { backgroundColor: colors.primaryIconBg }]}>
+        {/* Account Holder Name */}
+        <View style={[styles.inputPill, { borderColor: GREY, backgroundColor: colors.surface || '#fff' }]}>
+          <View style={[styles.iconCircle, { backgroundColor: colors.primaryIconBg }]}>
             <MaterialIcons name="person-outline" size={22} color={colors.primary} />
           </View>
           <TextInput
@@ -186,14 +157,14 @@ const BankDetails = ({ navigation }) => {
           />
         </View>
 
-        {/* Account number */}
-        <View style={[styles.inputContainer, { borderColor: GREY, backgroundColor: colors.background }]}>
-          <View style={[styles.iconWrap, { backgroundColor: colors.primaryIconBg }]}>
-            <MaterialCommunityIcons name="bank-outline" size={22} color={colors.primary} />
+        {/* Account Number */}
+        <View style={[styles.inputPill, { borderColor: GREY, backgroundColor: colors.surface || '#fff' }]}>
+          <View style={[styles.iconCircle, { backgroundColor: colors.primaryIconBg }]}>
+            <MaterialCommunityIcons name="credit-card-outline" size={22} color={colors.primary} />
           </View>
           <TextInput
             style={[styles.input, { color: colors.text }]}
-            placeholder="Bank Account number"
+            placeholder="Account Number"
             placeholderTextColor={colors.textTertiary}
             value={accountNumber}
             keyboardType="numeric"
@@ -202,13 +173,13 @@ const BankDetails = ({ navigation }) => {
         </View>
 
         {/* IFSC */}
-        <View style={[styles.inputContainer, { borderColor: ifscBorderColor, backgroundColor: colors.background }]}>
-          <View style={[styles.iconWrap, { backgroundColor: colors.primaryIconBg }]}>
+        <View style={[styles.inputPill, { borderColor: ifscBorderColor, backgroundColor: colors.surface || '#fff' }]}>
+          <View style={[styles.iconCircle, { backgroundColor: colors.primaryIconBg }]}>
             <MaterialCommunityIcons name="bank-outline" size={22} color={colors.primary} />
           </View>
           <TextInput
             style={[styles.input, { color: colors.text }]}
-            placeholder="IFSC"
+            placeholder="IFSC CODE"
             placeholderTextColor={colors.textTertiary}
             value={ifscCode}
             onChangeText={setIfsc}
@@ -217,11 +188,9 @@ const BankDetails = ({ navigation }) => {
         </View>
 
         {/* IFSC helper */}
-        <View style={{ width: '95%', marginBottom: 8 }}>
+        <View style={{ width: '95%', marginBottom: 10 }}>
           {ifscCode.length > 0 && !isIfscSyntaxOk(ifscCode) && (
-            <Text style={[styles.hint, { color: RED }]}>
-              Please enter a valid IFSC Code
-            </Text>
+            <Text style={[styles.hint, { color: RED }]}>Please enter a valid IFSC Code</Text>
           )}
 
           {isIfscSyntaxOk(ifscCode) && ifscQuerying && (
@@ -233,12 +202,12 @@ const BankDetails = ({ navigation }) => {
           )}
         </View>
 
-        {/* IFSC lookup results */}
+        {/* Secondary (non-editable) fields appear only after successful IFSC lookup */}
         {bankMeta && (
           <>
-            <View style={[styles.inputContainerDisabled, { borderColor: GREY, backgroundColor: colors.surface }]}>
-              <View style={[styles.iconWrap, { backgroundColor: colors.surface }]}>
-                <MaterialCommunityIcons name="bank-check" size={20} color={colors.textTertiary} />
+            <View style={[styles.inputPill, styles.disabledPill, { borderColor: GREY, backgroundColor: colors.surface }]}>
+              <View style={[styles.iconCircle, { backgroundColor: colors.primaryIconBg }]}>
+                <MaterialCommunityIcons name="bank" size={22} color={colors.primary} />
               </View>
               <TextInput
                 style={[styles.input, { color: colors.textSecondary }]}
@@ -247,9 +216,9 @@ const BankDetails = ({ navigation }) => {
               />
             </View>
 
-            <View style={[styles.inputContainerDisabled, { borderColor: GREY, backgroundColor: colors.surface }]}>
-              <View style={[styles.iconWrap, { backgroundColor: colors.surface }]}>
-                <MaterialCommunityIcons name="map-marker-outline" size={20} color={colors.textTertiary} />
+            <View style={[styles.inputPill, styles.disabledPill, { borderColor: GREY, backgroundColor: colors.surface }]}>
+              <View style={[styles.iconCircle, { backgroundColor: colors.primaryIconBg }]}>
+                <MaterialCommunityIcons name="source-branch" size={22} color={colors.primary} />
               </View>
               <TextInput
                 style={[styles.input, { color: colors.textSecondary }]}
@@ -260,55 +229,21 @@ const BankDetails = ({ navigation }) => {
           </>
         )}
 
-        {/* OR */}
-        <View style={styles.orRow}>
-          <View style={[styles.orLine, { backgroundColor: colors.divider }]} />
-          <Text style={[styles.orText, { color: colors.text }]}>OR</Text>
-          <View style={[styles.orLine, { backgroundColor: colors.divider }]} />
-        </View>
-
-        {/* UPI */}
-        <View style={[styles.inputContainer, { borderColor: upiBorderColor, backgroundColor: colors.background }]}>
-          <View style={[styles.iconWrap, { backgroundColor: colors.primaryIconBg }]}>
-            <MaterialCommunityIcons name="qrcode-scan" size={22} color={colors.primary} />
-          </View>
-          <TextInput
-            style={[styles.input, { color: colors.text }]}
-            placeholder="Enter UPI ID (e.g. name@bank)"
-            placeholderTextColor={colors.textTertiary}
-            value={upiId}
-            onChangeText={setUpiId}
-            autoCapitalize="none"
-          />
-        </View>
-
-        {/* UPI error */}
-        {hasUpiInput && !upiValid && (
-          <View style={{ width: '95%', marginBottom: 8 }}>
-            <Text style={[styles.hint, { color: RED }]}>
-              Please enter a valid UPI ID
-            </Text>
-          </View>
-        )}
-
-        {/* ONE merged conflict message */}
-        {(fullConflict || partialConflict) && (
-          <View style={{ width: '95%', marginBottom: 8 }}>
-            <Text style={[styles.hint, { color: RED }]}>
-              Please enter either Bank details or UPI — not both.
-            </Text>
-          </View>
-        )}
-
+        {/* Save */}
         <TouchableOpacity
-          style={[styles.saveBtn, { backgroundColor: colors.primary }, (!canSave || loading) && { opacity: 0.6 }]}
+          style={[
+            styles.saveBtn,
+            { backgroundColor: colors.primary },
+            (!canSave || loading) && { opacity: 0.6 },
+          ]}
           onPress={handleSave}
           disabled={!canSave || loading}
           activeOpacity={0.85}
         >
-          <Text style={styles.saveText}>{loading ? "Saving..." : "Save Detail"}</Text>
+          <Text style={styles.saveText}>{loading ? 'SAVING...' : 'SAVE'}</Text>
         </TouchableOpacity>
       </View>
+      </ScrollView>
     </View>
   );
 };
@@ -316,92 +251,78 @@ const BankDetails = ({ navigation }) => {
 export default BankDetails;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F3F3F3" },
+  container: { flex: 1 },
+
+  logoWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  logo: {
+    width: 280,
+    height: 190,
+  },
+
   form: {
     flex: 1,
-    padding: 16,
-    alignItems: "center",
-    marginTop: 16,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    marginTop: 8,
   },
 
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+  inputPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 2,
     borderRadius: 40,
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: "#fff",
+    paddingVertical: 12,
     marginBottom: 12,
-    width: "95%",
+    width: '95%',
   },
 
-  inputContainerDisabled: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "#E5E5E5",
-    backgroundColor: "#FAFAFA",
-    borderRadius: 40,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginBottom: 12,
-    width: "95%",
+  disabledPill: {
+    opacity: 0.95,
   },
 
-  iconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
+  iconCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
 
   input: {
     flex: 1,
     fontSize: 16,
-    color: "#000",
   },
 
-  hint: { color: "#555" },
-
-  orRow: {
-    width: "95%",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginVertical: 8,
-  },
-
-  orLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#DDD",
-  },
-
-  orText: {
-    color: "#111",
-    fontWeight: "800",
+  hint: {
+    fontSize: 13,
+    marginLeft: 8,
   },
 
   saveBtn: {
-    borderRadius: 30,
-    paddingVertical: 14,
-    width: "60%",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 10,
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
+    marginTop: 18,
+    width: '95%',
+    borderRadius: 10,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
-    shadowRadius: 6,
+    shadowRadius: 5,
   },
 
   saveText: {
-    color: "#fff",
+    color: '#111',
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
 });

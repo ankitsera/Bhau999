@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   },
   digitTile: {
     width: "18%", // 5 per row with gaps
-    aspectRatio: 1.3,
+    aspectRatio: 1.6,
     borderRadius: 6,
     justifyContent: "center",
     alignItems: "center",

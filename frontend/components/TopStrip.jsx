@@ -9,6 +9,7 @@ import {
   Linking,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // ✅ AppConfig helpers (defaults already inside these)
 import {
@@ -79,27 +80,41 @@ const TopStrip = ({ navigation }) => {
   // marquee animation
   const [textW, setTextW] = useState(0);
   const animX = useRef(new Animated.Value(0)).current;
+  const animRefRef = useRef(null);
   const speed = 60;
   const gap = 80;
 
   useEffect(() => {
     if (!textW) return;
 
+    // Stop any previous animation
+    if (animRefRef.current) {
+      animRefRef.current.stop();
+    }
+
     const distance = textW + gap;
     const duration = (distance / speed) * 1000;
 
-    const loop = () => {
-      animX.setValue(20);
+    // Reset to start position
+    animX.setValue(20);
+
+    // Create looping animation using Animated.loop
+    animRefRef.current = Animated.loop(
       Animated.timing(animX, {
         toValue: -distance + 10,
         duration,
         easing: Easing.linear,
         useNativeDriver: true,
-      }).start(() => loop());
-    };
+      })
+    );
 
-    loop();
-    return () => animX.stopAnimation();
+    animRefRef.current.start();
+
+    return () => {
+      if (animRefRef.current) {
+        animRefRef.current.stop();
+      }
+    };
   }, [textW, gap, speed, animX]);
 
   // Button handlers
@@ -120,7 +135,7 @@ const TopStrip = ({ navigation }) => {
             flexDirection: "row",
             alignItems: "center",
             transform: [{ translateX: animX }],
-            width: textW ? (textW + gap) * 2 + 20 : '1000%',
+            width: textW > 0 ? (textW + gap) * 2 + 20 : 1000,
           }}
         >
           {/* Initial Spacer to prevent clipping on start */}
@@ -150,7 +165,7 @@ const TopStrip = ({ navigation }) => {
           onPress={handleLuckyStarline}
         >
           <View style={[styles.pillIcon, { backgroundColor: colors.background }]}>
-            <MaterialCommunityIcons name="card-bulleted" size={22} color={colors.primary} />
+            <Ionicons name="wallet-outline" size={22} color={colors.primary} />
           </View>
           <Text style={[styles.pillText, { color: colors.text }]}>Add Fund</Text>
         </TouchableOpacity>
@@ -161,7 +176,7 @@ const TopStrip = ({ navigation }) => {
           onPress={handleLuckyJackpot}
         >
           <View style={[styles.pillIcon, { backgroundColor: colors.background }]}>
-            <MaterialCommunityIcons name="card-minus" size={22} color={colors.primary} />
+            <MaterialCommunityIcons name="bank-outline" size={22} color={colors.primary} />
           </View>
           <Text style={[styles.pillText, { color: colors.text }]}>Withdraw Fund</Text>
         </TouchableOpacity>
@@ -176,14 +191,14 @@ const TopStrip = ({ navigation }) => {
         }}
       >
         <View style={styles.contactRow}>
-          <MaterialCommunityIcons name="phone" size={22} color={colors.text} />
+          <MaterialCommunityIcons name="cellphone" size={22} color={colors.text} />
           <TouchableOpacity onPress={openDialer} activeOpacity={0.7}>
             <Text style={[styles.contactText, { color: colors.text }]}>{normalizeDigits(callNumber)}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.contactRow}>
-          <MaterialCommunityIcons name="whatsapp" size={22} color={colors.primaryTile} />
+          <MaterialCommunityIcons name="whatsapp" size={22} color='#1fa851ff' />
           <TouchableOpacity onPress={openWhatsApp} activeOpacity={0.7}>
             <Text style={[styles.contactText, { color: colors.text }]}>{normalizeDigits(waNumber)}</Text>
           </TouchableOpacity>
@@ -238,7 +253,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   pillText: {
-    fontWeight: "700",
+    fontWeight: "900",
     fontSize: 14,
   },
   contactRow: {

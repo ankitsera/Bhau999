@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
+  Image,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import EmptyState from "../../components/EmptyState";
@@ -208,8 +209,13 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
           </View>
         </View>
 
-        <View style={[styles.circle, { backgroundColor: item.statusColor }]}>
-          <MaterialCommunityIcons name={item.iconName} size={28} color="#fff" />
+        <View>
+          <Image
+            source={require("../../assets/Images/play.webp")}
+            style={styles.playIcon}
+            resizeMode="contain"
+          />
+          <Text style={[styles.playText, { color: colors.text }]}>Play Game</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -240,7 +246,7 @@ const GamesList = ({ navigation, refreshing, onRefresh }) => {
   }
 
   if (!activeGamesUi || activeGamesUi.length === 0) {
-    return <EmptyState icon="gamepad-variant" message="NO GAMES FOUND" />;
+    return <EmptyState message="NO GAMES FOUND" />;
   }
 
   return (
@@ -292,8 +298,8 @@ const styles = StyleSheet.create({
 
   card: {
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 14,
+    padding: 12,
+    marginBottom: 10,
     elevation: 5,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 3 },
@@ -306,14 +312,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "900",
     flex: 1,
     paddingRight: 10,
   },
   statusText: {
     fontSize: 14,
-    fontWeight: "800",
+    fontWeight: "600",
   },
   cardBody: {
     flexDirection: "row",
@@ -321,7 +327,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   result: {
-    fontSize: 22,
+    fontSize: 19,
     fontWeight: "900",
   },
   timeRow: {
@@ -333,16 +339,16 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   timeValue: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "600",
   },
-  circle: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 14,
+  playIcon: {
+    width: 76,
+    height: 70,
+  },
+  playText: {
+    fontSize: 14,
+    textAlign: "center",
   },
 
   // ===== Modal styles =====

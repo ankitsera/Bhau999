@@ -186,7 +186,7 @@ export const getHeadline = async (options = {}) =>
   String(
     await fetchConfigValue("headline", {
       defaultValue:
-        "Play Daily - Win Big! ₹1Cr+ Winnings Everyday 💸 MG Matka : Safe ✅ Fast⚡Real Results हर दिन ₹1Cr+ जीतनेका मौका – सिर्फ MG Matka पर!",
+        "Play Daily - Win Big! ₹1Cr+ Winnings Everyday 💸 SARA777 : Safe ✅ Fast⚡Real Results हर दिन ₹1Cr+ जीतनेका मौका – सिर्फ MG Matka पर!",
       ...options,
       critical: false,
     })

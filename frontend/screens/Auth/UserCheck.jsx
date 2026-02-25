@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -6,275 +6,218 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  Linking,
+  ScrollView,
 } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import Snackbar from "react-native-snackbar";
 import { AuthContext } from "../../contexts/AuthContext";
-import { getCallSupport, getWhatsappSupport } from "../../utils/AppConfigService";
 import { useTheme } from "../../contexts/ThemeContext";
 
 const UserCheck = ({ navigation }) => {
+  const { userCheck } = useContext(AuthContext);
   const { colors } = useTheme();
 
   const [mobileNumber, setMobileNumber] = useState("");
-  const { userCheck } = useContext(AuthContext);
 
-  // ✅ from AppConfigService (defaults already handled there)
-  const [callSupport, setCallSupport] = useState("");
-  const [whatsappSupport, setWhatsappSupport] = useState("");
-
-  useEffect(() => {
-    let mounted = true;
-
-    const init = async () => {
-      try {
-        const [callNo, waNo] = await Promise.all([
-          getCallSupport(),
-          getWhatsappSupport(),
-        ]);
-
-        if (!mounted) return;
-        setCallSupport(String(callNo || ""));
-        setWhatsappSupport(String(waNo || ""));
-      } catch (e) {
-        // helpers already handle defaults/critical behavior; keep screen silent
-      }
-    };
-
-    init();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const openDialer = () => {
-    if (!callSupport) return;
-    Linking.openURL(`tel:+91${callSupport}`).catch(() => {});
-  };
-
-  const openWhatsapp = () => {
-    if (!whatsappSupport) return;
-    Linking.openURL(`https://wa.me/91${whatsappSupport}`).catch(() => {});
-  };
-
-  const handleLogin = () => {
+  const handleNext = () => {
     const phoneRegex = /^[0-9]{10}$/;
+    const val = String(mobileNumber || "").trim();
 
-    if (mobileNumber.trim() === "") {
+    if (!val) {
       Snackbar.show({
         text: "Please enter your mobile number",
         duration: Snackbar.LENGTH_SHORT,
-        backgroundColor: "#d32f2f",
+        backgroundColor: colors.error || "#d32f2f",
       });
-    } else if (!phoneRegex.test(mobileNumber)) {
+      return;
+    }
+
+    if (!phoneRegex.test(val)) {
       Snackbar.show({
         text: "Please enter a valid 10-digit mobile number",
         duration: Snackbar.LENGTH_SHORT,
-        backgroundColor: "#d32f2f",
+        backgroundColor: colors.error || "#d32f2f",
       });
-    } else {
-      userCheck(mobileNumber, navigation);
+      return;
     }
+
+    userCheck(val, navigation);
   };
 
   return (
-    <SafeAreaProvider style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Theme Header */}
-      <View style={[styles.headerBg, { backgroundColor: colors.primary }]}></View>
+    <SafeAreaView
+      style={[styles.safe, { backgroundColor: colors.background }]}
+      edges={["bottom", "top"]}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollGrow}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+          {/* Title Row like screenshot */}
+          <View style={styles.titleRow}>
+            <View
+              style={[styles.primaryBar, { backgroundColor: colors.primary }]}
+            />
+            <Text style={[styles.title, { color: colors.text }]}>
+              ENTER YOUR MOBILE{"\n"}NUMBER
+            </Text>
+          </View>
 
-      {/* Main Content */}
-      <View style={[styles.content, { backgroundColor: colors.background, shadowColor: colors.text }]}>
-        {/* Illustration */}
-        <Image
-          source={require("../../assets/Images/UserCheck.webp")} // Replace with your local image
-          style={styles.image}
-          resizeMode="contain"
-        />
-
-        {/* Title */}
-        <Text style={[styles.title, { color: colors.text }]}>ENTER YOUR MOBILE NUMBER</Text>
-
-        {/* Input */}
-        <View style={[styles.inputContainer, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
-          <MaterialCommunityIcons name="cellphone" size={22} color={colors.primary} style={styles.icon} />
-          <TextInput
-            style={[styles.input, { color: colors.text }]}
-            placeholder="Phone Number"
-            keyboardType="phone-pad"
-            placeholderTextColor={colors.textTertiary}
-            value={mobileNumber}
-            onChangeText={(text) => {
-              const digits = String(text || "").replace(/[^0-9]/g, "");
-
-              // Handle common India paste formats cleanly:
-              // 1) +91XXXXXXXXXX or 91XXXXXXXXXX (12 digits) => keep XXXXXXXXXX
-              if (digits.length === 12 && digits.startsWith("91")) {
-                setMobileNumber(digits.slice(2));
-                return;
-              }
-
-              // 2) 0XXXXXXXXXX (11 digits) => keep XXXXXXXXXX
-              if (digits.length === 11 && digits.startsWith("0")) {
-                setMobileNumber(digits.slice(1));
-                return;
-              }
-
-              // Normal typing: keep first 10 digits (extra accidental digit is ignored)
-              setMobileNumber(digits.slice(0, 10));
-            }}
+          {/* Big Illustration */}
+          <Image
+            source={require("../../assets/Images/UserCheck.webp")}
+            style={styles.image}
+            resizeMode="contain"
           />
-        </View>
 
-        {/* Login Button */}
-        <TouchableOpacity style={[styles.loginButton, { backgroundColor: colors.primary }]} onPress={handleLogin}>
-          <Text style={styles.loginText}>Login</Text>
-        </TouchableOpacity>
+          {/* Input pill */}
+          <View
+            style={[
+              styles.inputPill,
+              {
+                backgroundColor: colors.surface,
+                shadowColor: colors.text,
+              },
+            ]}
+          >
+            <View
+              style={[styles.iconCircle, { backgroundColor: colors.primary }]}
+            >
+              <MaterialCommunityIcons
+                name="cellphone"
+                size={28}
+                color={colors.onPrimary || "#fff"}
+              />
+            </View>
 
-        {/* Bottom Section */}
-        <View style={styles.bottomContainer}>
-          <View style={[styles.separator, { backgroundColor: colors.divider }]} />
-          <View style={styles.iconRow}>
-            <TouchableOpacity style={[styles.circleButton, { backgroundColor: colors.background, shadowColor: colors.text }]}
-              onPress={openDialer}
-            >
-              <MaterialCommunityIcons name="phone-outline" size={22} color={colors.text} />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.circleButton, { backgroundColor: colors.background, shadowColor: colors.text }]}
-              onPress={openWhatsapp}
-            >
-              <MaterialCommunityIcons name="whatsapp" size={22} color={colors.text} />
-            </TouchableOpacity>
+            <TextInput
+              style={[styles.input, { color: colors.text }]}
+              placeholder="Enter Mobile Number"
+              placeholderTextColor={colors.textTertiary}
+              keyboardType="phone-pad"
+              value={mobileNumber}
+              maxLength={10}
+              onChangeText={(t) => {
+                const digits = String(t || "").replace(/[^0-9]/g, "");
+
+                // handle common paste formats: +91XXXXXXXXXX / 91XXXXXXXXXX / 0XXXXXXXXXX
+                if (digits.length === 12 && digits.startsWith("91")) {
+                  setMobileNumber(digits.slice(2));
+                  return;
+                }
+                if (digits.length === 11 && digits.startsWith("0")) {
+                  setMobileNumber(digits.slice(1));
+                  return;
+                }
+
+                setMobileNumber(digits.slice(0, 10));
+              }}
+            />
           </View>
-          <View style={styles.bottomText}>
-            <Text style={{fontWeight:"bold", color: colors.text}}>Don't have an account</Text> 
-            <TouchableOpacity
-              onPress={()=>{navigation.navigate("Signup")}}>
-              <Text style={[styles.signUp, { color: colors.primary }]}>Sign Up</Text>
-            </TouchableOpacity>
-          </View>
+
+          {/* Next button */}
+          <TouchableOpacity
+            style={[styles.nextBtn, { backgroundColor: colors.primary }]}
+            onPress={handleNext}
+            activeOpacity={0.85}
+          >
+            <Text style={[styles.nextText, { color: colors.onPrimary || "#fff" }]}>
+              NEXT
+            </Text>
+          </TouchableOpacity>
         </View>
-      </View>
-    </SafeAreaProvider>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 export default UserCheck;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  headerBg: {
-    height: 200,
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 0,
+  safe: { flex: 1 },
+
+  scrollGrow: {
+    flexGrow: 1,
   },
 
-  // ----- Content Card -----
-  content: {
+  container: {
     flex: 1,
+    paddingHorizontal: 18,
+    paddingTop: 10,
     alignItems: "center",
-    marginTop: 90,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    paddingTop: 24,
-    paddingBottom: 32,
-    zIndex: 1,
-    elevation: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 14,
+  },
+
+  titleRow: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+    marginTop: 10,
+  },
+  primaryBar: {
+    width: 10,
+    height: 50,
+    borderRadius: 2,
+    marginTop: 6,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "900",
+    letterSpacing: 0.5,
   },
 
   image: {
-    width: 180,
-    height: 180,
+    width: "92%",
+    height: 300,
+    marginTop: 10,
+    marginBottom: 10,
   },
-  title: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginVertical: 15,
-    color: "#000",
-  },
-  inputContainer: {
+
+  inputPill: {
+    width: "98%",
+    borderRadius: 999,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F4F4F4",
-    width: "85%",
-    borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    elevation: 4, // Shadow for Android
-    shadowColor: "#000", // Shadow for iOS
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5,
+    paddingVertical: 14,
+    paddingRight: 18,
+    marginTop: 12,
+
+    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
     shadowRadius: 10,
   },
-  icon: {
-    marginRight: 8,
+
+  iconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 10,
+    marginRight: 14,
   },
+
   input: {
     flex: 1,
-    fontSize: 15,
-    color: "#000",
+    fontSize: 18,
+    fontWeight: "500",
   },
-  loginButton: {
-    borderRadius: 25,
-    paddingVertical: 12,
-    width: "85%",
-    marginTop: 25,
+
+  nextBtn: {
+    width: "92%",
+    marginTop: 26,
+    paddingVertical: 16,
+    borderRadius: 2,
     alignItems: "center",
-  },
-  loginText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  bottomContainer: {
-    width: "100%",
-    alignItems: "center",
-    marginTop: 40,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: "#ddd",
-    width: "90%",
-    marginBottom: 20,
-  },
-  iconRow: {
-    flexDirection: "row",
     justifyContent: "center",
-    gap: 25,
   },
-  circleButton: {
-    backgroundColor: "#fff",
-    borderRadius: 30,
-    width: 55,
-    height: 55,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
-  },
-  bottomText:{
-    flexDirection: "row",
-    marginTop: 15,
-    gap: 5,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  signUp: {
-    fontSize: 17,
-    fontWeight: "bold",
+
+  nextText: {
+    fontSize: 20,
+    fontWeight: "900",
+    letterSpacing: 1,
   },
 });

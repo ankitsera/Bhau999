@@ -7,6 +7,7 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -65,6 +66,10 @@ const Signup = ({ navigation, route }) => {
       {/* Curved Green Header */}
       <View style={[styles.headerBg, { backgroundColor: colors.primary }]}></View>
 
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
       {/* White folding content card */}
       <View style={[styles.content, { backgroundColor: colors.background, shadowColor: colors.text }]}>
         {/* Illustration */}
@@ -136,6 +141,7 @@ const Signup = ({ navigation, route }) => {
           <Text style={styles.registerText}>Register & Login</Text>
         </TouchableOpacity>
       </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

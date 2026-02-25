@@ -140,8 +140,8 @@ const styles = StyleSheet.create({
   },
 
   leftIconWrap: {
-    width: 44,
-    height: 44,
+    width: 40,
+    height: 40,
     borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
@@ -149,16 +149,17 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "800",
   },
   subtitle: {
     marginTop: 2,
+    fontSize: 12,
   },
 
   chevWrap: {
-    width: 42,
-    height: 42,
+    width: 38,
+    height: 38,
     borderRadius: 21,
     alignItems: "center",
     justifyContent: "center",
