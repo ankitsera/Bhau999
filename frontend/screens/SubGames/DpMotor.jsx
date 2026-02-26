@@ -62,6 +62,7 @@ const DpMotor = ({ route }) => {
   const [points, setPoints] = useState('');
   const [bets, setBets] = useState([]);
   const [digitsError, setDigitsError] = useState(false);
+  const [digitsFocused, setDigitsFocused] = useState(false);
   const [minAmount, setMinAmount] = useState(10);
   const [maxAmount, setMaxAmount] = useState(10000);
 
@@ -97,8 +98,7 @@ const DpMotor = ({ route }) => {
   };
 
   // ✅ Auto-sanitize only when typing is “done” (blur/end edit)
-  const handleDigitsBlur = () => {
-    const uniq = sanitizeMotorDigits(digits, 6);
+  const handleDigitsBlur = () => {    setDigitsFocused(false);    const uniq = sanitizeMotorDigits(digits, 6);
     if (uniq !== digits) setDigits(uniq);
     setDigitsError(hasDuplicateDigits(uniq));
   };
@@ -247,11 +247,15 @@ const DpMotor = ({ route }) => {
                   style={[
                     styles.input,
                     { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text },
-                    digitsError && styles.errorInput,
+                    (digitsError || (digitsFocused && (digits.length < 4 || digits.length > 6))) && [
+                      styles.errorInput,
+                      { borderColor: colors.error },
+                    ],
                   ]}
                   keyboardType="number-pad"
                   value={digits}
                   onChangeText={handleChangeDigits}
+                  onFocus={() => setDigitsFocused(true)}
                   onEndEditing={handleDigitsBlur}
                   placeholder="Number"
                   maxLength={6}
@@ -259,6 +263,8 @@ const DpMotor = ({ route }) => {
                 />
                 {digitsError ? (
                   <Text style={[styles.errorText, { color: colors.error }]}>Please enter unique digits</Text>
+                ) : digitsFocused && (digits.length < 4 || digits.length > 6) ? (
+                  <Text style={[styles.errorText, { color: colors.error }]}>4-6 digits required</Text>
                 ) : null}
               </View>
             </View>
@@ -334,12 +340,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   label: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '500',
   },
   input: {
     height: 44,
-    width: 180,
+    width: 150,
     borderRadius: 22,
     borderWidth: 1,
     fontSize: 16,

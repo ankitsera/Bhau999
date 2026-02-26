@@ -12,7 +12,7 @@ import { lightColors, darkColors } from './Themes';
 const STORAGE_KEY = 'APP_THEME_MODE'; // "system" | "light" | "dark"
 
 const ThemeContext = createContext({
-  themeMode: 'system',
+  themeMode: 'light',
   setThemeMode: _mode => {},
   toggleTheme: () => {},
   isDarkMode: false,
@@ -21,7 +21,7 @@ const ThemeContext = createContext({
 
 export const ThemeProvider = ({ children }) => {
   const systemScheme = useColorScheme(); // "light" | "dark" | null
-  const [themeMode, setThemeModeState] = useState('system'); // default
+  const [themeMode, setThemeModeState] = useState('light'); // default
 
   // Load saved preference
   useEffect(() => {
@@ -35,11 +35,11 @@ export const ThemeProvider = ({ children }) => {
         if (saved === 'light' || saved === 'dark' || saved === 'system') {
           setThemeModeState(saved);
         } else {
-          setThemeModeState('system');
+          setThemeModeState('light');
         }
       } catch (e) {
-        // If storage fails, just fallback to system
-        setThemeModeState('system');
+        // If storage fails, just fallback to light
+        setThemeModeState('light');
       }
     })();
 

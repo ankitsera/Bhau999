@@ -89,15 +89,15 @@ const Header = ({ navigation }) => {
 
         <View style={styles.headerRight}>
           <Pressable
-            style={[styles.walletRight, { backgroundColor: colors.primary }]}
+            style={[styles.walletRight, { backgroundColor: colors.background }]}
             onPress={() => navigation.navigate('Add Money')}
           >
             <Ionicons
               name="wallet-outline"
               size={28}
-              color="#fff"
+              color={colors.text}
             />
-            <Text style={[styles.walletAmt, { color: "#fff" }]}>
+            <Text style={[styles.walletAmt, { color: colors.text }]}>
               {user?.balance ? user.balance : '0.0'}
             </Text>
           </Pressable>
@@ -106,7 +106,7 @@ const Header = ({ navigation }) => {
             <MaterialIcons
               name="notifications-active"
               size={30}
-              color={colors.primary}
+              color={colors.text}
             />
           </Pressable>
         </View>

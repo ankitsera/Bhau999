@@ -409,13 +409,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   label: {
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "500",
     marginBottom: 4,
   },
   input: {
     height: 44,
-    width: 180,
+    width: 150,
     borderRadius: 22,
     borderWidth: 1,
     fontSize: 16,

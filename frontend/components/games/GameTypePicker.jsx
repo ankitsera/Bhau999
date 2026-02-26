@@ -153,8 +153,8 @@ const styles = StyleSheet.create({
   },
   label: {
     flex: 1,
-    fontSize: 18,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "500",
     marginRight: 8,
   },
   dropdown: {
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     height: 40,
-    width: 180,
+    width: 150,
     borderRadius: 20,
     borderWidth: 1,
     minWidth: 120,
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   valueText: {
     flex: 1,
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "500",
     textAlign: "center",
   },
   chevron: {

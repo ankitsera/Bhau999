@@ -77,7 +77,6 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
     setThemeMode(mode); // "system" | "light" | "dark"
     setThemeModalVisible(false);
   };
-  
 
   const openTelegram = async () => {
     const telegramUrl = await getTelegramChannel();
@@ -129,12 +128,15 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
         <MaterialIcons
           name={item.icon}
           size={22}
-          color={colors.primary}
+          color={colors.text}
           style={{ marginRight: 12 }}
         />
 
         <View style={{ flex: 1 }}>
-          <Text style={[styles.menuText, { color: colors.text }]} numberOfLines={1}>
+          <Text
+            style={[styles.menuText, { color: colors.text }]}
+            numberOfLines={1}
+          >
             {item.name}
           </Text>
 
@@ -176,7 +178,9 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
         />
 
         <View style={{ flex: 1 }}>
-          <Text style={[styles.themeTitle, { color: colors.text }]}>{title}</Text>
+          <Text style={[styles.themeTitle, { color: colors.text }]}>
+            {title}
+          </Text>
           <Text style={[styles.themeDesc, { color: colors.textSecondary }]}>
             {desc}
           </Text>
@@ -190,7 +194,9 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.background }]}
+    >
       <StatusBar
         backgroundColor={colors.background}
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
@@ -199,7 +205,9 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* USER INFO */}
         <View style={styles.userSection}>
-          <View style={[styles.userCircle, { backgroundColor: colors.primary }]}>
+          <View
+            style={[styles.userCircle, { backgroundColor: colors.text }]}
+          >
             <MaterialIcons name="person" size={24} color="#fff" />
           </View>
 
@@ -251,7 +259,10 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
           <Pressable
             style={[
               styles.modalCard,
-              { backgroundColor: colors.background, borderColor: colors.border },
+              {
+                backgroundColor: colors.background,
+                borderColor: colors.border,
+              },
             ]}
             onPress={() => {}}
           >
@@ -271,7 +282,9 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
             <ThemeOption
               mode="system"
               title="System"
-              desc={`Follow device (${isDarkMode ? 'Dark' : 'Light'} right now)`}
+              desc={`Follow device (${
+                isDarkMode ? 'Dark' : 'Light'
+              } right now)`}
               icon="settings-suggest"
             />
             <ThemeOption
@@ -312,11 +325,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  userInfo: { flex: 1 },
-  username: { fontSize: 16, fontWeight: '700' },
-  mobile: { fontSize: 14, marginTop: 1 },
-  since: { fontSize: 13, marginTop: 2 },
-  closeBtn: { marginLeft: 10 },
+  userInfo: {
+    flex: 1,
+  },
+  username: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  mobile: {
+    fontSize: 14,
+    marginTop: 1,
+  },
+  since: {
+    fontSize: 13,
+    marginTop: 2,
+  },
+  closeBtn: {
+    marginLeft: 10,
+  },
 
   // MENU (clean list)
   menuList: {
