@@ -111,11 +111,12 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   title: { 
-    fontSize: 20, 
-    fontWeight: "800" 
+    fontSize: 18, 
+    fontWeight: "500" 
   },
   subtitle: { 
-    marginTop: 2 
+    marginTop: 2,
+    fontSize: 12,
   },
   chevWrap: {
     width: 42, 

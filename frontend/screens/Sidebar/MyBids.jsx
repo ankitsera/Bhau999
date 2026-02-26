@@ -5,9 +5,9 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import ThemeHeader from "../../components/ThemeHeader";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useTheme } from "../../contexts/ThemeContext";
 
@@ -16,14 +16,14 @@ const ITEMS = [
     id: "bid-history",
     title: "Bid History",
     subtitle: "You can view your market bid history",
-    icon: { lib: "MaterialCommunityIcons", name: "calendar-blank-outline" },
+    image: require("../../assets/Images/AddFund.webp"),
     onPress: (nav) => nav.navigate("Bid History"),
   },
   {
     id: "game-results",
     title: "Game Results",
     subtitle: "You can view your market result history",
-    icon: { lib: "MaterialCommunityIcons", name: "history" },
+    image: require("../../assets/Images/WithdrawFund.webp"),
     onPress: (nav) => nav.navigate("Game Results"),
   },
   // {
@@ -56,12 +56,16 @@ const ITEMS = [
   // },
 ];
 
-const TileIcon = ({ name }) => {
+const TileIcon = ({ image }) => {
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.leftIconWrap, { backgroundColor: colors.primary }]}>
-      <MaterialCommunityIcons name={name} size={24} color="#fff" />
+    <View style={[styles.leftIconWrap]}>
+      <Image
+        source={image}
+        style={styles.iconImage}
+        resizeMode="contain"
+      />
     </View>
   );
 };
@@ -85,7 +89,7 @@ const Item = ({ item, navigation }) => {
       style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}
       onPress={() => item.onPress?.(navigation)}
     >
-      <TileIcon name={item.icon.name} />
+      <TileIcon image={item.image} />
 
       <View style={{ flex: 1 }}>
         <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
@@ -148,9 +152,14 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
 
+  iconImage: {
+    width: 40,
+    height: 40,
+  },
+
   title: {
-    fontSize: 18,
-    fontWeight: "800",
+    fontSize: 16,
+    fontWeight: "600",
   },
   subtitle: {
     marginTop: 2,

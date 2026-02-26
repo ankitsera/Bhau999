@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   hText: {
-    fontWeight: "900",
+    fontWeight: "600",
   },
 
   cellDate: {

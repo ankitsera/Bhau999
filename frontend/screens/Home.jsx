@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { AuthContext } from '../contexts/AuthContext';
 import { GameContext } from '../contexts/GameContext';
 import SideBarNavigation from '../components/SideBarNavigation';
@@ -89,15 +89,15 @@ const Header = ({ navigation }) => {
 
         <View style={styles.headerRight}>
           <Pressable
-            style={styles.walletRight}
+            style={[styles.walletRight, { backgroundColor: colors.primary }]}
             onPress={() => navigation.navigate('Add Money')}
           >
-            <MaterialCommunityIcons
+            <Ionicons
               name="wallet-outline"
               size={28}
-              color={colors.text}
+              color="#fff"
             />
-            <Text style={[styles.walletAmt, { color: colors.text }]}>
+            <Text style={[styles.walletAmt, { color: "#fff" }]}>
               {user?.balance ? user.balance : '0.0'}
             </Text>
           </Pressable>
@@ -106,7 +106,7 @@ const Header = ({ navigation }) => {
             <MaterialIcons
               name="notifications-active"
               size={30}
-              color={colors.text}
+              color={colors.primary}
             />
           </Pressable>
         </View>
@@ -230,23 +230,41 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
   },
-  logo: { flexDirection: 'row', alignItems: 'center' },
-  logoImage: { width: 100, height: 40 },
-  hamburger: { marginHorizontal: 5 },
+  logo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoImage: {
+    width: 100,
+    height: 40,
+  },
+  hamburger: {
+    marginHorizontal: 5,
+  },
   headerRight: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 10,
   },
-  walletRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  walletAmt: { fontSize: 24 },
+  walletRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    padding: 6,
+    borderRadius: 30,
+  },
+  walletAmt: { 
+    fontSize: 24 
+  },
 
   /* TopStrip */
   topStripContainer: {},
 
   /* Games */
-  gamesListContainer: { flex: 1 },
+  gamesListContainer: {
+    flex: 1,
+  },
 
   /* Sidebar modal + overlay */
   modalContainer: {

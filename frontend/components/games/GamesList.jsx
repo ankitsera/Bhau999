@@ -312,13 +312,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "900",
     flex: 1,
     paddingRight: 10,
   },
   statusText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "600",
   },
   cardBody: {
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   result: {
-    fontSize: 19,
+    fontSize: 18,
     fontWeight: "900",
   },
   timeRow: {
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   timeLabel: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "700",
   },
   timeValue: {
@@ -343,11 +343,11 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   playIcon: {
-    width: 76,
-    height: 70,
+    width: 72,
+    height: 46,
   },
   playText: {
-    fontSize: 14,
+    fontSize: 12,
     textAlign: "center",
   },
 

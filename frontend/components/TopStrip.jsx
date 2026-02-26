@@ -164,8 +164,8 @@ const TopStrip = ({ navigation }) => {
           style={[styles.pill, { backgroundColor: colors.primary }]}
           onPress={handleLuckyStarline}
         >
-          <View style={[styles.pillIcon, { backgroundColor: colors.background }]}>
-            <Ionicons name="wallet-outline" size={22} color={colors.primary} />
+          <View style={[styles.pillIcon, { backgroundColor: colors.primary }]}>
+            <Ionicons name="wallet-outline" size={24} color={colors.text} />
           </View>
           <Text style={[styles.pillText, { color: colors.text }]}>Add Fund</Text>
         </TouchableOpacity>
@@ -175,8 +175,8 @@ const TopStrip = ({ navigation }) => {
           style={[styles.pill, { backgroundColor: colors.primary }]}
           onPress={handleLuckyJackpot}
         >
-          <View style={[styles.pillIcon, { backgroundColor: colors.background }]}>
-            <MaterialCommunityIcons name="bank-outline" size={22} color={colors.primary} />
+          <View style={[styles.pillIcon, { backgroundColor: colors.primary }]}>
+            <MaterialCommunityIcons name="bank-outline" size={24} color={colors.text} />
           </View>
           <Text style={[styles.pillText, { color: colors.text }]}>Withdraw Fund</Text>
         </TouchableOpacity>
@@ -247,7 +247,6 @@ const styles = StyleSheet.create({
   pillIcon: {
     width: 26,
     height: 26,
-    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 10,

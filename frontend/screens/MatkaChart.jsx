@@ -143,8 +143,8 @@ const styles = StyleSheet.create({
 
   name: {
     flex: 1,
-    fontWeight: '900',
-    fontSize: 18,
+    fontWeight: '600',
+    fontSize: 14,
     paddingRight: 10,
   },
 
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   },
   btnText: {
     color: '#fff',
-    fontWeight: '900',
-    fontSize: 16,
+    fontWeight: '600',
+    fontSize: 14,
   },
 });

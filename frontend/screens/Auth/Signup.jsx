@@ -1,17 +1,16 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useMemo } from 'react';
 import Snackbar from 'react-native-snackbar';
 import {
   View,
   Text,
   TextInput,
-  Image,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import PasswordInput from '../../components/PasswordInput';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AuthContext } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -19,128 +18,179 @@ const Signup = ({ navigation, route }) => {
   const { colors } = useTheme();
 
   const { signup } = useContext(AuthContext);
+
   const routemobileNumber = route?.params?.mobileNumber || '';
   const isPhoneFromRoute = !!route?.params?.mobileNumber;
+
   const [mobileNumber, setMobileNumber] = useState(routemobileNumber);
 
   const [username, setUsername] = useState('');
 
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
 
-  //To make border match theme color on focus
+  // password visibility toggle
+  const [showPassword, setShowPassword] = useState(false);
+
+  // focus borders
   const [uFocused, setUFocused] = useState(false);
+  const [pFocused, setPFocused] = useState(false);
+
+  // inline errors
+  const [touched, setTouched] = useState({ username: false, password: false });
+
+  const usernameError = useMemo(() => {
+    if (!touched.username) return '';
+    return username.trim() ? '' : 'Name cannot be empty';
+  }, [touched.username, username]);
+
+  const passwordError = useMemo(() => {
+    if (!touched.password) return '';
+    return password.trim() ? '' : 'Password cannot be empty';
+  }, [touched.password, password]);
 
   const handleRegister = () => {
+    // mark touched so errors show
+    setTouched({ username: true, password: true });
+
     if (!username.trim()) {
       Snackbar.show({
         text: 'Please enter a username',
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: '#d32f2f',
       });
-    } else if (!password.trim()) {
+      return;
+    }
+
+    if (!password.trim()) {
       Snackbar.show({
         text: 'Please enter a password',
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: '#d32f2f',
       });
-    } else if (password.length < 6) {
+      return;
+    }
+
+    if (password.length < 6) {
       Snackbar.show({
         text: 'Password must be at least 6 characters long',
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: '#d32f2f',
       });
-    } else if (password !== confirmPassword) {
-      Snackbar.show({
-        text: 'Passwords do not match',
-        duration: Snackbar.LENGTH_SHORT,
-        backgroundColor: '#d32f2f',
-      });
-    } else {
-      signup(mobileNumber, username, password, navigation);
+      return;
     }
+
+    signup(mobileNumber, username, password, navigation);
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Curved Green Header */}
-      <View style={[styles.headerBg, { backgroundColor: colors.primary }]}></View>
-
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-      {/* White folding content card */}
-      <View style={[styles.content, { backgroundColor: colors.background, shadowColor: colors.text }]}>
-        {/* Illustration */}
-        <Image
-          source={require('../../assets/Images/signup.webp')}
-          style={styles.image}
-          resizeMode="contain"
-        />
-
-        <Text style={[styles.title, { color: colors.text }]}>CREATE NEW ACCOUNT</Text>
-
-        {/* Phone */}
-        <View style={[styles.inputContainer, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
-          <MaterialCommunityIcons
-            name="cellphone"
-            size={22}
-            color={colors.primary}
-            style={styles.leftIcon}
-          />
-          <TextInput
-            style={[styles.input, { color: colors.text }]}
-            value={mobileNumber}
-            editable={!isPhoneFromRoute}
-            placeholder="Phone Number"
-            placeholderTextColor={colors.textTertiary}
-            onChangeText={setMobileNumber}
-            keyboardType="phone-pad"
-          />
+        {/* Title */}
+        <View style={styles.titleRow}>
+          <View style={[styles.titleBar, { backgroundColor: colors.primary }]} />
+          <Text style={[styles.titleText, { color: colors.textSecondary }]}>
+            CREATE NEW{'\n'}ACCOUNT
+          </Text>
         </View>
 
-        {/* Username */}
-        <View style={[styles.inputContainer, { backgroundColor: colors.surface, shadowColor: colors.text }, uFocused && [styles.inputFocused, { borderColor: colors.primary }]]}>
-          <MaterialCommunityIcons
-            name="account-outline"
-            size={22}
-            color={colors.primary}
-            style={styles.leftIcon}
-          />
-          <TextInput
-            style={[styles.input, { color: colors.text }]}
-            placeholder="Username"
-            placeholderTextColor={colors.textTertiary}
-            value={username}
-            onChangeText={setUsername}
-            onFocus={() => setUFocused(true)}
-            onBlur={() => setUFocused(false)}
-          />
+        {/* Form */}
+        <View style={styles.form}>
+          {/* Username */}
+          <View
+            style={[
+              styles.pill,
+              { backgroundColor: colors.surface, borderColor: colors.surface },
+              uFocused && { borderColor: colors.primary },
+            ]}
+          >
+            <View style={[styles.leftCircle, { backgroundColor: colors.primary }]}>
+              <MaterialCommunityIcons name="account" size={22} color="#000" />
+            </View>
+
+            <TextInput
+              style={[styles.input, { color: colors.text }]}
+              placeholder="Enter your name"
+              placeholderTextColor={colors.textTertiary}
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="words"
+              onFocus={() => setUFocused(true)}
+              onBlur={() => {
+                setUFocused(false);
+                setTouched((t) => ({ ...t, username: true }));
+              }}
+            />
+          </View>
+
+          {!!usernameError && <Text style={styles.errorText}>{usernameError}</Text>}
+
+          {/* Mobile */}
+          <View style={[styles.pill, { backgroundColor: colors.surface, borderColor: colors.surface }]}>
+            <View style={[styles.leftCircle, { backgroundColor: colors.primary }]}>
+              <MaterialCommunityIcons name="cellphone" size={22} color="#000" />
+            </View>
+
+            <TextInput
+              style={[styles.input, { color: colors.text }]}
+              value={mobileNumber}
+              placeholder="Phone Number"
+              placeholderTextColor={colors.textTertiary}
+              onChangeText={setMobileNumber}
+              keyboardType="phone-pad"
+            />
+          </View>
+
+          {/* Password */}
+          <View
+            style={[
+              styles.pill,
+              { backgroundColor: colors.surface, borderColor: colors.surface },
+              pFocused && { borderColor: colors.primary },
+            ]}
+          >
+            <View style={[styles.leftCircle, { backgroundColor: colors.primary }]}>
+              <MaterialCommunityIcons name="lock" size={22} color="#000" />
+            </View>
+
+            <TextInput
+              style={[styles.input, { color: colors.text }]}
+              placeholder="Enter password"
+              placeholderTextColor={colors.textTertiary}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              onFocus={() => setPFocused(true)}
+              onBlur={() => {
+                setPFocused(false);
+                setTouched((t) => ({ ...t, password: true }));
+              }}
+            />
+
+            <Pressable onPress={() => setShowPassword(!showPassword)}>
+              <MaterialCommunityIcons
+                name={showPassword ? "eye" : "eye-off"}
+                size={20}
+                color={colors.textTertiary}
+                style={{ marginLeft: 8 }}
+              />
+            </Pressable>
+          </View>
+
+          {!!passwordError && <Text style={styles.errorText}>{passwordError}</Text>}
+
+          {/* Button */}
+          <TouchableOpacity
+            style={[styles.signupBtn, { backgroundColor: colors.primary }]}
+            onPress={handleRegister}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.signupText}>SIGN UP</Text>
+          </TouchableOpacity>
         </View>
-
-        {/* Password */}
-        <PasswordInput
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        {/* Confirm Password */}
-        <PasswordInput
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-        />
-
-        {/* Register Button */}
-        <TouchableOpacity
-          style={[styles.registerButton, { backgroundColor: colors.primary }]}
-          onPress={handleRegister}
-        >
-          <Text style={styles.registerText}>Register & Login</Text>
-        </TouchableOpacity>
-      </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -149,86 +199,86 @@ const Signup = ({ navigation, route }) => {
 export default Signup;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-  },
-  headerBg: {
-    height: 200,
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 0,
+  container: { flex: 1 },
+
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 22,
+    paddingTop: 10,
+    paddingBottom: 24,
   },
 
-  // ----- Content Card -----
-  content: {
-    flex: 1,
-    alignItems: 'center',
-    marginTop: 60,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    paddingTop: 24,
-    paddingBottom: 32,
-    zIndex: 1,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 14,
-  },
-
-  image: {
-    width: 180,
-    height: 180,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginVertical: 12,
-    color: '#000',
-  },
-
-  // ----- Inputs -----
-  inputContainer: {
+  titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F4F4F4',
-    width: '85%',
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 12,
+    marginTop: 10,
+    marginBottom: 26,
+  },
+  titleBar: {
+    width: 12,
+    height: 70,
+    borderRadius: 4,
+    marginRight: 14,
+  },
+  titleText: {
+    fontSize: 36,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
 
-    elevation: 4, // Android shadow
-    shadowColor: '#000', // iOS shadow
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
+  form: {
+    marginTop: 30,
   },
-  inputFocused: {
-    borderWidth: 1,
+
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 40,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderWidth: 2,
+    marginBottom: 12,
   },
-  leftIcon: { marginRight: 8 },
+
+  leftCircle: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+
   input: {
     flex: 1,
-    fontSize: 15,
-    color: '#000',
-    paddingRight: 8,
+    fontSize: 18,
   },
 
-  registerButton: {
-    borderRadius: 25,
-    paddingVertical: 12,
-    width: '85%',
-    marginTop: 16,
-    alignItems: 'center',
-  },
-  registerText: {
-    color: '#fff',
+  errorText: {
+    color: '#d32f2f',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 10,
+    marginBottom: 10,
     fontWeight: '600',
-    fontSize: 16,
+  },
+
+  signupBtn: {
+    marginTop: 18,
+    borderRadius: 10,
+    paddingVertical: 16,
+    alignItems: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+  },
+
+  signupText: {
+    color: '#000',
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: 1,
   },
 });

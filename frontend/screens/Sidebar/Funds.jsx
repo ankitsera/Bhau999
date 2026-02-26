@@ -5,9 +5,9 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Image,
 } from "react-native";
 import ThemeHeader from "../../components/ThemeHeader";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useTheme } from "../../contexts/ThemeContext";
 
@@ -16,45 +16,49 @@ const ITEMS = [
     id: "add",
     title: "Add Fund",
     subtitle: "You can add fund to your wallet",
-    icon: "currency-inr",
+    image: require("../../assets/Images/AddFund.webp"),
     onPress: (nav) => nav.navigate("Add Money"),
   },
   {
     id: "withdraw",
     title: "Withdraw Fund",
     subtitle: "You can withdraw winnings",
-    icon: "bank-minus",
+    image: require("../../assets/Images/WithdrawFund.webp"),
     onPress: (nav) => nav.navigate("Withdraw Money"),
   },
   {
     id: "bank",
-    title: "Bank Detail",
+    title: "Bank Details",
     subtitle: "Add your bank detail for withdrawals",
-    icon: "bank-outline",
+    image: require("../../assets/Images/AddBankDetails.webp"),
     onPress: (nav) => nav.navigate("Bank Details"),
   },
   {
     id: "addHistory",
     title: "Add Fund History",
     subtitle: "You can check your add point history",
-    icon: "clock-time-four-outline",
+    image: require("../../assets/Images/AddFund.webp"),
     onPress: (nav) => nav.navigate("Add Fund History"),
   },
   {
     id: "withdrawHistory",
     title: "Withdraw Fund History",
     subtitle: "You can check your Withdraw point history",
-    icon: "history",
+    image: require("../../assets/Images/WithdrawFund.webp"),
     onPress: (nav) => nav.navigate("Withdraw Fund History"),
   },
 ];
 
-const LeftIcon = ({ name }) => {
+const LeftIcon = ({ image }) => {
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.leftIconWrap, { backgroundColor: colors.primary }]}>
-      <MaterialCommunityIcons name={name} size={24} color="#fff" />
+    <View style={[styles.leftIconWrap]}>
+      <Image
+        source={image}
+        style={styles.iconImage}
+        resizeMode="contain"
+      />
     </View>
   );
 };
@@ -78,7 +82,7 @@ const Item = ({ item, navigation }) => {
       style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}
       onPress={() => item.onPress?.(navigation)}
     >
-      <LeftIcon name={item.icon} />
+      <LeftIcon image={item.image} />
 
       <View style={{ flex: 1 }}>
         <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
@@ -141,9 +145,14 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
 
+  iconImage: {
+    width: 40,
+    height: 40,
+  },
+
   title: {
-    fontSize: 18,
-    fontWeight: "800",
+    fontSize: 16,
+    fontWeight: "600",
   },
   subtitle: {
     marginTop: 2,

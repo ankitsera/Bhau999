@@ -11,6 +11,7 @@ import {
   Alert,
   ActivityIndicator,
   FlatList,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -311,8 +312,7 @@ const AddMoney = ({ navigation }) => {
         {/* Wallet card */}
         <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
           <View style={[styles.innerCard, { backgroundColor: colors.background, shadowColor: colors.text }]}>
-            <Text style={[styles.name, { color: colors.text }]}>{ user?.username ? user.username : "User"}</Text>
-            <Text style={[styles.mobile, { color: colors.textSecondary }]}>{ user?.mobileNumber ? user.mobileNumber : "User"}</Text>
+            <Image source={require("../../assets/Images/logo_no_bg.webp")} style={styles.walletImage} />
             <View style={{ width: "70%", borderWidth: 1, borderColor: colors.divider }}></View>
             <View style={[styles.balanceStrip, { backgroundColor: colors.background }]}>
               <Text style={[styles.balanceLabel, { color: colors.text }]}>Available Balance</Text>
@@ -525,9 +525,10 @@ export const styles = StyleSheet.create({
     shadowRadius: 4,
     marginBottom: 12,
   },
-  name: {
-    fontSize: 18,
-    fontWeight: '700',
+  walletImage: {
+    width: 120,
+    height: 64,
+    marginBottom: 10,
   },
   mobile: {
     fontSize: 16,

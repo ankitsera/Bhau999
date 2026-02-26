@@ -19,6 +19,7 @@ import {
 import { ThemeColor } from "./Themes";
 
 const RED = "#EF4B3E";
+const GREEN = "#4CAF50";
 
 const initialState = {
   // rates
@@ -257,7 +258,7 @@ const toActiveGameUi = (g) => {
     ? "Closed for today"
     : "Running Now"; // you can customize this text based on allowed types if needed
 
-  const statusColor = isClosed ? RED : ThemeColor;
+  const statusColor = isClosed ? RED : GREEN;
   // normalize pana keys
   const openPana = g?.openPana ?? g?.open_pana ?? null;
   const closePana = g?.closePana ?? g?.close_pana ?? null;
