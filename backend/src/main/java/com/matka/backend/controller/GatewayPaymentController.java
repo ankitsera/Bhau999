@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.RestClientResponseException;
+import java.util.Optional; // Added import for Optional
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.slf4j.Logger;
@@ -545,14 +546,14 @@ public class GatewayPaymentController {
             gp.setStatus("Success");
             try { gatewayPaymentRepository.save(gp); } catch (Exception e) { log.warn("Failed to save GatewayPayment status success for {}: {}", gp.getCustRefNum(), e.getMessage()); }
 
-            // update linked transaction (if any) to Success
+            // update linked transaction (if any) to Approved
             try {
                 Long tid = gp.getTransactionId();
                 if (tid != null) {
                     var txOpt = transactionRepository.findById(tid);
                     if (txOpt.isPresent()) {
                         var tx = txOpt.get();
-                        tx.setStatus("Success");
+                        tx.setStatus("Approved");
                         transactionRepository.save(tx);
                     } else {
                         log.warn("No transaction found with id {} linked to gateway payment {}", tid, gp.getCustRefNum());
@@ -569,15 +570,16 @@ public class GatewayPaymentController {
             gp.setStatus("Fail");
             try { gatewayPaymentRepository.save(gp); } catch (Exception e) { log.warn("Failed to save GatewayPayment status fail for {}: {}", gp.getCustRefNum(), e.getMessage()); }
 
-            // update transaction to Fail if linked
+            // update transaction to Rejected if Failed
             try {
                 Long tid = gp.getTransactionId();
                 if (tid != null) {
                     var txOpt = transactionRepository.findById(tid);
                     if (txOpt.isPresent()) {
                         var tx = txOpt.get();
-                        tx.setStatus("Fail");
+                        tx.setStatus("Rejected");
                         transactionRepository.save(tx);
+                        try { refundIfWithdrawal(tx); } catch (Exception e) { log.warn("Refund after payout failure failed for tx {}: {}", tx.getId(), e.getMessage()); }
                     }
                 }
             } catch (Exception ex) {
@@ -626,8 +628,9 @@ public class GatewayPaymentController {
             log.debug("Lookup user for mobile {} returned present={}", tx.getMobileNumber(), userOpt.isPresent());
             if (userOpt.isEmpty()) {
                 log.warn("createPayOut: user not found for mobile {}", tx.getMobileNumber());
-                tx.setStatus("Fail");
+                tx.setStatus("Rejected");
                 transactionRepository.save(tx);
+                try { refundIfWithdrawal(tx); } catch (Exception e) { log.warn("Refund for missing user after createPayOut failed for tx {}: {}", tx.getId(), e.getMessage()); }
                 return;
             }
             var user = userOpt.get();
@@ -653,8 +656,9 @@ public class GatewayPaymentController {
                 gatewayPaymentRepository.save(gpFail);
                 log.info("createPayOut: saved failed GatewayPayment custRef={} for tx={} because beneficiary missing", custRef, tx.getId());
 
-                tx.setStatus("Fail");
+                tx.setStatus("Rejected");
                 transactionRepository.save(tx);
+                try { refundIfWithdrawal(tx); } catch (Exception e) { log.warn("Refund after beneficiary missing for tx {} failed: {}", tx.getId(), e.getMessage()); }
                 return;
             }
 
@@ -680,7 +684,8 @@ public class GatewayPaymentController {
             if (resolvedApiKey == null || resolvedApiKey.isBlank()) resolvedApiKey = System.getenv("PRIMEXPAY_API_KEY_SARA1234");
             if (resolvedApiKey == null || resolvedApiKey.isBlank()) {
                 gp.setStatus("Fail"); gatewayPaymentRepository.save(gp);
-                tx.setStatus("Fail"); transactionRepository.save(tx);
+                tx.setStatus("Rejected"); transactionRepository.save(tx);
+                try { refundIfWithdrawal(tx); } catch (Exception e) { log.warn("Refund after missing apiKey for tx {} failed: {}", tx.getId(), e.getMessage()); }
                 return;
             }
 
@@ -735,8 +740,15 @@ public class GatewayPaymentController {
                     mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
                     jsonPayload = mapper.writeValueAsString(payload);
                     log.debug("Payout JSON payload for custRef {}: {}", custRef, jsonPayload);
-                } catch (Exception se) {
-                    log.warn("Failed to serialize payout payload to JSON for custRef {}: {}", custRef, se.getMessage(), se);
+                } catch (Exception ex) {
+                    log.error("Payout API call failed for custRef {}: {}", custRef, ex);
+                    gp.setStatus("Fail");
+                    try { gp.setTransactionId(tx.getId()); } catch (Exception e) { /* ignore */ }
+                    gatewayPaymentRepository.save(gp);
+                    tx.setStatus("Rejected");
+                    transactionRepository.save(tx);
+                    try { refundIfWithdrawal(tx); } catch (Exception e) { log.warn("Refund after payout api call failure failed for tx {}: {}", tx.getId(), e.getMessage()); }
+                    return;
                 }
 
                 HttpEntity<?> entity = (jsonPayload != null) ? new HttpEntity<>(jsonPayload, headers) : new HttpEntity<>(payload, headers);
@@ -747,7 +759,8 @@ public class GatewayPaymentController {
                     if (resp == null) {
                         log.warn("Payout API returned empty response for custRef {}", custRef);
                         gp.setStatus("Fail"); gatewayPaymentRepository.save(gp);
-                        tx.setStatus("Fail"); transactionRepository.save(tx);
+                        tx.setStatus("Rejected"); transactionRepository.save(tx);
+                        try { refundIfWithdrawal(tx); } catch (Exception e) { log.warn("Refund after empty payout response failed for tx {}: {}", tx.getId(), e.getMessage()); }
                         return;
                     }
 
@@ -797,8 +810,9 @@ public class GatewayPaymentController {
                                                 var txOpt2 = transactionRepository.findById(linkedTxId);
                                                 if (txOpt2.isPresent()) {
                                                     var tx2 = txOpt2.get();
-                                                    tx2.setStatus("Fail");
+                                                    tx2.setStatus("Rejected");
                                                     transactionRepository.save(tx2);
+                                                    try { refundIfWithdrawal(tx2); } catch (Exception e) { log.warn("Refund in background finalizer failed for tx {}: {}", tx2.getId(), e.getMessage()); }
                                                 }
                                             } catch (Exception e) { log.warn("Failed to mark transaction fail for id {}: {}", linkedTxId, e.getMessage()); }
                                         }
@@ -820,7 +834,7 @@ public class GatewayPaymentController {
                                                 var txOpt2 = transactionRepository.findById(linkedTxId);
                                                 if (txOpt2.isPresent()) {
                                                     var tx2 = txOpt2.get();
-                                                    tx2.setStatus("Success");
+                                                    tx2.setStatus("Approved");
                                                     transactionRepository.save(tx2);
                                                 }
                                             } catch (Exception e) { log.warn("Failed to mark transaction success for id {}: {}", linkedTxId, e.getMessage()); }
@@ -834,7 +848,7 @@ public class GatewayPaymentController {
                                                 var txOpt2 = transactionRepository.findById(linkedTxId);
                                                 if (txOpt2.isPresent()) {
                                                     var tx2 = txOpt2.get();
-                                                    tx2.setStatus("Fail");
+                                                    tx2.setStatus("Rejected");
                                                     transactionRepository.save(tx2);
                                                 }
                                             } catch (Exception e) { log.warn("Failed to mark transaction fail for id {}: {}", linkedTxId, e.getMessage()); }
@@ -858,7 +872,8 @@ public class GatewayPaymentController {
                         gp.setStatus("Fail");
                         try { gp.setTransactionId(tx.getId()); } catch (Exception e) { /* ignore */ }
                         gatewayPaymentRepository.save(gp);
-                        tx.setStatus("Fail"); transactionRepository.save(tx);
+                        tx.setStatus("Rejected"); transactionRepository.save(tx);
+                        try { refundIfWithdrawal(tx); } catch (Exception e) { log.warn("Refund after unexpected payout response failed for tx {}: {}", tx.getId(), e.getMessage()); }
                         return;
                     }
                 } catch (RestClientResponseException rcre) {
@@ -871,7 +886,8 @@ public class GatewayPaymentController {
                     gp.setStatus("Fail");
                     try { gp.setTransactionId(tx.getId()); } catch (Exception e) { /* ignore */ }
                     gatewayPaymentRepository.save(gp);
-                    tx.setStatus("Fail"); transactionRepository.save(tx);
+                    tx.setStatus("Rejected"); transactionRepository.save(tx);
+                    try { refundIfWithdrawal(tx); } catch (Exception e) { log.warn("Refund after payout http error failed for tx {}: {}", tx.getId(), e.getMessage()); }
                     return;
                 }
 
@@ -886,7 +902,45 @@ public class GatewayPaymentController {
 
         } catch (Exception ex) {
             log.error("createPayOut failed", ex);
-            try { tx.setStatus("Fail"); transactionRepository.save(tx); } catch (Exception e) {}
+            try {tx.setStatus("Rejected"); transactionRepository.save(tx); } catch (Exception e) {}
+        }
+    }
+
+    // Refund user when a withdrawal transaction is rejected
+    private void refundIfWithdrawal(TransactionEntity tx) {
+        if (tx == null) return;
+        try {
+            if (tx.getAmount() != null && tx.getAmount() < 0) {
+                // idempotency: skip if remark already indicates refund was done
+                String rem = tx.getRemarks() == null ? "" : tx.getRemarks();
+                if (rem.contains("[refunded]")) {
+                    log.info("Skipping refund for tx {} because remarks indicate already refunded", tx.getId());
+                    return;
+                }
+
+                var userOpt = userRepository.findByMobileNumber(tx.getMobileNumber());
+                if (userOpt.isPresent()) {
+                    var user = userOpt.get();
+                    Integer cur = user.getBalance() == null ? 0 : user.getBalance();
+                    int refund = -tx.getAmount();
+                    user.setBalance(cur + refund);
+                    userRepository.save(user);
+                    log.info("Refunded user {} amount={} for rejected tx {}", user.getMobileNumber(), refund, tx.getId());
+
+                    // mark transaction remarks to indicate refund was applied
+                    try {
+                        String newRem = (rem.isBlank() ? "" : rem + " ") + "[refunded]";
+                        tx.setRemarks(newRem.trim());
+                        transactionRepository.save(tx);
+                    } catch (Exception ex) {
+                        log.warn("Failed to persist refund remark for tx {}: {}", tx.getId(), ex.getMessage());
+                    }
+                } else {
+                    log.warn("Refund requested but user not found for mobile {} for tx {}", tx.getMobileNumber(), tx.getId());
+                }
+            }
+        } catch (Exception ex) {
+            log.warn("Failed to refund user for tx {}: {}", tx.getId(), ex.getMessage());
         }
     }
 
