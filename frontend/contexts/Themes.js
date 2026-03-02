@@ -10,7 +10,7 @@ export const lightColors = {
   primary: '#FFAC2E',
   primaryTile: '#FFB84D',
   primaryIconBg: '#FFF4E0',
-  background: '#ffffff',
+  background: '#f1f1f1',
   surface: '#f8f8f8',
   text: '#000000',
   textSecondary: '#333333',

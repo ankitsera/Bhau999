@@ -7,9 +7,9 @@ import {
   Animated,
   Easing,
   Linking,
+  Image,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import Ionicons from 'react-native-vector-icons/Ionicons';
 
 // ✅ AppConfig helpers (defaults already inside these)
 import {
@@ -165,7 +165,7 @@ const TopStrip = ({ navigation }) => {
           onPress={handleLuckyStarline}
         >
           <View style={[styles.pillIcon, { backgroundColor: colors.primary }]}>
-            <Ionicons name="wallet-outline" size={24} color={colors.text} />
+            <Image source={require("../assets/Images/Wallet.webp")} style={{ width: 22, height: 22}} />
           </View>
           <Text style={[styles.pillText, { color: colors.text }]}>Add Fund</Text>
         </TouchableOpacity>
@@ -176,7 +176,7 @@ const TopStrip = ({ navigation }) => {
           onPress={handleLuckyJackpot}
         >
           <View style={[styles.pillIcon, { backgroundColor: colors.primary }]}>
-            <MaterialCommunityIcons name="bank-outline" size={24} color={colors.text} />
+            <Image source={require("../assets/Images/Funds.webp")} style={{ width: 22, height: 22}} />
           </View>
           <Text style={[styles.pillText, { color: colors.text }]}>Withdraw Fund</Text>
         </TouchableOpacity>

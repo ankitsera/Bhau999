@@ -15,7 +15,6 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import { AuthContext } from '../contexts/AuthContext';
 import { GameContext } from '../contexts/GameContext';
 import SideBarNavigation from '../components/SideBarNavigation';
@@ -92,22 +91,14 @@ const Header = ({ navigation }) => {
             style={[styles.walletRight, { backgroundColor: colors.background }]}
             onPress={() => navigation.navigate('Add Money')}
           >
-            <Ionicons
-              name="wallet-outline"
-              size={28}
-              color={colors.text}
-            />
+            <Image source={require("../assets/Images/Wallet.webp")} style={{ width: 26, height: 26}} />
             <Text style={[styles.walletAmt, { color: colors.text }]}>
               {user?.balance ? user.balance : '0.0'}
             </Text>
           </Pressable>
 
           <Pressable onPress={() => navigation.navigate('Notifications')}>
-            <MaterialIcons
-              name="notifications-active"
-              size={30}
-              color={colors.text}
-            />
+            <Image source={require("../assets/Images/notification.webp")} style={{ width: 26, height: 26}} />
           </Pressable>
         </View>
       </View>
@@ -220,7 +211,7 @@ const styles = StyleSheet.create({
   /* Header */
   headerRoot: { width: '100%' },
   header: {
-    height: 70,
+    height: 72,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

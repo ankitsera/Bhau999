@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Image,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -23,13 +24,13 @@ const Footer = ({ navigation, active = "Home", onSupportPress }) => {
         <View style={styles.sideTabs}>
           <TabItem
             label="My Bids"
-            icon={<MaterialCommunityIcons name="gavel" size={26} color={colors.textSecondary} />}
+            icon={<Image source={require("../assets/Images/MyBids.webp")} style={{ width: 32, height: 32}} />}
             onPress={() => navigation.navigate("My Bids")}
             colors={colors}
           />
           <TabItem
             label="Passbook"
-            icon={<MaterialCommunityIcons name="checkbook" size={26} color={colors.textSecondary} />}
+            icon={<Image source={require("../assets/Images/Passbook.webp")} style={{ width: 32, height: 32, resizeMode: "contain"}} />}
             onPress={() => navigation.navigate("Passbook")}
             colors={colors}
           />
@@ -39,13 +40,13 @@ const Footer = ({ navigation, active = "Home", onSupportPress }) => {
         <View style={styles.sideTabs}>
           <TabItem
             label="Funds"
-            icon={<MaterialCommunityIcons name="bank-outline" size={26} color={colors.textSecondary} />}
+            icon={<Image source={require("../assets/Images/Funds.webp")} style={{ width: 32, height: 32}} />}
             onPress={() => navigation.navigate("Funds")}
             colors={colors}
           />
           <TabItem
             label="Support"
-            icon={<MaterialCommunityIcons name="chat-processing-outline" size={26} color={colors.textSecondary} />}
+            icon={<Image source={require("../assets/Images/Support.webp")} style={{ width: 32, height: 32}} />}
             onPress={onSupportPress ? onSupportPress : (() => navigation.navigate("Support"))}
             colors={colors}
           />
@@ -58,11 +59,7 @@ const Footer = ({ navigation, active = "Home", onSupportPress }) => {
         onPress={() => navigation.navigate("Home")}
         activeOpacity={0.85}
       >
-        <MaterialCommunityIcons
-          name="home-variant-outline"
-          size={28}
-          color={colors.text}
-        />
+        <Image source={require("../assets/Images/home.webp")} style={{ width: 32, height: 32}} />
       </TouchableOpacity>
     </View>
   );
@@ -95,6 +92,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 14,
     paddingTop: 10,
     paddingHorizontal: 18,
+    paddingBottom: 2,
     elevation: 10,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
@@ -111,7 +109,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   tabLabel: {
-    marginTop: 4,
     fontSize: 13,
   },
   fab: {

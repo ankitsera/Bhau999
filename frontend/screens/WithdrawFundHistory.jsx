@@ -96,7 +96,11 @@ const isPending = s =>
 const isAccepted = s =>
   String(s || '')
     .toLowerCase()
-    .includes('accept');
+    .match(/accept|approv/);
+const isRejected = s =>
+  String(s || '')
+    .toLowerCase()
+    .includes('reject');
 
 const WithdrawCard = ({ item, primary }) => {
   const { colors } = useTheme();
@@ -111,11 +115,12 @@ const WithdrawCard = ({ item, primary }) => {
 
   const dt = parseTxDateTime(item?.txDate, item?.txTime);
 
-  const leftColor = isPending(status) ? '#C62828' : primary;
-  const rightColor = isAccepted(status)
-    ? primary
+  const statusColor = isRejected(status)
+    ? '#E53935'
+    : isAccepted(status)
+    ? '#3FA16C'
     : isPending(status)
-    ? '#C62828'
+    ? primary
     : colors.textTertiary;
 
   return (
@@ -126,10 +131,10 @@ const WithdrawCard = ({ item, primary }) => {
       ]}
     >
       <View style={styles.top}>
-        <Text style={[styles.id, { color: leftColor }]} numberOfLines={1}>
+        <Text style={[styles.id, { color: statusColor }]} numberOfLines={1}>
           {id}
         </Text>
-        <Text style={[styles.amt, { color: leftColor }]} numberOfLines={1}>
+        <Text style={[styles.amt, { color: statusColor }]} numberOfLines={1}>
           ₹{showAmt}
         </Text>
       </View>
@@ -138,7 +143,7 @@ const WithdrawCard = ({ item, primary }) => {
         <Text style={[styles.text, { color: colors.text }]}>
           Withdrawal by: {mode}
         </Text>
-        <Text style={[styles.status, { color: rightColor }]}>{status}</Text>
+        <Text style={[styles.status, { color: statusColor }]}>{status}</Text>
       </View>
 
       {remark ? (

@@ -1,4 +1,4 @@
-import React, { useContext, useState, useMemo } from 'react';
+import React, { useContext } from 'react';
 import {
   View,
   Text,
@@ -6,9 +6,8 @@ import {
   StyleSheet,
   FlatList,
   StatusBar,
-  Modal,
-  Pressable,
   Linking,
+  Image,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { AuthContext } from '../contexts/AuthContext';
@@ -17,36 +16,40 @@ import { Share, Alert } from 'react-native';
 import { getShareUrl, getTelegramChannel } from '../utils/AppConfigService';
 import { useTheme } from '../contexts/ThemeContext';
 
+const colors = { /* Light theme colors will be provided by context */ };
+
+const menuImages = {
+  home: require('../assets/Images/home.webp'),
+  myBids: require('../assets/Images/MyBids.webp'),
+  passbook: require('../assets/Images/Passbook.webp'),
+  funds: require('../assets/Images/Funds.webp'),
+  telegram: require('../assets/Images/telegram.webp'),
+  notifications: require('../assets/Images/notification.webp'),
+  charts: require('../assets/Images/Charts.webp'),
+  gameRate: require('../assets/Images/Rates.webp'),
+  noticeBoard: require('../assets/Images/Rules.webp'),
+  settings: require('../assets/Images/Settings.webp'),
+  shareApp: require('../assets/Images/Share.webp'),
+  logout: require('../assets/Images/logout.webp'),
+};
+
 const SideBarNavigation = ({ navigation, closeSidebar }) => {
   const { user, logout } = useContext(AuthContext);
-  const { isDarkMode, colors, themeMode, setThemeMode } = useTheme();
-
-  const [themeModalVisible, setThemeModalVisible] = useState(false);
-
-  const themeSubtitle = useMemo(() => {
-    if (themeMode === 'system')
-      return `System (${isDarkMode ? 'Dark' : 'Light'})`;
-    return themeMode === 'dark' ? 'Dark' : 'Light';
-  }, [themeMode, isDarkMode]);
+  const { colors } = useTheme();
 
   const menuItems = [
-    { name: 'Home', icon: 'home' },
-    { name: 'Add Money', icon: 'currency-rupee' },
-    { name: 'Withdraw Money', icon: 'subtitles-off' },
-    { name: 'My Bids', icon: 'history' },
-    { name: 'Passbook', icon: 'compare-arrows' },
-    { name: 'Telegram', icon: 'telegram' },
-    { name: 'Notifications', icon: 'notifications' },
-    { name: 'Charts', icon: 'bar-chart' },
-    { name: 'Game Rate', icon: 'attach-money' },
-    { name: 'Time Table', icon: 'access-time' },
-    { name: 'Notice board / Rules', icon: 'rule' },
-    { name: 'Settings', icon: 'settings' },
-    { name: 'Share App', icon: 'share' },
-
-    { name: 'Change Theme', icon: 'palette', isTheme: true },
-
-    { name: 'Logout', icon: 'logout' },
+    { name: 'Home', imageKey: 'home' },
+    { name: 'My Bids', imageKey: 'myBids' },
+    { name: 'Passbook', imageKey: 'passbook' },
+    { name: 'Funds', imageKey: 'funds'},
+    { name: 'Telegram', imageKey: 'telegram' },
+    { name: 'Notifications', imageKey: 'notifications' },
+    { name: 'Charts', imageKey: 'charts' },
+    { name: 'Game Rate', imageKey: 'gameRate' },
+    { name: 'Notice board / Rules', imageKey: 'noticeBoard' },
+    { name: 'Settings', imageKey: 'settings' },
+    { name: 'Share App', imageKey: 'shareApp' },
+    { name: 'Logout', imageKey: 'logout' },
   ];
 
   const shareApp = async () => {
@@ -71,13 +74,6 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
     }
   };
 
-  const openThemeModal = () => setThemeModalVisible(true);
-
-  const pickTheme = mode => {
-    setThemeMode(mode); // "system" | "light" | "dark"
-    setThemeModalVisible(false);
-  };
-
   const openTelegram = async () => {
     const telegramUrl = await getTelegramChannel();
     if (!telegramUrl) {
@@ -89,11 +85,6 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
 
   const handleSidebarClick = async item => {
     const menu = item?.name;
-
-    if (item?.isTheme) {
-      openThemeModal();
-      return;
-    }
 
     closeSidebar();
 
@@ -117,7 +108,7 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
 
   // ✅ minimal row (no background, no divider, no icon circle)
   const renderMenuItem = ({ item }) => {
-    const isTheme = !!item?.isTheme;
+    const imageSource = menuImages[item?.imageKey];
 
     return (
       <TouchableOpacity
@@ -125,12 +116,13 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
         activeOpacity={0.75}
         onPress={() => handleSidebarClick(item)}
       >
-        <MaterialIcons
-          name={item.icon}
-          size={22}
-          color={colors.text}
-          style={{ marginRight: 12 }}
-        />
+        {imageSource ? (
+          <Image
+            source={imageSource}
+            style={styles.menuIcon}
+            resizeMode="contain"
+          />
+        ) : null}
 
         <View style={{ flex: 1 }}>
           <Text
@@ -139,56 +131,7 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
           >
             {item.name}
           </Text>
-
-          {isTheme ? (
-            <Text
-              style={[styles.menuSubText, { color: colors.textSecondary }]}
-              numberOfLines={1}
-            >
-              {themeSubtitle}
-            </Text>
-          ) : null}
         </View>
-
-        {isTheme ? (
-          <MaterialIcons
-            name="chevron-right"
-            size={22}
-            color={colors.textTertiary}
-          />
-        ) : null}
-      </TouchableOpacity>
-    );
-  };
-
-  const ThemeOption = ({ mode, title, desc, icon }) => {
-    const selected = themeMode === mode;
-
-    return (
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={() => pickTheme(mode)}
-        style={styles.themeRow}
-      >
-        <MaterialIcons
-          name={icon}
-          size={22}
-          color={selected ? colors.primary : colors.textTertiary}
-          style={{ marginRight: 12 }}
-        />
-
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.themeTitle, { color: colors.text }]}>
-            {title}
-          </Text>
-          <Text style={[styles.themeDesc, { color: colors.textSecondary }]}>
-            {desc}
-          </Text>
-        </View>
-
-        {selected ? (
-          <MaterialIcons name="check" size={22} color={colors.primary} />
-        ) : null}
       </TouchableOpacity>
     );
   };
@@ -199,16 +142,16 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
     >
       <StatusBar
         backgroundColor={colors.background}
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        barStyle="dark-content"
       />
 
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* USER INFO */}
         <View style={styles.userSection}>
           <View
-            style={[styles.userCircle, { backgroundColor: colors.text }]}
+            style={[styles.userCircle]}
           >
-            <MaterialIcons name="person" size={24} color="#fff" />
+            <MaterialIcons name="person-outline" size={50} color="#000" />
           </View>
 
           <View style={styles.userInfo}>
@@ -244,64 +187,6 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
           />
         </View>
       </View>
-
-      {/* THEME MODAL */}
-      <Modal
-        visible={themeModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setThemeModalVisible(false)}
-      >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setThemeModalVisible(false)}
-        >
-          <Pressable
-            style={[
-              styles.modalCard,
-              {
-                backgroundColor: colors.background,
-                borderColor: colors.border,
-              },
-            ]}
-            onPress={() => {}}
-          >
-            <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>
-                Choose theme
-              </Text>
-              <TouchableOpacity onPress={() => setThemeModalVisible(false)}>
-                <MaterialIcons
-                  name="close"
-                  size={22}
-                  color={colors.textTertiary}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <ThemeOption
-              mode="system"
-              title="System"
-              desc={`Follow device (${
-                isDarkMode ? 'Dark' : 'Light'
-              } right now)`}
-              icon="settings-suggest"
-            />
-            <ThemeOption
-              mode="light"
-              title="Light"
-              desc="Always light mode"
-              icon="light-mode"
-            />
-            <ThemeOption
-              mode="dark"
-              title="Dark"
-              desc="Always dark mode"
-              icon="dark-mode"
-            />
-          </Pressable>
-        </Pressable>
-      </Modal>
     </SafeAreaView>
   );
 };
@@ -356,55 +241,16 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 2,
   },
+  menuIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 14,
+  },
   menuText: {
     fontSize: 15.5,
     fontWeight: '400',
   },
-  menuSubText: {
-    fontSize: 12.5,
-    marginTop: 2,
-    fontWeight: '400',
-  },
 
-  // Modal
-  modalBackdrop: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-  },
-  modalCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 14,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-
-  // Theme rows (minimal)
-  themeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 2,
-  },
-  themeTitle: {
-    fontSize: 14.5,
-    fontWeight: '700',
-  },
-  themeDesc: {
-    fontSize: 12.5,
-    marginTop: 2,
-    fontWeight: '600',
-  },
 });
 
 export default SideBarNavigation;
