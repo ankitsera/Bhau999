@@ -74,6 +74,7 @@ public class PropertiesController {
 
         boolean compulsoryUpdate = false;
         boolean updateAvailable = false;
+        String latestVersion = null;
 
         // helper to compare semantic versions like 0.0.1
         java.util.function.BiFunction<String, String, Integer> cmp = (v1, v2) -> {
@@ -119,6 +120,7 @@ public class PropertiesController {
             java.util.Optional<com.matka.backend.Properties> latestOpt = propertiesRepository.findById("latest_version");
             if (latestOpt.isPresent()) {
                 String latest = latestOpt.get().getValue();
+                latestVersion = latest;
                 Integer res2 = cmp.apply(version, latest);
                 if (res2 == null) {
                     // parse error -> keep default false
@@ -136,7 +138,7 @@ public class PropertiesController {
             // keep default false
         }
 
-        UpdateCheckResponse resp = new UpdateCheckResponse(compulsoryUpdate, updateAvailable);
+        UpdateCheckResponse resp = new UpdateCheckResponse(compulsoryUpdate, updateAvailable, latestVersion);
         return ResponseEntity.ok(resp);
     }
 
@@ -144,13 +146,16 @@ public class PropertiesController {
     public static class UpdateCheckResponse {
         private boolean compulsoryUpdate;
         private boolean updateAvailable;
+        private String latestVersion;
 
-        public UpdateCheckResponse(boolean compulsoryUpdate, boolean updateAvailable) {
+        public UpdateCheckResponse(boolean compulsoryUpdate, boolean updateAvailable, String latestVersion) {
             this.compulsoryUpdate = compulsoryUpdate;
             this.updateAvailable = updateAvailable;
+            this.latestVersion = latestVersion;
         }
 
         public boolean isCompulsoryUpdate() { return compulsoryUpdate; }
         public boolean isUpdateAvailable() { return updateAvailable; }
+        public String getLatestVersion() { return latestVersion; }
     }
 }
