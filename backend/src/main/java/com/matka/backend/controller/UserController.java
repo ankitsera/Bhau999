@@ -17,6 +17,7 @@ import java.util.Map;
 import java.time.LocalDateTime;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
+import com.matka.backend.service.FcmService;
 
 @RestController
 @RequestMapping("/api")
@@ -27,6 +28,9 @@ public class UserController {
     
     @Autowired
     private TransactionRepository transactionRepository;
+
+    @Autowired
+    private FcmService fcmService;
 
     // Note: password encryption removed per user request; passwords will be stored and compared as plain text.
 
@@ -310,5 +314,59 @@ public class UserController {
         } catch (Exception ex) {
             return ResponseEntity.status(500).body(Map.of("message", "IFSC lookup failed", "error", ex.getMessage()));
         }
+    }
+
+    // User API: register/update FCM token and subscribe to topics
+    // POST /api/users/fcm
+    // Body: { "mobileNumber": "9876543210", "token": "fcm-token", "gameNotification": true }
+    @PostMapping("/users/fcm")
+    public ResponseEntity<?> registerFcmToken(@RequestBody FcmRequest req) {
+        if (req == null || req.getMobileNumber() == null || req.getMobileNumber().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "mobileNumber is required"));
+        }
+        if (req.getToken() == null || req.getToken().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "token is required"));
+        }
+
+        String mobile = req.getMobileNumber().trim();
+        String token = req.getToken().trim();
+        Boolean gameNotification = req.getGameNotification();
+        if (gameNotification == null) gameNotification = true; // default true
+
+        var userOpt = userRepository.findByMobileNumber(mobile);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("message", "User not found: " + mobile));
+        }
+
+        try {
+            // Subscribe to topics
+            // always subscribe to all_users
+            boolean okAll = fcmService.subscribeTokenToTopic(token, "all_users");
+            boolean okGame = true;
+            if (Boolean.FALSE.equals(gameNotification)) {
+                // explicitly unsubscribe if previously subscribed
+                okGame = fcmService.unsubscribeTokenFromTopic(token, "game_notifications");
+            } else {
+                okGame = fcmService.subscribeTokenToTopic(token, "game_notifications");
+            }
+
+            return ResponseEntity.ok(Map.of("message", "Topic subscriptions updated", "all_users_subscribed", okAll, "game_notifications_subscribed", okGame));
+        } catch (Exception ex) {
+            log.error("Failed to register fcm token for {}: {}", mobile, ex.getMessage());
+            return ResponseEntity.status(500).body(Map.of("message", "Failed to register FCM token", "error", ex.getMessage()));
+        }
+    }
+
+    public static class FcmRequest {
+        private String mobileNumber;
+        private String token;
+        private Boolean gameNotification;
+
+        public String getMobileNumber() { return mobileNumber; }
+        public void setMobileNumber(String mobileNumber) { this.mobileNumber = mobileNumber; }
+        public String getToken() { return token; }
+        public void setToken(String token) { this.token = token; }
+        public Boolean getGameNotification() { return gameNotification; }
+        public void setGameNotification(Boolean gameNotification) { this.gameNotification = gameNotification; }
     }
 }
