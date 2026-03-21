@@ -6,6 +6,8 @@ import com.matka.backend.repository.ActiveGameRepository;
 import com.matka.backend.repository.GameRepository;
 import com.matka.backend.service.BetProcessingService;
 import org.springframework.transaction.annotation.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalTime;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -29,6 +31,11 @@ public class ActiveGameController {
     
     @Autowired
     private BetProcessingService betProcessingService;
+
+    @Autowired
+    private com.matka.backend.service.FcmService fcmService;
+
+    private static final Logger log = LoggerFactory.getLogger(ActiveGameController.class);
 
     @PostMapping("/identify-winners")
     public ResponseEntity<?> identifyWinners(@RequestBody DeclareResultRequest req) {
@@ -237,6 +244,11 @@ public class ActiveGameController {
             activeGameRepository.save(active);
             // after saving the open result, process bets for this game/when
             betProcessingService.processBetsForResult(gameName, "Open", result);
+            // send game notification asynchronously (do not block response)
+            final DeclareResultRequest dr = req;
+            new Thread(() -> {
+                try { sendGameNotification(dr); } catch (Exception e) { log.error("sendGameNotification failed: {}", e.getMessage()); }
+            }).start();
             return ResponseEntity.ok(Map.of("message", "Open result declared", "activeGame", active));
         } else if (when.equals("close")) {
             if (game.getCloseTime() == null) {
@@ -253,6 +265,11 @@ public class ActiveGameController {
             activeGameRepository.save(active);
             // after saving the close result, process bets for this game/when
             betProcessingService.processBetsForResult(gameName, "Close", result);
+            // send game notification asynchronously (do not block response)
+            final DeclareResultRequest dr2 = req;
+            new Thread(() -> {
+                try { sendGameNotification(dr2); } catch (Exception e) { log.error("sendGameNotification failed: {}", e.getMessage()); }
+            }).start();
             return ResponseEntity.ok(Map.of("message", "Close result declared", "activeGame", active));
         } else {
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid 'when' value; expected 'open' or 'close'"));
@@ -305,6 +322,91 @@ public class ActiveGameController {
         public void setWhen(String when) { this.when = when; }
         public Integer getResult() { return result; }
         public void setResult(Integer result) { this.result = result; }
+    }
+
+    // Asynchronously build and send a game notification based on the declared result
+    private void sendGameNotification(DeclareResultRequest req) {
+        if (req == null) return;
+        String gameName = req.getGameName() == null ? "" : req.getGameName().trim().toUpperCase();
+        String when = req.getWhen() == null ? "" : req.getWhen().trim().toLowerCase();
+        Integer result = req.getResult();
+
+        try {
+            String openPanaStr;
+            String closePanaStr;
+            String openDigitStr;
+            String closeDigitStr;
+
+            if ("open".equals(when)) {
+                if (result == null) {
+                    log.warn("sendGameNotification: open result is null for {}", gameName);
+                    return;
+                }
+                int openPana = result;
+                openPanaStr = String.format("%03d", openPana);
+                int openDigit = digitOnesPlace(sumDigits(openPanaStr));
+                openDigitStr = String.valueOf(openDigit);
+                // when open, close pano and digit are masked
+                closePanaStr = "***";
+                closeDigitStr = "*";
+            } else {
+                // when == close: fetch active game to obtain open pana
+                java.util.Optional<ActiveGame> aopt = activeGameRepository.findById(gameName);
+                if (aopt.isEmpty()) {
+                    log.warn("sendGameNotification: active game not found for {}", gameName);
+                    return;
+                }
+                ActiveGame ag = aopt.get();
+
+                // fetch open from active game
+                Integer openVal = ag.getOpenPana();
+                if (openVal == null) {
+                    log.warn("sendGameNotification: open pana not available for {} when declaring close", gameName);
+                    return;
+                }
+                openPanaStr = String.format("%03d", openVal);
+                openDigitStr = String.valueOf(digitOnesPlace(sumDigits(openPanaStr)));
+
+                if (result == null) {
+                    log.warn("sendGameNotification: close result is null for {}", gameName);
+                    return;
+                }
+                int closePana = result;
+                closePanaStr = String.format("%03d", closePana);
+                closeDigitStr = String.valueOf(digitOnesPlace(sumDigits(closePanaStr)));
+            }
+
+            String message = String.format("%s-%s%s-%s", openPanaStr, openDigitStr, closeDigitStr, closePanaStr);
+
+            // Prepare optional data payload
+            java.util.Map<String, String> data = new java.util.HashMap<>();
+            data.put("gameName", gameName);
+            data.put("when", when);
+            data.put("openPana", openPanaStr);
+            data.put("closePana", closePanaStr);
+
+            // send to game_notifications topic
+            String msgId = fcmService.sendToTopic("game_notifications", gameName, message, data);
+            if (msgId != null) {
+                log.info("Game notification sent for {} when={} messageId={}", gameName, when, msgId);
+            } else {
+                log.warn("Failed to send game notification for {} when={}", gameName, when);
+            }
+        } catch (Exception ex) {
+            log.error("sendGameNotification exception: {}", ex.getMessage());
+        }
+    }
+
+    private int sumDigits(String threeDigit) {
+        int sum = 0;
+        for (char c : threeDigit.toCharArray()) {
+            if (Character.isDigit(c)) sum += (c - '0');
+        }
+        return sum;
+    }
+
+    private int digitOnesPlace(int sum) {
+        return Math.abs(sum) % 10;
     }
 }
     
