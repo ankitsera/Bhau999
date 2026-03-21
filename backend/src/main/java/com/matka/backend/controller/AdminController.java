@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 import java.util.Optional;
+import com.matka.backend.service.FcmService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/api/users")
@@ -22,6 +24,9 @@ public class AdminController {
     
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private FcmService fcmService;
     
     /**
      * Admin login endpoint - returns JWT token
@@ -88,6 +93,41 @@ public class AdminController {
         
         log.info("Password updated successfully for username: {}", admin.getUsername());
         return ResponseEntity.ok(Map.of("message", "Password updated successfully"));
+    }
+
+    // Admin API: send notification to all users topic
+    // POST /api/users/notify-topic
+    // Body: { "title": "Important", "message": "Hello users", "data": { "key": "value" } }
+    @PostMapping("/notify-topic")
+    public ResponseEntity<?> notifyTopic(@RequestBody NotificationRequest req) {
+        if (req == null || req.getTitle() == null || req.getTitle().isBlank() || req.getMessage() == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "title and message are required"));
+        }
+
+        try {
+            String messageId = fcmService.sendToTopic("all_users", req.getTitle(), req.getMessage(), req.getData());
+            if (messageId != null) {
+                return ResponseEntity.ok(Map.of("message", "Notification sent", "messageId", messageId));
+            } else {
+                return ResponseEntity.status(500).body(Map.of("message", "Failed to send notification"));
+            }
+        } catch (Exception ex) {
+            log.error("Error sending notification to topic: {}", ex.getMessage());
+            return ResponseEntity.status(500).body(Map.of("message", "Error sending notification", "error", ex.getMessage()));
+        }
+    }
+
+    public static class NotificationRequest {
+        private String title;
+        private String message;
+        private java.util.Map<String, String> data;
+
+        public String getTitle() { return title; }
+        public void setTitle(String title) { this.title = title; }
+        public String getMessage() { return message; }
+        public void setMessage(String message) { this.message = message; }
+        public java.util.Map<String, String> getData() { return data; }
+        public void setData(java.util.Map<String, String> data) { this.data = data; }
     }
     
     /**
