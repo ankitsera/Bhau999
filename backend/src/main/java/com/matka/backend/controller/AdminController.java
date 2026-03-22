@@ -12,7 +12,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.Optional;
 import com.matka.backend.service.FcmService;
+import com.matka.backend.Notification;
+import com.matka.backend.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/users")
@@ -27,6 +30,9 @@ public class AdminController {
 
     @Autowired
     private FcmService fcmService;
+
+    @Autowired
+    private NotificationRepository notificationRepository;
     
     /**
      * Admin login endpoint - returns JWT token
@@ -107,6 +113,15 @@ public class AdminController {
         try {
             String messageId = fcmService.sendToTopic("all_users", req.getTitle(), req.getMessage(), req.getData());
             if (messageId != null) {
+                try {
+                    Notification n = new Notification();
+                    n.setDatetime(LocalDateTime.now());
+                    n.setTitle(req.getTitle());
+                    n.setMessage(req.getMessage());
+                    notificationRepository.save(n);
+                } catch (Exception e) {
+                    log.warn("Failed to persist notification record: {}", e.getMessage());
+                }
                 return ResponseEntity.ok(Map.of("message", "Notification sent", "messageId", messageId));
             } else {
                 return ResponseEntity.status(500).body(Map.of("message", "Failed to send notification"));

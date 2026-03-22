@@ -12,6 +12,9 @@ import com.matka.backend.repository.GameRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.matka.backend.repository.NotificationRepository;
+import com.matka.backend.repository.PropertiesRepository;
+import java.time.LocalDateTime;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +48,12 @@ public class DailyRollupService {
 
     @Autowired
     private BetHistoryRepository betHistoryRepository;
+
+    @Autowired
+    private PropertiesRepository propertiesRepository;
+
+    @Autowired
+    private NotificationRepository notificationRepository;
 
     // Cron: second minute hour day month weekday -> 0 0 2 * * *  -> 02:00 every day
     @Scheduled(cron = "0 0 2 * * *")
@@ -136,6 +145,27 @@ public class DailyRollupService {
             }
 
             log.info("Daily rollup job completed successfully");
+            // 5) Cleanup old notifications according to properties.save_notification_for_days (default 7 days)
+            try {
+                int keepDays = 7;
+                try {
+                    var p = propertiesRepository.findById("save_notification_for_days");
+                    if (p.isPresent()) {
+                        String v = p.get().getValue();
+                        if (v != null && !v.isBlank()) {
+                            keepDays = Integer.parseInt(v.trim());
+                        }
+                    }
+                } catch (Exception ex) {
+                    log.warn("Unable to read save_notification_for_days property, defaulting to 7 days", ex);
+                }
+
+                LocalDateTime cutoff = LocalDateTime.now().minusDays(keepDays);
+                notificationRepository.deleteByDatetimeBefore(cutoff);
+                log.info("Deleted notifications older than {} days (cutoff={})", keepDays, cutoff);
+            } catch (Exception ex) {
+                log.warn("Failed to cleanup old notifications: {}", ex.getMessage());
+            }
         } catch (Exception ex) {
             log.error("Daily rollup job failed", ex);
             // let transaction roll back
