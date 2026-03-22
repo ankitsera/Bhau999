@@ -285,7 +285,7 @@ public class TransactionController {
         if (list != null) {
             for (TransactionEntity t : list) {
                 out.add(new TransactionResponse(t));
-                if (t.getAmount() != null) {
+                if (t.getAmount() != null && t.getStatus() != null && "Approved".equalsIgnoreCase(t.getStatus())) {
                     sum += (long) (-t.getAmount()); // amount is negative, show positive sum
                 }
             }
