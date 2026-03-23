@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { useTranslation } from 'react-i18next';
 import { useTheme } from "../contexts/ThemeContext";
 
 const PaginationBar = ({
@@ -11,6 +12,7 @@ const PaginationBar = ({
   onPrev,
   onNext,
 }) => {
+  const { t } = useTranslation(['common']);
   const { bottom } = useSafeAreaInsets();
   const { colors } = useTheme();
 
@@ -23,7 +25,7 @@ const PaginationBar = ({
         activeOpacity={0.8}
       >
         <MaterialIcons name="chevron-left" size={22} color={colors.text} />
-        <Text style={[styles.sideText, { color: colors.text }]} >PREV</Text>
+        <Text style={[styles.sideText, { color: colors.text }]} >{t('common:prev')}</Text>
       </TouchableOpacity>
 
       <View style={[styles.pageDot, { backgroundColor: colors.text }]}>
@@ -38,7 +40,7 @@ const PaginationBar = ({
         disabled={!hasNext}
         activeOpacity={0.8}
       >
-        <Text style={[styles.sideText, { color: colors.text }]}>NEXT</Text>
+        <Text style={[styles.sideText, { color: colors.text }]}>{t('common:next')}</Text>
         <MaterialIcons name="chevron-right" size={22} color={colors.text} />
       </TouchableOpacity>
     </View>

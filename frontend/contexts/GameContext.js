@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { AppState } from "react-native";
 import Snackbar from "react-native-snackbar";
+import i18n from '../i18n';
 import {
   getGameRates as getGameRatesAPI,
   getActiveGames as getActiveGamesAPI,
@@ -255,8 +256,8 @@ const toActiveGameUi = (g) => {
 
   const isClosed = len === 0;
   const statusText = isClosed
-    ? "Closed for today"
-    : "Running Now"; // you can customize this text based on allowed types if needed
+    ? i18n.t('games:closedForToday')
+    : i18n.t('games:runningNow');
 
   const statusColor = isClosed ? RED : GREEN;
   // normalize pana keys
@@ -342,7 +343,7 @@ export const GameProvider = ({ children }) => {
     } catch (err) {
       dispatch({ type: TYPES.FETCH_RATES_FAILURE, error: err });
       Snackbar.show({
-        text: err?.message || "Failed to load game rates",
+        text: err?.message || i18n.t('games:failedToLoadGameRates'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
@@ -358,7 +359,7 @@ export const GameProvider = ({ children }) => {
     } catch (err) {
       dispatch({ type: TYPES.FETCH_ALL_GAMES_FAILURE, error: err });
       Snackbar.show({
-        text: err?.message || "Failed to load games",
+        text: err?.message || i18n.t('games:failedToLoadGames'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
@@ -373,7 +374,7 @@ export const GameProvider = ({ children }) => {
     } catch (err) {
       dispatch({ type: TYPES.FETCH_ACTIVE_GAMES_FAILURE, error: err });
       Snackbar.show({
-        text: err?.message || "Failed to load games",
+        text: err?.message || i18n.t('games:failedToLoadGames'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
@@ -388,7 +389,7 @@ export const GameProvider = ({ children }) => {
     } catch (err) {
       dispatch({ type: TYPES.FETCH_BID_HISTORY_FAILURE, error: err });
       Snackbar.show({
-        text: err?.message || "Failed to load bid history",
+        text: err?.message || i18n.t('games:failedToLoadBidHistory'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
@@ -404,7 +405,7 @@ export const GameProvider = ({ children }) => {
     } catch (err) {
       dispatch({ type: TYPES.FETCH_GAME_HISTORY_FAILURE, error: err });
       Snackbar.show({
-        text: err?.message || "Failed to load game history",
+        text: err?.message || i18n.t('games:failedToLoadGameHistory'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });

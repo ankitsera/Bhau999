@@ -9,6 +9,7 @@ import {
   Dimensions,
   ScrollView,
 } from "react-native";
+import { useTranslation } from 'react-i18next';
 import { useTheme } from "../../contexts/ThemeContext";
 
 const GameTypePicker = ({
@@ -18,7 +19,11 @@ const GameTypePicker = ({
   onChange,
   containerStyle,
 }) => {
+  const { t } = useTranslation(['games']);
   const { colors } = useTheme();
+
+  // Only translate the default label, preserve null when explicitly passed
+  const displayLabel = label === "Select Game Type:" ? t('games:selectGameType') : label;
 
   const dropdownRef = useRef(null);
   const [open, setOpen] = useState(false);
@@ -28,12 +33,12 @@ const GameTypePicker = ({
 
   const menuHeight = useMemo(() => {
     const rowH = 60;
-    const titleH = label ? 36 : 0;
+    const titleH = displayLabel ? 36 : 0;
     const padding = 20;
     const h = titleH + padding + (options?.length || 0) * rowH;
     const maxH = Math.floor(screenH * 0.45);
     return Math.min(h, maxH);
-  }, [options, screenH, label]);
+  }, [options, screenH, displayLabel]);
 
   const openDropdown = () => {
     if (!options || options.length === 0) return;
@@ -70,7 +75,7 @@ const GameTypePicker = ({
 
   return (
     <View style={[styles.row, containerStyle]}>
-      {label ? <Text style={[styles.label, { color: colors.text }]}>{label}</Text> : null}
+      {displayLabel ? <Text style={[styles.label, { color: colors.text }]}>{displayLabel}</Text> : null}
 
       <TouchableOpacity
         ref={dropdownRef}
@@ -104,9 +109,9 @@ const GameTypePicker = ({
               ]}
               onPress={() => {}}
             >
-              {label ? (
+              {displayLabel ? (
                 <Text style={[styles.menuTitle, { color: colors.text }]} numberOfLines={1}>
-                  {label}
+                  {displayLabel}
                 </Text>
               ) : null}
 

@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useTranslation } from 'react-i18next';
 
 const formatDatePretty = dt => {
   if (!(dt instanceof Date)) return '--';
@@ -32,11 +33,12 @@ const DateFilterRow = ({
   value, // Date | null
   onChange, // (Date|null) => void
 }) => {
+  const { t } = useTranslation(['common']);
   const [show, setShow] = useState(false);
 
   const displayText = useMemo(() => {
-    return value instanceof Date ? formatDatePretty(value) : 'Select';
-  }, [value]);
+    return value instanceof Date ? formatDatePretty(value) : t('common:select');
+  }, [value, t]);
 
   const openPicker = useCallback(() => setShow(true), []);
   const clear = useCallback(() => onChange?.(null), [onChange]);
@@ -61,7 +63,7 @@ const DateFilterRow = ({
 
   return (
     <View>
-      <Text style={styles.sectionTitle}>{label}</Text>
+      <Text style={styles.sectionTitle}>{label === 'By Date' ? t('common:byDate') : label}</Text>
 
       <View style={styles.row}>
         <Pressable style={styles.dateBtn} onPress={openPicker}>

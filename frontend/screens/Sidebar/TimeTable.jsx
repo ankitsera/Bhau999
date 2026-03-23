@@ -8,6 +8,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 import ThemeHeader from '../../components/ThemeHeader';
 import EmptyState from '../../components/EmptyState';
@@ -29,21 +30,22 @@ const TimeRow = ({ gameName, openTime, closeTime }) => {
   );
 };
 
-const ListHeader = () => {
+const ListHeader = ({ t }) => {
   const { colors } = useTheme();
 
   return (
     <View style={[styles.headerChip, { backgroundColor: colors.primary }]}>
-      <Text style={[styles.headerText, { flex: 1.2 }]}>Game Name</Text>
-      <Text style={[styles.headerText, { flex: 0.9 }]}>Open Time</Text>
+      <Text style={[styles.headerText, { flex: 1.2 }]}>{t('games:game')} {t('common:name')}</Text>
+      <Text style={[styles.headerText, { flex: 0.9 }]}>{t('games:openTime')}</Text>
       <Text style={[styles.headerText, { flex: 0.9, textAlign: 'right' }]}>
-        Close Time
+        {t('games:closeTime')}
       </Text>
     </View>
   );
 };
 
 const TimeTable = () => {
+  const { t } = useTranslation(['games', 'common', 'screens']);
   const { colors } = useTheme();
 
   // ALL games api data
@@ -71,7 +73,7 @@ const TimeTable = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title="Time Table" />
+      <ThemeHeader title={t('games:timeTable')} />
 
       {isLoadingAllGames && (!allGamesUi || allGamesUi.length === 0) ? (
         <View style={styles.center}>
@@ -79,7 +81,7 @@ const TimeTable = () => {
         </View>
       ) : !allGamesUi || allGamesUi.length === 0 ? (
         <View style={styles.center}>
-          <EmptyState text="No games found" />
+          <EmptyState text={t('games:noGamesFound')} />
         </View>
       ) : (
         <FlatList
@@ -88,7 +90,7 @@ const TimeTable = () => {
           renderItem={renderItem}
           contentContainerStyle={{ padding: 12, paddingBottom: 24 }}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          ListHeaderComponent={ListHeader}
+          ListHeaderComponent={() => <ListHeader t={t} />}
           ListHeaderComponentStyle={{ marginBottom: 10 }}
           showsVerticalScrollIndicator={false}
           refreshControl={

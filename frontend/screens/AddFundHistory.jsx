@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useTranslation } from 'react-i18next';
 
 import ThemeHeader from '../components/ThemeHeader';
 import PaginationBar from '../components/PaginationBar';
@@ -102,7 +103,7 @@ const Row = ({ label, value }) => {
   );
 };
 
-const DepositCard = ({ item }) => {
+const DepositCard = ({ item, t }) => {
   const { colors } = useTheme();
 
   const amountNum = Number(item?.amount || 0) || 0;
@@ -116,38 +117,39 @@ const DepositCard = ({ item }) => {
       ]}
     >
       <View style={[styles.cardTop, { backgroundColor: colors.primary }]}>
-        <Text style={styles.cardTopLeft}>CREDIT</Text>
+        <Text style={styles.cardTopLeft}>{t('funds:credit')}</Text>
         <Text style={styles.cardTopRight}>₹{Math.abs(amountNum)}</Text>
       </View>
 
       <View style={styles.cardBody}>
-        <Row label="Transaction ID:" value={String(item?.id ?? '--')} />
+        <Row label={t('funds:transactionId')} value={String(item?.id ?? '--')} />
         <Row
-          label="Status:"
+          label={t('funds:status')}
           value={item?.status != null ? String(item.status) : 'SUCCESS'}
         />
         <Row
-          label="Initiator:"
+          label={t('funds:initiator')}
           value={item?.initiator != null ? String(item.initiator) : '--'}
         />
         <Row
-          label="Remark:"
+          label={t('funds:remark')}
           value={
             item?.remarks != null
               ? String(item.remarks)
               : item?.initiator
-              ? `Direct Credit By ${item.initiator}`
+              ? t('funds:directCreditBy', { initiator: item.initiator })
               : '--'
           }
         />
-        <Row label="Date:" value={formatDate(dt)} />
-        <Row label="Time:" value={formatTime(dt)} />
+        <Row label={t('common:date')} value={formatDate(dt)} />
+        <Row label={t('common:time')} value={formatTime(dt)} />
       </View>
     </View>
   );
 };
 
 const AddFundHistory = () => {
+  const { t } = useTranslation(['funds', 'common', 'screens']);
   const { colors } = useTheme();
 
   const { user } = useContext(AuthContext);
@@ -270,7 +272,7 @@ const AddFundHistory = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title="Add Fund History" />
+      <ThemeHeader title={t('funds:addFundHistory')} />
 
       {/* Filter button */}
       <View style={styles.filterBar}>
@@ -303,7 +305,7 @@ const AddFundHistory = () => {
             onPress={clearAll}
           >
             <Text style={[styles.clearBtnText, { color: colors.text }]}>
-              Clear
+              {t('screens:clear')}
             </Text>
           </Pressable>
         ) : null}
@@ -313,15 +315,15 @@ const AddFundHistory = () => {
         <View style={styles.loaderWrap}>
           <ActivityIndicator size="small" color={colors.primary} />
           <Text style={[styles.loaderText, { color: colors.text }]}>
-            Loading...
+            {t('common:loading')}
           </Text>
         </View>
       ) : filtered.length === 0 ? (
         <EmptyState
           message={
             filters.date instanceof Date
-              ? 'NO FUND HISTORY FOUND FOR THIS DATE'
-              : 'NO FUND HISTORY FOUND'
+              ? t('screens:noFundHistoryFoundForDate')
+              : t('screens:noFundHistoryFound')
           }
         />
       ) : (
@@ -330,7 +332,7 @@ const AddFundHistory = () => {
           keyExtractor={(item, idx) => makeKey(item, idx)}
           contentContainerStyle={styles.listContent}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          renderItem={({ item }) => <DepositCard item={item} />}
+          renderItem={({ item }) => <DepositCard item={item} t={t} />}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -357,12 +359,12 @@ const AddFundHistory = () => {
 
         <View style={[styles.modalCard, { backgroundColor: colors.background }]}>
           <View style={[styles.modalHeader, { backgroundColor: colors.primary }]}>
-            <Text style={styles.modalHeaderText}>Filter Type</Text>
+            <Text style={styles.modalHeaderText}>{t('common:filter')}</Text>
           </View>
 
           <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
             <DateFilterRow
-              label="By Date"
+              label={t('screens:byDate')}
               value={draft.date}
               onChange={date => setDraft(prev => ({ ...prev, date }))}
             />
@@ -373,21 +375,21 @@ const AddFundHistory = () => {
               style={[styles.footerBtnLeft, { backgroundColor: colors.primary }]}
               onPress={closeFilter}
             >
-              <Text style={styles.footerBtnText}>Cancel</Text>
+              <Text style={styles.footerBtnText}>{t('common:cancel')}</Text>
             </Pressable>
 
             <Pressable
               style={[styles.footerBtnMid, { backgroundColor: colors.primaryTile }]}
               onPress={clearDraft}
             >
-              <Text style={styles.footerBtnText}>Reset</Text>
+              <Text style={styles.footerBtnText}>{t('screens:reset')}</Text>
             </Pressable>
 
             <Pressable
               style={[styles.footerBtnRight, { backgroundColor: colors.primary }]}
               onPress={applyFilter}
             >
-              <Text style={styles.footerBtnText}>Filter</Text>
+              <Text style={styles.footerBtnText}>{t('common:filter')}</Text>
             </Pressable>
           </View>
         </View>

@@ -8,6 +8,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from 'react-i18next';
 
 import DynamicHeader from "../../components/DynamicHeader";
 import GameDateTypeRow from "../../components/games/GameDateTypeRow";
@@ -24,6 +25,7 @@ import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValida
 import { useTheme } from "../../contexts/ThemeContext";
 
 const TriplePana = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
   const gameName = route?.params?.gameName || 'GAME';
@@ -40,7 +42,8 @@ const TriplePana = ({ route }) => {
     return `${dd}-${mm}-${yyyy}`;
   })();
 
-  const [selectedType, setSelectedType] = useState("OPEN");  const [minAmount, setMinAmount] = useState(10);
+  const [selectedType, setSelectedType] = useState("OPEN");  
+  const [minAmount, setMinAmount] = useState(10);
   const [maxAmount, setMaxAmount] = useState(10000);
 
   React.useEffect(() => {
@@ -89,17 +92,17 @@ const TriplePana = ({ route }) => {
     if (!guard()) return;
 
     if (totals.bids === 0) {
-      Alert.alert("No bets", "Please enter points for at least one pana.");
+      Alert.alert(t('validation:noBets'), t('validation:pleaseEnterPointsPana'));
       return;
     }
 
     if (!mobileNumber) {
-      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      Alert.alert(t('validation:loginRequired'), t('validation:mobileNumberMissing'));
       return;
     }
 
     if (totals.points > balance) {
-      Alert.alert("Insufficient balance", "Your wallet balance is too low.");
+      Alert.alert(t('validation:insufficientBalance'), t('validation:walletBalanceTooLow'));
       return;
     }
 
@@ -107,7 +110,7 @@ const TriplePana = ({ route }) => {
     ALL_TRIPLE_PANA.forEach((p) => {
       const pts = Number(pointsByPana[p] || 0);
       if (pts > 0) {
-        if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
+        if (!validateAndAlertBetAmount(pts, minAmount, maxAmount, t)) {
           return;
         }
         betsToSend.push(
@@ -125,7 +128,7 @@ const TriplePana = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      Alert.alert("Success", "Bets placed successfully!");
+      Alert.alert(t('common:success'), t('games:betPlacedSuccessfully'));
 
       // Update balance safely
       const spent = Number(totals.points) || 0;
@@ -140,7 +143,7 @@ const TriplePana = ({ route }) => {
       );
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", e?.message || "Failed to place bets.");
+      Alert.alert(t('common:error'), e?.message || t('games:betsFailed'));
     }
   };
 
@@ -174,7 +177,7 @@ const TriplePana = ({ route }) => {
               onPress={handleSubmit}
               activeOpacity={0.85}
             >
-              <Text style={[styles.submitText, { color: colors.text }]}>Submit</Text>
+              <Text style={[styles.submitText, { color: colors.text }]}>{t('common:submit')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

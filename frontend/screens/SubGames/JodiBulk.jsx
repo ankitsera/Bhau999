@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from 'react-i18next';
 
 import DynamicHeader from "../../components/DynamicHeader";
 import BottomBetBar from "../../components/games/BottomBetBar";
@@ -22,6 +23,7 @@ import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValida
 import { useTheme } from "../../contexts/ThemeContext";
 
 const JodiBulk = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
   const gameName = route?.params?.gameName || "GAME";
@@ -115,17 +117,17 @@ const JodiBulk = ({ route }) => {
     if (!guard()) return;
 
     if (bids === 0) {
-      Alert.alert("No bets", "Please add at least one Jodi.");
+      Alert.alert(t('validation:noBets'), t('validation:pleaseAddJodi'));
       return;
     }
 
     if (!mobileNumber) {
-      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      Alert.alert(t('validation:loginRequired'), t('validation:mobileNumberMissing'));
       return;
     }
 
     if (totalPoints > balance) {
-      Alert.alert("Insufficient balance", "Your wallet balance is too low.");
+      Alert.alert(t('validation:insufficientBalance'), t('validation:walletBalanceTooLow'));
       return;
     }
 
@@ -142,7 +144,7 @@ const JodiBulk = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      Alert.alert("Success", "Bets placed successfully!");
+      Alert.alert(t('common:success'), t('games:betPlacedSuccessfully'));
 
       const spent = Number(totalPoints) || 0;
       const nextBalance = Math.max(0, balance - spent);
@@ -152,7 +154,7 @@ const JodiBulk = ({ route }) => {
       setJodiDigit("");
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", e?.message || "Failed to place bets.");
+      Alert.alert(t('common:error'), e?.message || t('games:betsFailed'));
     }
   };
 
@@ -164,7 +166,7 @@ const JodiBulk = ({ route }) => {
 
         <View style={styles.content}>
           <View style={styles.pointInputRow}>
-            <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('games:enterPoints')}</Text>
             <TextInput
               style={[
                 styles.input,
@@ -174,19 +176,19 @@ const JodiBulk = ({ route }) => {
               keyboardType="number-pad"
               value={points}
               onChangeText={handlePointsChange}
-              placeholder="Point"
+              placeholder={t('games:point')}
               placeholderTextColor={colors.textTertiary}
             />
           </View>
 
           <View style={styles.pointInputRow}>
-            <Text style={[styles.label, { color: colors.text }]}>Enter Jodi Digit:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('games:enterJodiDigit')}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
               keyboardType="number-pad"
               value={jodiDigit}
               onChangeText={handleDigitChange}
-              placeholder="Jodi"
+              placeholder={t('games:jodi')}
               maxLength={2}
               placeholderTextColor={colors.textTertiary}
             />
@@ -198,7 +200,7 @@ const JodiBulk = ({ route }) => {
               onPress={handleAddPress}
               activeOpacity={0.85}
             >
-              <Text style={styles.addText}>Add</Text>
+              <Text style={styles.addText}>{t('common:add')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -206,7 +208,7 @@ const JodiBulk = ({ route }) => {
             <EasyModeTable
               bets={bets}
               onDelete={handleDeleteBet}
-              digitHeaderLabel="Jodi"
+              digitHeaderLabel={t('games:jodi')}
             />
           </View>
         </View>

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { NavigationContainer, NavigationContainerRef} from "@react-navigation/native";
 import { HeaderButtonsProvider } from "react-navigation-header-buttons/HeaderButtonsProvider";
@@ -24,6 +24,8 @@ import TimeTable from "../screens/Sidebar/TimeTable";
 import NoticeBoard from "../screens/Sidebar/NoticeBoard";
 import Settings from "../screens/Sidebar/Settings";
 import HowToPlay from "../screens/Sidebar/HowToPlay";
+import LanguageSelect from "../screens/LanguageSelect";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 //Fund History Screens
 import Passbook from "../screens/Sidebar/Passbook";
@@ -86,21 +88,49 @@ const linking = {
 };
 
 const Navigation = ({ navigationRef }) => {
-  const { isDarkMode } = useTheme();
+  const { isDarkMode, colors } = useTheme();
   const { user, isLoading } = useContext(AuthContext);
   const theme = isDarkMode ? darkTheme : lightTheme;
   
+  const [languageReady, setLanguageReady] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadLanguagePreference = async () => {
+      try {
+        const lang = await getSelectedLanguage();
+        if (mounted) {
+          setSelectedLanguage(lang);
+        }
+      } catch (e) {
+        console.log('Language preference load error:', e?.message);
+      } finally {
+        if (mounted) {
+          setLanguageReady(true);
+        }
+      }
+    };
+
+    loadLanguagePreference();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   // Wait for user state to be restored before deciding which screen to show
-  if (isLoading) {
+  if (isLoading || !languageReady) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color="#3FA16C" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
   
   // Determine initial route based on user presence
-  const initialRouteName = user ? "Home" : "UserCheck";
+  const initialRouteName = user ? "Home" : selectedLanguage ? "UserCheck" : "Language Select";
   
   return (
     <NavigationContainer ref={navigationRef} linking={linking}>
@@ -133,6 +163,8 @@ const Navigation = ({ navigationRef }) => {
         <Stack.Screen name="Settings" component={Settings} options={{ headerShown: false }} />
         <Stack.Screen name="How to Play" component={HowToPlay} options={{ headerShown: false }} />
         <Stack.Screen name="Games Sub Types" component={GamesSubTypes} options={{ headerShown: false }} />
+        <Stack.Screen name="Language Select" component={LanguageSelect} options={{ headerShown: false }} />
+        <Stack.Screen name="Language" component={LanguageSwitcher} options={{ headerShown: false }} />
         
         {/* Fund History Screens */}
         <Stack.Screen name="Passbook" component={Passbook} options={{ headerShown: false }} />

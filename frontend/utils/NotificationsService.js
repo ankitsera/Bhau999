@@ -1,5 +1,4 @@
 import { PermissionsAndroid, Platform, Linking } from "react-native";
-import DeviceInfo from "react-native-device-info";
 import { API_URL } from "../env-vars";
 
 /* =========================================================
@@ -46,18 +45,15 @@ export const openAppSettings = async () => {
 // POST  ${API_URL}/push/register-token
 // body: { mobileNumber, token, platform, deviceId }
 export async function registerPushToken({ mobileNumber, token }) {
-  const url = `${API_URL}/push/register-token`;
-
-  const deviceId = await DeviceInfo.getUniqueId();
+  const url = `${API_URL}/users/fcm`;
 
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      mobileNumber: String(mobileNumber || ""),
-      token: String(token || ""),
-      platform: Platform.OS,
-      deviceId: String(deviceId || ""),
+      mobileNumber,
+      token,
+      gameNotifications: true,
     }),
   });
 
@@ -116,4 +112,25 @@ export async function updateNotificationPrefs(payload) {
   }
 
   return await res.json();
+}
+
+export async function getAllNotifications() {
+  const url = `${API_URL}/notifications`;
+
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!res.ok) {
+    let msg = `getAllNotifications failed: ${res.status}`;
+    try {
+      const t = await res.json();
+      if (t) msg = `${msg} - ${t}`;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  const body = await res.json();
+  return Array.isArray(body) ? body : [];
 }

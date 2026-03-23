@@ -11,10 +11,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import Snackbar from "react-native-snackbar";
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
 
 const UserCheck = ({ navigation }) => {
+  const { t } = useTranslation(['auth', 'validation', 'common']);
   const { userCheck } = useContext(AuthContext);
   const { colors } = useTheme();
 
@@ -26,7 +28,7 @@ const UserCheck = ({ navigation }) => {
 
     if (!val) {
       Snackbar.show({
-        text: "Please enter your mobile number",
+        text: t('validation:pleaseEnterMobileNumber'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: colors.error || "#d32f2f",
       });
@@ -35,7 +37,7 @@ const UserCheck = ({ navigation }) => {
 
     if (!phoneRegex.test(val)) {
       Snackbar.show({
-        text: "Please enter a valid 10-digit mobile number",
+        text: t('validation:pleaseEnterValidMobileNumber'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: colors.error || "#d32f2f",
       });
@@ -61,7 +63,7 @@ const UserCheck = ({ navigation }) => {
               style={[styles.primaryBar, { backgroundColor: colors.primary }]}
             />
             <Text style={[styles.title, { color: colors.text }]}>
-              ENTER YOUR MOBILE{"\n"}NUMBER
+              {t('auth:enterMobileNumber').toUpperCase()}
             </Text>
           </View>
 
@@ -94,7 +96,7 @@ const UserCheck = ({ navigation }) => {
 
             <TextInput
               style={[styles.input, { color: colors.text }]}
-              placeholder="Enter Mobile Number"
+              placeholder={t('auth:phoneNumber')}
               placeholderTextColor={colors.textTertiary}
               keyboardType="phone-pad"
               value={mobileNumber}
@@ -124,7 +126,7 @@ const UserCheck = ({ navigation }) => {
             activeOpacity={0.85}
           >
             <Text style={[styles.nextText, { color: colors.onPrimary || "#fff" }]}>
-              NEXT
+              {t('common:next').toUpperCase()}
             </Text>
           </TouchableOpacity>
         </View>

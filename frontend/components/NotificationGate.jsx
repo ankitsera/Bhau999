@@ -12,9 +12,11 @@ import {
   requestNotificationPermission,
   openAppSettings,
 } from "../utils/NotificationsService";
+import { useTranslation } from 'react-i18next';
 import { useTheme } from "../contexts/ThemeContext";
 
 const NotificationGate = ({ children }) => {
+  const { t } = useTranslation(['common']);
   const { colors, isDarkMode } = useTheme();
 
   const [granted, setGranted] = useState(false);
@@ -88,8 +90,8 @@ const NotificationGate = ({ children }) => {
     return (
       <View style={[styles.screen, { backgroundColor: colors.background }]}>
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.title, { color: colors.text }]}>Just a sec…</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Checking notification permission</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('common:justASec')}</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t('common:checkingNotificationPermission')}</Text>
         </View>
       </View>
     );
@@ -100,15 +102,15 @@ const NotificationGate = ({ children }) => {
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <Text style={[styles.title, { color: colors.text }]}>Notifications are required</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t('common:notificationsRequired')}</Text>
 
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          This app needs notification permission to work properly.
+          {t('common:notificationPermissionNeeded')}
         </Text>
 
         <View style={styles.bullets}>
-          <Text style={[styles.bullet, { color: colors.textSecondary }]}>• Result declared alerts</Text>
-          <Text style={[styles.bullet, { color: colors.textSecondary }]}>• Admin announcements</Text>
+          <Text style={[styles.bullet, { color: colors.textSecondary }]}>• {t('common:resultDeclaredAlerts')}</Text>
+          <Text style={[styles.bullet, { color: colors.textSecondary }]}>• {t('common:adminAnnouncements')}</Text>
         </View>
 
         {!neverAskAgain ? (
@@ -119,7 +121,7 @@ const NotificationGate = ({ children }) => {
             activeOpacity={0.85}
           >
             <Text style={[styles.primaryBtnText, { color: isDarkMode ? "#ffffff" : "#07110A" }]}>
-              {requesting ? "Requesting…" : "Allow Notifications"}
+              {requesting ? t('common:requesting') : t('common:allowNotifications')}
             </Text>
           </TouchableOpacity>
         ) : (
@@ -129,7 +131,7 @@ const NotificationGate = ({ children }) => {
               onPress={openAppSettings}
               activeOpacity={0.85}
             >
-              <Text style={[styles.primaryBtnText, { color: isDarkMode ? "#ffffff" : "#07110A" }]}>Open Settings</Text>
+              <Text style={[styles.primaryBtnText, { color: isDarkMode ? "#ffffff" : "#07110A" }]}>{t('common:openSettings')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -137,11 +139,11 @@ const NotificationGate = ({ children }) => {
               onPress={() => BackHandler.exitApp()}
               activeOpacity={0.85}
             >
-              <Text style={[styles.secondaryBtnText, { color: colors.text }]}>Exit App</Text>
+              <Text style={[styles.secondaryBtnText, { color: colors.text }]}>{t('common:exitApp')}</Text>
             </TouchableOpacity>
 
             <Text style={[styles.hint, { color: colors.textTertiary }]}>
-              In Settings, enable Notifications for this app.
+              {t('common:enableNotificationsInSettings')}
             </Text>
           </>
         )}

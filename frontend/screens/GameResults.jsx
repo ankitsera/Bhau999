@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
+import { useTranslation } from 'react-i18next';
 
 import ThemeHeader from "../components/ThemeHeader";
 import EmptyState from "../components/EmptyState";
@@ -61,6 +62,7 @@ const ResultRow = ({ item }) => {
 };
 
 const GameResults = () => {
+  const { t } = useTranslation(['games', 'common']);
   const { activeGamesUi, isLoadingActiveGames, loadActiveGames } =
     useContext(GameContext);
 
@@ -78,16 +80,16 @@ const GameResults = () => {
 
   return (
     <SafeAreaView style={styles.screen} edges={["bottom"]}>
-      <ThemeHeader title="Market Result History" />
+      <ThemeHeader title={t('games:marketResultHistory')} />
 
       <View style={styles.body}>
         {isLoadingActiveGames && list.length === 0 ? (
           <View style={styles.loaderWrap}>
             <ActivityIndicator size="small" color={ThemeColor} />
-            <Text style={styles.loaderText}>Loading...</Text>
+            <Text style={styles.loaderText}>{t('common:loading')}</Text>
           </View>
         ) : list.length === 0 ? (
-          <EmptyState text="No results found" />
+          <EmptyState text={t('games:noResultsFound')} />
         ) : (
           <FlatList
             data={list}

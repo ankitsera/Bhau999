@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useTranslation } from 'react-i18next';
 import { useTheme } from "../../contexts/ThemeContext";
 
 const BottomBetBar = ({
@@ -10,6 +11,7 @@ const BottomBetBar = ({
   disabled = false,
   loading = false,
 }) => {
+  const { t } = useTranslation(['games', 'common']);
   const { colors } = useTheme();
 
   const handlePress = () => {
@@ -21,11 +23,11 @@ const BottomBetBar = ({
     <View style={[styles.container, { borderTopColor: colors.divider, backgroundColor: colors.surface }]}>
       <View style={styles.left}>
         <View style={styles.item}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>Bids</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>{t('games:totalBids')}</Text>
           <Text style={[styles.value, { color: colors.text }]}>{bids ?? 0}</Text>
         </View>
         <View style={styles.item}>
-          <Text style={[styles.label, { color: colors.textSecondary }]}>Points</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>{t('games:totalPoints')}</Text>
           <Text style={[styles.value, { color: colors.text }]}>{points ?? 0}</Text>
         </View>
       </View>
@@ -40,7 +42,7 @@ const BottomBetBar = ({
         activeOpacity={0.8}
       >
         <Text style={styles.buttonText}>
-          {loading ? "..." : submitLabel}
+          {loading ? "..." : (submitLabel === "Submit" ? t('common:submit') : submitLabel)}
         </Text>
       </TouchableOpacity>
     </View>

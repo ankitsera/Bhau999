@@ -9,6 +9,7 @@ import {
   Alert,
   Keyboard,
 } from "react-native";
+import { useTranslation } from 'react-i18next';
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -69,9 +70,10 @@ function getPanasForTwoDigit(twoDigit) {
 }
 
 const TwoDigitPana = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
-  const gameName = route?.params?.gameName || "GAME";
+  const gameName = route?.params?.gameName || t('games:defaultGameName');
 
   const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
@@ -124,19 +126,19 @@ const TwoDigitPana = ({ route }) => {
 
     const cleanDigit = String(digit || "").replace(/[^0-9]/g, "");
     if (cleanDigit.length !== 2) {
-      Alert.alert("Validation", "Please enter a valid 2-digit number.");
+      Alert.alert(t('validation:validation'), t('validation:pleaseEnterValidJodi'));
       return;
     }
 
     const pts = Number(points);
-    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount, t)) {
       return;
     }
 
     const panas = getPanasForTwoDigit(cleanDigit);
 
     if (panas.length === 0) {
-      Alert.alert("No results", "No pana found for this 2-digit input.");
+      Alert.alert(t('validation:noMatch'), t('validation:pleaseEnterValidPana'));
       return;
     }
 
@@ -169,17 +171,17 @@ const TwoDigitPana = ({ route }) => {
     if (!guard()) return;
 
     if (totals.bids === 0) {
-      Alert.alert("No bets", "Please add at least one bet.");
+      Alert.alert(t('validation:noBets'), t('validation:pleaseAddBet'));
       return;
     }
 
     if (!mobileNumber) {
-      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      Alert.alert(t('validation:loginRequired'), t('validation:mobileNumberMissing'));
       return;
     }
 
     if (totals.points > balance) {
-      Alert.alert("Insufficient balance", "Your wallet balance is too low.");
+      Alert.alert(t('validation:insufficientBalance'), t('validation:walletBalanceTooLow'));
       return;
     }
 
@@ -209,7 +211,7 @@ const TwoDigitPana = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      Alert.alert("Success", "Bets placed successfully!");
+      Alert.alert(t('common:success'), t('games:betPlacedSuccessfully'));
 
       // Update balance safely
       const spent = Number(totals.points) || 0;
@@ -221,7 +223,7 @@ const TwoDigitPana = ({ route }) => {
       setPoints("");
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", e?.message || "Failed to place bets.");
+      Alert.alert(t('common:error'), e?.message || t('games:betsFailed'));
     }
   };
 

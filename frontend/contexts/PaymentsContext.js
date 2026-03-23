@@ -7,6 +7,7 @@ import React, {
   useMemo,
 } from "react";
 import Snackbar from "react-native-snackbar";
+import i18n from '../i18n';
 import {
   lookupIFSC,
   savePayout as savePayoutAPI,
@@ -177,7 +178,7 @@ export const PaymentsProvider = ({ children }) => {
       dispatch({ type: T.SAVED, payload: screenPayload });
 
       Snackbar.show({
-        text: res?.message || "Saved ✅",
+        text: res?.message || i18n.t('funds:saved'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#388e3c",
       });
@@ -186,7 +187,7 @@ export const PaymentsProvider = ({ children }) => {
     } catch (error) {
       dispatch({ type: T.ERROR, error });
       Snackbar.show({
-        text: error?.message || "Save failed",
+        text: error?.message || i18n.t('funds:saveFailed'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
@@ -220,12 +221,12 @@ export const PaymentsProvider = ({ children }) => {
 
       const status = String(upiRes?.status || "").toUpperCase();
 
-      // ✅ We only accept SUCCESS for instant credit
+      // We only accept SUCCESS for instant credit
       if (status !== "SUCCESS") {
         throw new Error(`UPI status: ${status || "UNKNOWN"}`);
       }
 
-      // ✅ "secure as possible" in frontend-only world:
+      // "secure as possible" in frontend-only world:
       // don't credit if we didn't receive any trace id
       const hasTrace =
         !!upiRes?.txnId || !!upiRes?.approvalRefNo || !!upiRes?.rrn;
@@ -262,7 +263,7 @@ export const PaymentsProvider = ({ children }) => {
       });
 
       Snackbar.show({
-        text: 'Money added ✅',
+        text: i18n.t('funds:moneyAdded'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#388e3c",
       });
@@ -271,7 +272,7 @@ export const PaymentsProvider = ({ children }) => {
     } catch (error) {
       dispatch({ type: T.ERROR, error });
       Snackbar.show({
-        text: error?.message || "Payment failed",
+        text: error?.message || i18n.t('funds:paymentFailed'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
@@ -282,7 +283,7 @@ export const PaymentsProvider = ({ children }) => {
   }, [user?.mobileNumber, user?.balance, updateUser]);
 
   /**
-   * ✅ Withdraw money (frontend-driven)
+   * Withdraw money (frontend-driven)
    * Uses submitTransaction with ONLY required fields:
    *  - mobileNumber
    *  - amount (NEGATIVE)
@@ -326,7 +327,7 @@ export const PaymentsProvider = ({ children }) => {
       });
 
       Snackbar.show({
-        text: "Withdrawal requested ✅",
+        text: i18n.t('funds:withdrawalRequested'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#388e3c",
       });
@@ -335,7 +336,7 @@ export const PaymentsProvider = ({ children }) => {
     } catch (error) {
       dispatch({ type: T.ERROR, error });
       Snackbar.show({
-        text: error?.message || "Withdraw failed",
+        text: error?.message || i18n.t('funds:withdrawFailed'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
@@ -345,7 +346,7 @@ export const PaymentsProvider = ({ children }) => {
     }
   }, [user?.mobileNumber, user?.balance, updateUser]);
 
-  // ✅ list loaders: NO THROW + in-flight + throttle
+  // list loaders: NO THROW + in-flight + throttle
   const loadTransactions = useCallback(async () => {
     const mobile = user?.mobileNumber;
     if (!mobile) return [];
@@ -365,7 +366,7 @@ export const PaymentsProvider = ({ children }) => {
     } catch (error) {
       dispatch({ type: T.TXN_FAIL, error });
       Snackbar.show({
-        text: error?.message || "Failed to load transactions",
+        text: error?.message || i18n.t('funds:failedToLoadTransactions'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
@@ -394,7 +395,7 @@ export const PaymentsProvider = ({ children }) => {
     } catch (error) {
       dispatch({ type: T.DEP_FAIL, error });
       Snackbar.show({
-        text: error?.message || "Failed to load deposits",
+        text: error?.message || i18n.t('funds:failedToLoadDeposits'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
@@ -423,7 +424,7 @@ export const PaymentsProvider = ({ children }) => {
     } catch (error) {
       dispatch({ type: T.WDR_FAIL, error });
       Snackbar.show({
-        text: error?.message || "Failed to load withdrawals",
+        text: error?.message || i18n.t('funds:failedToLoadWithdrawals'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });

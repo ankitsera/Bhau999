@@ -10,13 +10,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
 import ThemeHeader from '../components/ThemeHeader';
 import EmptyState from '../components/EmptyState';
 import { GameContext } from '../contexts/GameContext';
 import { useTheme } from '../contexts/ThemeContext';
 
-const Row = ({ name, onPanel }) => {
+const Row = ({ name, onPanel, t }) => {
   const { colors } = useTheme();
 
   return (
@@ -26,9 +27,9 @@ const Row = ({ name, onPanel }) => {
       </Text>
 
       <View style={styles.actions}>
-        {/* Jodi removed ✅ */}
+        {/* Jodi removed */}
         <Pressable style={[styles.btn, { backgroundColor: colors.primary, shadowColor: colors.text }]} onPress={onPanel}>
-          <Text style={styles.btnText}>Panel</Text>
+          <Text style={styles.btnText}>{t('games:panel')}</Text>
         </Pressable>
       </View>
     </View>
@@ -36,6 +37,7 @@ const Row = ({ name, onPanel }) => {
 };
 
 const MatkaChart = () => {
+  const { t } = useTranslation(['games', 'common']);
   const { colors } = useTheme();
 
   const navigation = useNavigation();
@@ -65,13 +67,13 @@ const MatkaChart = () => {
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={['bottom']}>
-      <ThemeHeader title="Game Chart List" />
+      <ThemeHeader title={t('games:gameChartList')} />
 
       <View style={styles.body}>
         {isLoadingActiveGames && list.length === 0 ? (
           <View style={styles.loaderWrap}>
             <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={[styles.loaderText, { color: colors.text }]}>Loading...</Text>
+            <Text style={[styles.loaderText, { color: colors.text }]}>{t('common:loading')}</Text>
           </View>
         ) : (
           <FlatList
@@ -85,6 +87,7 @@ const MatkaChart = () => {
                     gameName: String(item?.gameName || '').toUpperCase(),
                   })
                 }
+                t={t}
               />
             )}
             showsVerticalScrollIndicator={false}
@@ -95,7 +98,7 @@ const MatkaChart = () => {
                 onRefresh={onRefresh}
               />
             }
-            ListEmptyComponent={<EmptyState text="No games found" />}
+            ListEmptyComponent={<EmptyState text={t('games:noGamesFound')} />}
           />
         )}
       </View>

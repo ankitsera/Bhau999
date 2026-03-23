@@ -13,10 +13,9 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { AuthContext } from '../contexts/AuthContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Share, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { getShareUrl, getTelegramChannel } from '../utils/AppConfigService';
 import { useTheme } from '../contexts/ThemeContext';
-
-const colors = { /* Light theme colors will be provided by context */ };
 
 const menuImages = {
   home: require('../assets/Images/home.webp'),
@@ -27,6 +26,7 @@ const menuImages = {
   notifications: require('../assets/Images/notification.webp'),
   charts: require('../assets/Images/Charts.webp'),
   gameRate: require('../assets/Images/Rates.webp'),
+  language: require('../assets/Images/Language.webp'),
   noticeBoard: require('../assets/Images/Rules.webp'),
   settings: require('../assets/Images/Settings.webp'),
   shareApp: require('../assets/Images/Share.webp'),
@@ -34,22 +34,24 @@ const menuImages = {
 };
 
 const SideBarNavigation = ({ navigation, closeSidebar }) => {
+  const { t } = useTranslation(['common']);
   const { user, logout } = useContext(AuthContext);
   const { colors } = useTheme();
 
   const menuItems = [
-    { name: 'Home', imageKey: 'home' },
-    { name: 'My Bids', imageKey: 'myBids' },
-    { name: 'Passbook', imageKey: 'passbook' },
-    { name: 'Funds', imageKey: 'funds'},
-    { name: 'Telegram', imageKey: 'telegram' },
-    { name: 'Notifications', imageKey: 'notifications' },
-    { name: 'Charts', imageKey: 'charts' },
-    { name: 'Game Rate', imageKey: 'gameRate' },
-    { name: 'Notice board / Rules', imageKey: 'noticeBoard' },
-    { name: 'Settings', imageKey: 'settings' },
-    { name: 'Share App', imageKey: 'shareApp' },
-    { name: 'Logout', imageKey: 'logout' },
+    { name: 'Home', translationKey: 'home', imageKey: 'home' },
+    { name: 'My Bids', translationKey: 'myBids', imageKey: 'myBids' },
+    { name: 'Passbook', translationKey: 'passbook', imageKey: 'passbook' },
+    { name: 'Funds', translationKey: 'funds', imageKey: 'funds'},
+    { name: 'Telegram', translationKey: 'telegram', imageKey: 'telegram' },
+    { name: 'Notifications', translationKey: 'notifications', imageKey: 'notifications' },
+    { name: 'Charts', translationKey: 'charts', imageKey: 'charts' },
+    { name: 'Game Rate', translationKey: 'gameRate', imageKey: 'gameRate' },
+    { name: 'Language', translationKey: 'language', imageKey: 'language' },
+    { name: 'Notice board / Rules', translationKey: 'noticeBoardRules', imageKey: 'noticeBoard' },
+    { name: 'Settings', translationKey: 'settings', imageKey: 'settings' },
+    { name: 'Share App', translationKey: 'shareApp', imageKey: 'shareApp' },
+    { name: 'Logout', translationKey: 'logout', imageKey: 'logout' },
   ];
 
   const shareApp = async () => {
@@ -58,8 +60,8 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
       const link = String(url || '').trim();
       if (!link) {
         Alert.alert(
-          'Share failed',
-          'Share link is missing. Please try again later.',
+          t('common:shareFailed'),
+          t('common:shareLinkMissing'),
         );
         return;
       }
@@ -70,14 +72,14 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
 
       await Share.share({ message });
     } catch (e) {
-      Alert.alert('Share failed', e?.message || 'Something went wrong');
+      Alert.alert(t('common:shareFailed'), e?.message || t('common:somethingWentWrong'));
     }
   };
 
   const openTelegram = async () => {
     const telegramUrl = await getTelegramChannel();
     if (!telegramUrl) {
-      Alert.alert('Error', 'Telegram channel link is not configured.');
+      Alert.alert(t('common:error'), t('common:telegramLinkNotConfigured'));
       return;
     }
     Linking.openURL(telegramUrl).catch(() => {});
@@ -106,7 +108,7 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
     navigation.navigate(menu);
   };
 
-  // ✅ minimal row (no background, no divider, no icon circle)
+  // minimal row (no background, no divider, no icon circle)
   const renderMenuItem = ({ item }) => {
     const imageSource = menuImages[item?.imageKey];
 
@@ -129,7 +131,7 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
             style={[styles.menuText, { color: colors.text }]}
             numberOfLines={1}
           >
-            {item.name}
+            {item.translationKey ? t(`common:${item.translationKey}`) : item.name}
           </Text>
         </View>
       </TouchableOpacity>
@@ -164,7 +166,7 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
             </Text>
 
             <Text style={[styles.since, { color: colors.textTertiary }]}>
-              Since{' '}
+              {t('common:since')}{' '}
               {user?.dateSignup
                 ? user.dateSignup.slice(0, 10).split('-').reverse().join('/')
                 : '26/10/2025'}

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
+import { useTranslation } from 'react-i18next';
 import ThemeHeader from "../../components/ThemeHeader";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -14,36 +15,36 @@ import { useTheme } from "../../contexts/ThemeContext";
 const ITEMS = [
   {
     id: "add",
-    title: "Add Fund",
-    subtitle: "You can add fund to your wallet",
+    titleKey: "funds:addFund",
+    subtitleKey: "screens:addFundSubtitle",
     image: require("../../assets/Images/AddFund.webp"),
     onPress: (nav) => nav.navigate("Add Money"),
   },
   {
     id: "withdraw",
-    title: "Withdraw Fund",
-    subtitle: "You can withdraw winnings",
+    titleKey: "funds:withdrawFund",
+    subtitleKey: "screens:withdrawFundSubtitle",
     image: require("../../assets/Images/WithdrawFund.webp"),
     onPress: (nav) => nav.navigate("Withdraw Money"),
   },
   {
     id: "bank",
-    title: "Bank Details",
-    subtitle: "Add your bank detail for withdrawals",
+    titleKey: "navigation:bankDetails",
+    subtitleKey: "screens:bankDetailsSubtitle",
     image: require("../../assets/Images/AddBankDetails.webp"),
     onPress: (nav) => nav.navigate("Bank Details"),
   },
   {
     id: "addHistory",
-    title: "Add Fund History",
-    subtitle: "You can check your add point history",
+    titleKey: "funds:addFundHistory",
+    subtitleKey: "screens:addFundHistorySubtitle",
     image: require("../../assets/Images/AddFund.webp"),
     onPress: (nav) => nav.navigate("Add Fund History"),
   },
   {
     id: "withdrawHistory",
-    title: "Withdraw Fund History",
-    subtitle: "You can check your Withdraw point history",
+    titleKey: "funds:withdrawFundHistory",
+    subtitleKey: "screens:withdrawFundHistorySubtitle",
     image: require("../../assets/Images/WithdrawFund.webp"),
     onPress: (nav) => nav.navigate("Withdraw Fund History"),
   },
@@ -73,7 +74,7 @@ const Chevron = () => {
   );
 };
 
-const Item = ({ item, navigation }) => {
+const Item = ({ item, navigation, t }) => {
   const { colors } = useTheme();
 
   return (
@@ -85,8 +86,8 @@ const Item = ({ item, navigation }) => {
       <LeftIcon image={item.image} />
 
       <View style={{ flex: 1 }}>
-        <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{item.subtitle}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t(item.titleKey)}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t(item.subtitleKey)}</Text>
       </View>
 
       <Chevron />
@@ -95,16 +96,17 @@ const Item = ({ item, navigation }) => {
 };
 
 const Funds = ({ navigation }) => {
+  const { t } = useTranslation(['funds', 'screens', 'common', 'navigation']);
   const { colors } = useTheme();
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title="Funds" />
+      <ThemeHeader title={t('common:funds')} />
 
       <FlatList
         data={ITEMS}
         keyExtractor={(it) => it.id}
-        renderItem={({ item }) => <Item item={item} navigation={navigation} />}
+        renderItem={({ item }) => <Item item={item} navigation={navigation} t={t} />}
         ItemSeparatorComponent={() => <View style={{ height: 14 }} />}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}

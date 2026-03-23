@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
+import { useTranslation } from 'react-i18next';
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -27,6 +28,7 @@ const DIGIT_ROWS = [
 ];
 
 const DigitBasedJodi = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
   const gameName = route?.params?.gameName || "GAME";
@@ -65,7 +67,7 @@ const DigitBasedJodi = ({ route }) => {
   const handlePressDigit = (d) => {
     const pts = Number(points);
 
-    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount, t)) {
       return;
     }
 
@@ -103,17 +105,17 @@ const DigitBasedJodi = ({ route }) => {
     if (!guard()) return;
 
     if (totals.bids === 0) {
-      Alert.alert("No bets", "Please add at least one digit group.");
+      Alert.alert(t('validation:noBets'), t('validation:pleaseAddDigitGroup'));
       return;
     }
 
     if (!mobileNumber) {
-      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      Alert.alert(t('validation:loginRequired'), t('validation:mobileNumberMissing'));
       return;
     }
 
     if (totals.points > balance) {
-      Alert.alert("Insufficient balance", "Your wallet balance is too low.");
+      Alert.alert(t('validation:insufficientBalance'), t('validation:walletBalanceTooLow'));
       return;
     }
 
@@ -131,7 +133,7 @@ const DigitBasedJodi = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend); //API call
-      Alert.alert("Success", "Bets placed successfully!");
+      Alert.alert(t('common:success'), t('games:betPlacedSuccessfully'));
 
       // Update balance safely
       const spent = Number(totals.points) || 0;
@@ -144,7 +146,7 @@ const DigitBasedJodi = ({ route }) => {
       setPoints("");
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", e?.message || "Failed to place bets.");
+      Alert.alert(t('common:error'), e?.message || t('games:betsFailed'));
     }
   };
 
@@ -158,13 +160,13 @@ const DigitBasedJodi = ({ route }) => {
         <View style={styles.content}>
           {/* Top controls (fixed) */}
           <View style={styles.pointRow}>
-            <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('games:enterPoints')}</Text>
             <TextInput
               style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
               keyboardType="number-pad"
               value={points}
               onChangeText={setPoints}
-              placeholder="Point"
+              placeholder={t('games:point')}
               placeholderTextColor={colors.textTertiary}
             />
           </View>
@@ -191,7 +193,7 @@ const DigitBasedJodi = ({ route }) => {
             <EasyModeTable
               bets={bets}
               onDelete={handleDelete}
-              digitHeaderLabel="Jodi"
+              digitHeaderLabel={t('games:jodi')}
             />
           </View>
         </View>

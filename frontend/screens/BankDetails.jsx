@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../contexts/AuthContext';
 import { PaymentsContext } from '../contexts/PaymentsContext';
 import ThemeHeader from '../components/ThemeHeader';
@@ -21,6 +22,7 @@ const GREY = '#E5E5E5';
 const isIfscSyntaxOk = (v) => /^[A-Z]{4}0[A-Z0-9]{6}$/i.test(v?.trim());
 
 const BankDetails = () => {
+  const { t } = useTranslation(['screens', 'validation', 'common']);
   const { colors } = useTheme();
 
   const { user } = useContext(AuthContext);
@@ -126,7 +128,7 @@ const BankDetails = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title="Update Bank Details" />
+      <ThemeHeader title={t('screens:updateBankDetails')} />
 
       <ScrollView
         contentContainerStyle={{ flexGrow: 1 }}
@@ -135,7 +137,7 @@ const BankDetails = () => {
       {/* Logo */}
       <View style={styles.logoWrap}>
         <Image
-          source={require('../assets/Images/logo_no_bg.webp')}
+          source={require('../assets/Images/logo.webp')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -149,7 +151,7 @@ const BankDetails = () => {
           </View>
           <TextInput
             style={[styles.input, { color: colors.text }]}
-            placeholder="Account Holder Name"
+            placeholder={t('screens:accountHolderName')}
             placeholderTextColor={colors.textTertiary}
             value={accountHolderName}
             onChangeText={setHolderName}
@@ -164,7 +166,7 @@ const BankDetails = () => {
           </View>
           <TextInput
             style={[styles.input, { color: colors.text }]}
-            placeholder="Account Number"
+            placeholder={t('screens:bankAccountNumber')}
             placeholderTextColor={colors.textTertiary}
             value={accountNumber}
             keyboardType="numeric"
@@ -179,7 +181,7 @@ const BankDetails = () => {
           </View>
           <TextInput
             style={[styles.input, { color: colors.text }]}
-            placeholder="IFSC CODE"
+            placeholder={t('screens:ifsc')}
             placeholderTextColor={colors.textTertiary}
             value={ifscCode}
             onChangeText={setIfsc}
@@ -190,15 +192,15 @@ const BankDetails = () => {
         {/* IFSC helper */}
         <View style={{ width: '95%', marginBottom: 10 }}>
           {ifscCode.length > 0 && !isIfscSyntaxOk(ifscCode) && (
-            <Text style={[styles.hint, { color: RED }]}>Please enter a valid IFSC Code</Text>
+            <Text style={[styles.hint, { color: RED }]}>{t('validation:pleaseEnterValidIFSC')}</Text>
           )}
 
           {isIfscSyntaxOk(ifscCode) && ifscQuerying && (
-            <Text style={[styles.hint, { color: colors.textSecondary }]}>Looking up IFSC…</Text>
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>{t('screens:lookingUpIFSC')}</Text>
           )}
 
           {ifscError && !ifscQuerying && (
-            <Text style={[styles.hint, { color: RED }]}>{ifscError}</Text>
+            <Text style={[styles.hint, { color: RED }]}>{t('screens:ifscNotFound')}</Text>
           )}
         </View>
 
@@ -240,7 +242,7 @@ const BankDetails = () => {
           disabled={!canSave || loading}
           activeOpacity={0.85}
         >
-          <Text style={styles.saveText}>{loading ? 'SAVING...' : 'SAVE'}</Text>
+          <Text style={styles.saveText}>{loading ? t('common:saving').toUpperCase() : t('common:save').toUpperCase()}</Text>
         </TouchableOpacity>
       </View>
       </ScrollView>

@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../contexts/AuthContext';
 import { PaymentsContext } from '../../contexts/PaymentsContext';
 import {
@@ -36,7 +37,7 @@ const maskMobile = (m) => {
   return `${s.slice(0, 2)}****${s.slice(-4)}`;
 };
 
-const TopCarouselBar = ({ data, statusText = "Deposit Successfully" }) => {
+const TopCarouselBar = ({ data, statusText }) => {
   const { colors } = useTheme();
   const listRef = useRef(null);
   const idxRef = useRef(0);
@@ -171,6 +172,7 @@ const TopCarouselBar = ({ data, statusText = "Deposit Successfully" }) => {
 /* ------------------ end carousel ------------------ */
 
 const AddMoney = ({ navigation }) => {
+  const { t } = useTranslation(['screens', 'funds', 'common']);
   const { colors } = useTheme();
 
   const { user } = useContext(AuthContext);
@@ -244,20 +246,20 @@ const AddMoney = ({ navigation }) => {
   const handleAdd = async () => {
     try {
       if (!Number.isFinite(amtNum) || amtNum <= 0) {
-        Alert.alert('Invalid Amount', 'Please enter a valid amount.');
+        Alert.alert(t('screens:invalidAmount'), t('screens:pleaseEnterValidAmount'));
         return;
       }
 
       const minDep = Number(minDeposit) || 0;
       if (minDep > 0 && amtNum < minDep) {
-        Alert.alert('Invalid Amount', `Minimum deposit amount is ₹${minDep}.`);
+        Alert.alert(t('screens:invalidAmount'), t('screens:minimumDepositAmount', { amount: minDep }));
         return;
       }
 
       const { payeeVpa, payeeName } = getPayeeConfig();
 
       if (!payeeVpa || !payeeName) {
-        Alert.alert('Config Missing', 'Payment configuration is not available.');
+        Alert.alert(t('screens:configMissing'), t('screens:paymentConfigNotAvailable'));
         return;
       }
 
@@ -265,12 +267,12 @@ const AddMoney = ({ navigation }) => {
         amountRupees: amtNum,
         payeeVpa,
         payeeName,
-        note: `Payment to ${payeeName}`,
+        note: t('screens:paymentTo', { name: payeeName }),
       });
 
       setAmount('');
     } catch (e) {
-      Alert.alert('Payment Failed', e?.message || 'Something went wrong.');
+      Alert.alert(t('screens:paymentFailed'), e?.message || t('common:somethingWentWrong'));
     }
   };
 
@@ -287,7 +289,7 @@ const AddMoney = ({ navigation }) => {
           >
             <MaterialIcons name="arrow-back" size={26} color={colors.text} />
           </Pressable>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Add Fund</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('funds:addFund')}</Text>
           <View style={styles.walletRight}>
             <MaterialCommunityIcons
               name="wallet-outline"
@@ -307,15 +309,15 @@ const AddMoney = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         {/* ✅ TOP CAROUSEL */}
-        <TopCarouselBar data={ADD_MONEY_CAROUSEL_DUMMY} statusText="Deposit Successfully" />
+        <TopCarouselBar data={ADD_MONEY_CAROUSEL_DUMMY} statusText={t('screens:depositSuccessfully')} />
 
         {/* Wallet card */}
         <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
           <View style={[styles.innerCard, { backgroundColor: colors.background, shadowColor: colors.text }]}>
-            <Image source={require("../../assets/Images/logo_no_bg.webp")} style={styles.walletImage} />
+            <Image source={require("../../assets/Images/logo.webp")} style={styles.walletImage} />
             <View style={{ width: "70%", borderWidth: 1, borderColor: colors.divider }}></View>
             <View style={[styles.balanceStrip, { backgroundColor: colors.background }]}>
-              <Text style={[styles.balanceLabel, { color: colors.text }]}>Available Balance</Text>
+              <Text style={[styles.balanceLabel, { color: colors.text }]}>{t('screens:availableBalance')}</Text>
               <Text style={[styles.balanceValue, { color: colors.text }]}>₹ {user?.balance ? user.balance : '0.0'}</Text>
             </View>
           </View>
@@ -323,17 +325,17 @@ const AddMoney = ({ navigation }) => {
           {/* help section */}
           <View style={[styles.divider, { backgroundColor: colors.divider }]} />
           <Text style={[styles.helpTitle, { color: colors.text }]}>
-            For Fund Query's please Call Or Whatsapp
+            {t('screens:forFundQueries')}
           </Text>
 
           <View style={styles.helpBtns}>
             <TouchableOpacity style={[styles.helpBtn, { backgroundColor: colors.background, shadowColor: colors.text }]} onPress={openDialer}>
               <MaterialIcons name="call" size={20} color={colors.text} />
-              <Text style={[styles.helpText, { color: colors.text }]}>Call</Text>
+              <Text style={[styles.helpText, { color: colors.text }]}>{t('common:call')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.helpBtn, { backgroundColor: colors.background, shadowColor: colors.text }]} onPress={openWhatsapp}>
               <MaterialCommunityIcons name="whatsapp" size={20} color='#1ed514' />
-              <Text style={[styles.helpText, { color: colors.text }]}>Whatsapp</Text>
+              <Text style={[styles.helpText, { color: colors.text }]}>{t('common:whatsapp')}</Text>
             </TouchableOpacity>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.divider }]} />
@@ -348,7 +350,7 @@ const AddMoney = ({ navigation }) => {
               />
             </View>
             <TextInput
-              placeholder="Enter Amount"
+              placeholder={t('screens:enterAmount')}
               placeholderTextColor={colors.textTertiary}
               keyboardType="numeric"
               style={[styles.amountInput, { color: colors.text }]}
@@ -404,7 +406,7 @@ const AddMoney = ({ navigation }) => {
           {payLoading ? (
             <ActivityIndicator color={colors.background} />
           ) : (
-            <Text style={styles.bottomText}>Pay Now</Text>
+            <Text style={styles.bottomText}>{t('screens:payNow')}</Text>
           )}
         </TouchableOpacity>
       </View>

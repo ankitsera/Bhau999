@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -43,6 +44,7 @@ const hasDuplicateDigits = s => {
 };
 
 const SpMotor = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
   const gameName = route?.params?.gameName || 'GAME';
@@ -93,11 +95,11 @@ const SpMotor = ({ route }) => {
   }, [bets]);
 
   // ✅ NO blocking/rewriting for uniqueness here (prevents flicker on real devices)
-  // Only: digits-only + max 6 + set error if duplicates exist
+  // Only: digits-only + max 10 + set error if duplicates exist
   const handleChangeDigits = txt => {
     const clean = String(txt || '')
       .replace(/[^0-9]/g, '')
-      .slice(0, 6);
+      .slice(0, 10);
     setDigits(clean);
     setDigitsError(hasDuplicateDigits(clean));
   };
@@ -105,7 +107,7 @@ const SpMotor = ({ route }) => {
   // ✅ Auto-clean ONLY when user finishes editing (safe)
   const handleDigitsBlur = () => {
     setDigitsFocused(false);
-    const uniq = sanitizeMotorDigits(digits, 6);
+    const uniq = sanitizeMotorDigits(digits, 10);
     if (uniq !== digits) {
       setDigits(uniq);
     }
@@ -118,7 +120,7 @@ const SpMotor = ({ route }) => {
   // ✅ block Add if invalid digits/points (good UX)
   const canAdd = useMemo(() => {
     if (!digits) return false;
-    if (digits.length < 4 || digits.length > 6) return false;
+    if (digits.length < 4 || digits.length > 10) return false;
     if (digitsError) return false;
     if (!ptsNum || ptsNum <= 0) return false;
     if (ptsNum < minAmount || ptsNum > maxAmount) return false;
@@ -127,12 +129,12 @@ const SpMotor = ({ route }) => {
 
   const handleAdd = () => {
     // extra safety net: if user somehow bypassed, sanitize once
-    const uniqDigits = sanitizeMotorDigits(digits, 6);
+    const uniqDigits = sanitizeMotorDigits(digits, 10);
 
-    if (uniqDigits.length < 4 || uniqDigits.length > 6) {
+    if (uniqDigits.length < 4 || uniqDigits.length > 10) {
       Alert.alert(
-        'Validation',
-        'Please enter minimum 4 and maximum 6 unique digits.',
+        t('validation:validation'),
+        t('validation:enterMinMaxDigits'),
       );
       return;
     }
@@ -140,19 +142,19 @@ const SpMotor = ({ route }) => {
     // if duplicates were present, stop and let user see error
     if (hasDuplicateDigits(digits)) {
       setDigitsError(true);
-      Alert.alert('Validation', 'Please enter unique digits (no duplicates).');
+      Alert.alert(t('validation:validation'), t('validation:enterUniqueDigits'));
       return;
     }
 
     const pts = Number(points);
-    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount, t)) {
       return;
     }
 
     const panas = getSinglePanaMotorPanas(uniqDigits);
 
     if (panas.length === 0) {
-      Alert.alert('No match', 'No Single Pana found for these digits.');
+      Alert.alert(t('validation:noMatch'), t('validation:noSinglePanaFound'));
       return;
     }
 
@@ -190,20 +192,20 @@ const SpMotor = ({ route }) => {
     if (!guard()) return;
 
     if (totals.bids === 0) {
-      Alert.alert('No bets', 'Please add at least one pana.');
+      Alert.alert(t('validation:noBets'), t('validation:pleaseAddPana'));
       return;
     }
 
     if (!mobileNumber) {
       Alert.alert(
-        'Login required',
-        'Mobile number missing. Please login again.',
+        t('validation:loginRequired'),
+        t('validation:mobileNumberMissing'),
       );
       return;
     }
 
     if (totals.points > balance) {
-      Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
+      Alert.alert(t('validation:insufficientBalance'), t('validation:walletBalanceTooLow'));
       return;
     }
 
@@ -220,7 +222,7 @@ const SpMotor = ({ route }) => {
 
     try {
       await placeBets(betsToSend);
-      Alert.alert('Success', 'Bets placed successfully!');
+      Alert.alert(t('common:success'), t('games:betPlacedSuccessfully'));
 
       // Update balance safely
       const spent = Number(totals.points) || 0;
@@ -233,7 +235,7 @@ const SpMotor = ({ route }) => {
       setDigitsError(false);
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', e?.message || 'Failed to place bets.');
+      Alert.alert(t('common:error'), e?.message || t('games:betsFailed'));
     }
   };
 
@@ -266,7 +268,7 @@ const SpMotor = ({ route }) => {
                       borderColor: colors.border,
                       color: colors.text,
                     },
-                    (digitsError || (digitsFocused && (digits.length < 4 || digits.length > 6))) && [
+                    (digitsError || (digitsFocused && (digits.length < 4 || digits.length > 10))) && [
                       styles.errorInput,
                       { borderColor: colors.error },
                     ],
@@ -277,16 +279,16 @@ const SpMotor = ({ route }) => {
                   onFocus={() => setDigitsFocused(true)}
                   onEndEditing={handleDigitsBlur}
                   placeholder="Number"
-                  maxLength={6}
+                  maxLength={10}
                   placeholderTextColor={colors.textTertiary}
                 />
                 {digitsError ? (
                   <Text style={[styles.errorText, { color: colors.error }]}>
                     Please enter unique digits
                   </Text>
-                ) : digitsFocused && (digits.length < 4 || digits.length > 6) ? (
+                ) : digitsFocused && (digits.length < 4 || digits.length > 10) ? (
                   <Text style={[styles.errorText, { color: colors.error }]}>
-                    4-6 digits required
+                    4-10 digits required
                   </Text>
                 ) : null}
               </View>

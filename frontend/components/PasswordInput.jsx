@@ -1,6 +1,7 @@
 import React, { useState, forwardRef, useImperativeHandle } from "react";
 import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { useTranslation } from 'react-i18next';
 import { useTheme } from "../contexts/ThemeContext";
 
 const PasswordInput = forwardRef(
@@ -19,6 +20,7 @@ const PasswordInput = forwardRef(
     },
     ref
   ) => {
+    const { t } = useTranslation(['auth']);
     const { colors } = useTheme();
 
     const [focused, setFocused] = useState(false);
@@ -50,7 +52,7 @@ const PasswordInput = forwardRef(
         <TextInput
           ref={inputRef}
           style={[styles.input, { color: colors.text }, inputStyle]}
-          placeholder={placeholder}
+          placeholder={placeholder === "Password" ? t('auth:password') : placeholder}
           placeholderTextColor={colors.textTertiary}
           secureTextEntry={!visible}
           value={value}
@@ -69,7 +71,7 @@ const PasswordInput = forwardRef(
             onPress={() => setVisible((v) => !v)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             accessibilityRole="button"
-            accessibilityLabel={visible ? "Hide password" : "Show password"}
+            accessibilityLabel={visible ? t('auth:hidePassword') : t('auth:showPassword')}
           >
             <MaterialCommunityIcons name={visible ? "eye-off-outline" : "eye-outline"} size={22} color={colors.textTertiary} />
           </TouchableOpacity>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from "react-native";
+import { useTranslation } from 'react-i18next';
 import ThemeHeader from "../../components/ThemeHeader";
 import EmptyState from "../../components/EmptyState";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -8,25 +9,25 @@ import { useTheme } from "../../contexts/ThemeContext";
 const ROWS = [
   {
     id: "Matka Chart",
-    title: "Matka Chart",
-    subtitle: "Jodi and Panel chart Result",
+    titleKey: "screens:matkaChart",
+    subtitleKey: "screens:jodiPanelChartResult",
     icon: "chart-areaspline",
   },
   // {
   //   id: "Starline Chart",
-  //   title: "Starline Chart",
-  //   subtitle: "Starline Chart Date Time wise",
+  //   titleKey: "screens:starlineChart",
+  //   subtitleKey: "screens:starlineChartDateTimeWise",
   //   icon: "star-outline",
   // },
   // {
   //   id: "Jackpot Chart",
-  //   title: "Jackpot Chart",
-  //   subtitle: "Jackpot Chart Date Time wise",
+  //   titleKey: "screens:jackpotChart",
+  //   subtitleKey: "screens:jackpotChartDateTimeWise",
   //   icon: "trophy-variant-outline",
   // },
 ];
 
-const Row = ({ item, navigation }) => {
+const Row = ({ item, navigation, t }) => {
   const { colors } = useTheme();
 
   const handlePress = () => {
@@ -46,8 +47,8 @@ const Row = ({ item, navigation }) => {
         <MaterialCommunityIcons name={item.icon} size={24} color="#fff" />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{item.subtitle}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t(item.titleKey)}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t(item.subtitleKey)}</Text>
       </View>
       <View style={[styles.chevWrap, { backgroundColor: colors.surface }]}>
         <MaterialCommunityIcons name="chevron-right" size={26} color={colors.textTertiary} />
@@ -57,17 +58,18 @@ const Row = ({ item, navigation }) => {
 };
 
 const Charts = ({ navigation }) => {
+  const { t } = useTranslation(['screens', 'games', 'common']);
   const { colors } = useTheme();
 
   const [selectedId, setSelectedId] = useState(null);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title="Game Chart" />
+      <ThemeHeader title={t('games:gameChart')} />
       {selectedId ? (
         <EmptyState
           icon="folder-alert-outline"
-          message={`No chart available for ${selectedId}`}
+          message={t('screens:noChartAvailable', { name: selectedId })}
         />
       ) : (
         <FlatList
@@ -76,7 +78,7 @@ const Charts = ({ navigation }) => {
           contentContainerStyle={{ padding: 12, paddingBottom: 24 }}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           renderItem={({ item }) => (
-            <Row item={item} navigation={navigation} />
+            <Row item={item} navigation={navigation} t={t} />
           )}
           showsVerticalScrollIndicator={false}
         />

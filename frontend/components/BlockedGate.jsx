@@ -7,10 +7,12 @@ import {
   BackHandler,
   Pressable,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 export default function BlockedGate({ visible, navigationRef }) {
+  const { t } = useTranslation(['auth', 'common']);
   const { clearSession } = useContext(AuthContext);
   const { colors } = useTheme();
   const [busy, setBusy] = useState(false);
@@ -52,9 +54,9 @@ export default function BlockedGate({ visible, navigationRef }) {
     >
       <View style={styles.backdrop}>
         <View style={[styles.card, { backgroundColor: colors.background, borderColor: colors.border }]}>
-          <Text style={[styles.title, { color: colors.text }]}>Access blocked</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('auth:accessBlocked')}</Text>
           <Text style={[styles.body, { color: colors.textSecondary }]}>
-            Your account is not approved yet. Please contact support.
+            {t('auth:accountNotApprovedContactSupport')}
           </Text>
 
           <Pressable
@@ -62,7 +64,7 @@ export default function BlockedGate({ visible, navigationRef }) {
             onPress={goToUserCheck}
           >
             <Text style={styles.btnText}>
-              {busy ? 'Opening...' : 'Login with another number'}
+              {busy ? t('common:opening') : t('auth:loginWithAnotherNumber')}
             </Text>
           </Pressable>
         </View>

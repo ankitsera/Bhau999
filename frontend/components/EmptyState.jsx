@@ -2,13 +2,17 @@ import React from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useNavigation } from "@react-navigation/native";
+import { useTranslation } from 'react-i18next';
 import { useTheme } from "../contexts/ThemeContext";
 
 const EmptyState = ({
   message = "NO DATA FOUND",
 }) => {
+  const { t } = useTranslation(['common']);
   const { colors } = useTheme();
   const navigation = useNavigation();
+
+  const displayMessage = message === "NO DATA FOUND" ? t('common:noDataFound') : message;
 
   const handleGoBack = () => {
     navigation?.goBack?.();
@@ -31,7 +35,7 @@ const EmptyState = ({
         style={[styles.message, { color: colors.text }]}
         numberOfLines={3}
       >
-        {message}
+        {displayMessage}
       </Text>
 
       {/* Go back button */}
@@ -43,7 +47,7 @@ const EmptyState = ({
         ]}
       >
         <Text style={[styles.buttonText, { color: colors.text }]}>
-          Go Back
+          {t('common:goBack')}
         </Text>
       </Pressable>
     </View>

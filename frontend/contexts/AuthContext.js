@@ -1,5 +1,6 @@
 import React, { createContext, useEffect, useMemo, useReducer } from "react";
 import Snackbar from "react-native-snackbar";
+import i18n from '../i18n';
 
 import {
   login as loginAPI,
@@ -159,14 +160,14 @@ export const AuthProvider = ({ children }) => {
 
       const result = await signupAPI(mobileNumber, username, password);
 
-      // ✅ save creds for future restore
+      // save creds for future restore
       await saveAuthCreds(mobileNumber, password);
 
-      // ✅ go Home (as you asked)
+      // go Home (as you asked)
       navigation.navigate("Home");
 
       Snackbar.show({
-        text: result?.message || "Account created successfully ✅",
+        text: result?.message || i18n.t('auth:accountCreatedSuccessfully'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#388e3c",
       });
@@ -180,7 +181,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       dispatch({ type: TYPES.SIGNUP_FAILURE, error });
       Snackbar.show({
-        text: error?.message || "Something went wrong!",
+        text: error?.message || i18n.t('auth:somethingWentWrong'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
@@ -201,7 +202,7 @@ export const AuthProvider = ({ children }) => {
         dispatch({ type: TYPES.SET_BLOCKED });
 
         Snackbar.show({
-          text: "Your account is not approved yet.",
+          text: i18n.t('auth:accountNotApprovedYet'),
           duration: Snackbar.LENGTH_LONG,
           backgroundColor: "#d32f2f",
         });
@@ -222,7 +223,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       dispatch({ type: TYPES.LOGIN_FAILURE, error });
       Snackbar.show({
-        text: error?.message || "Something went wrong!",
+        text: error?.message || i18n.t('auth:somethingWentWrong'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
@@ -236,7 +237,7 @@ export const AuthProvider = ({ children }) => {
       else navigation.navigate("Signup", { mobileNumber });
     } catch (error) {
       Snackbar.show({
-        text: error?.message || "Error checking user. Please try again.",
+        text: error?.message || i18n.t('auth:errorCheckingUser'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });
@@ -282,7 +283,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       dispatch({ type: TYPES.LOGIN_FAILURE, error });
       Snackbar.show({
-        text: error?.message || "Refresh failed",
+        text: error?.message || i18n.t('auth:refreshFailed'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#d32f2f",
       });

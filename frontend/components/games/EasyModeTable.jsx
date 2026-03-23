@@ -1,11 +1,13 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { useTranslation } from 'react-i18next';
 import { useTheme } from "../../contexts/ThemeContext";
 
 const DELETE_COL_W = 44; // keep header + rows aligned
 
 const EasyModeTable = ({ bets, onDelete, digitHeaderLabel = "Ank" }) => {
+  const { t } = useTranslation(['games', 'common']);
   const { colors } = useTheme();
 
   return (
@@ -15,15 +17,15 @@ const EasyModeTable = ({ bets, onDelete, digitHeaderLabel = "Ank" }) => {
           <Text style={[styles.headerText, { color: colors.text }]}>{digitHeaderLabel}</Text>
         </View>
         <View style={styles.headerCell}>
-          <Text style={[styles.headerText, { color: colors.text }]}>Point</Text>
+          <Text style={[styles.headerText, { color: colors.text }]}>{t('games:point')}</Text>
         </View>
         <View style={styles.headerCell}>
-          <Text style={[styles.headerText, { color: colors.text }]}>Type</Text>
+          <Text style={[styles.headerText, { color: colors.text }]}>{t('common:type')}</Text>
         </View>
 
         {/* Fixed-width delete header cell (matches rows) */}
         <View style={styles.deleteCol}>
-          <Text style={[styles.headerText, { color: colors.text }]}>Delete</Text>
+          <Text style={[styles.headerText, { color: colors.text }]}>{t('common:delete')}</Text>
         </View>
       </View>
 
@@ -35,7 +37,7 @@ const EasyModeTable = ({ bets, onDelete, digitHeaderLabel = "Ank" }) => {
           keyboardShouldPersistTaps="handled"
         >
           {!bets || bets.length === 0 ? (
-            <Text style={[styles.emptyText, { color: colors.textTertiary }]}>No entries</Text>
+            <Text style={[styles.emptyText, { color: colors.textTertiary }]}>{t('common:noDataFound')}</Text>
           ) : (
             bets.map((item) => (
               <View key={String(item.id)} style={[styles.row, { backgroundColor: colors.surface }]}>
@@ -107,7 +109,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     marginTop: 8,
-    paddingVertical: 10,
+    paddingVertical: 6,
     paddingHorizontal: 10,
     borderRadius: 20,
     alignItems: "center",
@@ -118,8 +120,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   deleteBtn: {
-    width: 34,
-    height: 34,
+    width: 26,
+    height: 26,
     borderRadius: 17,
     justifyContent: "center",
     alignItems: "center",

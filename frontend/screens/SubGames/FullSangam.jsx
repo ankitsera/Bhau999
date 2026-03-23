@@ -10,10 +10,11 @@ import {
   Keyboard,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import DynamicHeader from "../../components/DynamicHeader";
-import { getSinglePanaSuggestions } from "../../data/singlePanaMap";
+import { getAllPanaSuggestions } from "../../data/singlePanaMap";
 
 import { AuthContext } from "../../contexts/AuthContext";
 import { placeBets, makeBet } from "../../utils/GameService";
@@ -31,9 +32,10 @@ const normalizePana = (v) =>
 const isValidPana = (p) => /^\d{3}$/.test(p);
 
 const FullSangam = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
-  const gameName = route?.params?.gameName || "GAME";
+  const gameName = route?.params?.gameName || t('games:defaultGameName');
 
   const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
@@ -60,12 +62,12 @@ const FullSangam = ({ route }) => {
   const [bets, setBets] = useState([]); // { id, sangam, points }
 
   const openSuggestions = useMemo(() => {
-    const list = getSinglePanaSuggestions(openPana) || [];
+    const list = getAllPanaSuggestions(openPana) || [];
     return list.slice(0, 30);
   }, [openPana]);
 
   const closeSuggestions = useMemo(() => {
-    const list = getSinglePanaSuggestions(closePana) || [];
+    const list = getAllPanaSuggestions(closePana) || [];
     return list.slice(0, 30);
   }, [closePana]);
 
@@ -89,25 +91,25 @@ const FullSangam = ({ route }) => {
     const cp = normalizePana(closePana);
 
     if (!isValidPana(op)) {
-      Alert.alert("Validation", "Enter a valid 3-digit Open Pana.");
+      Alert.alert(t('validation:validation'), t('validation:pleaseEnterValidOpenPana'));
       return;
     }
     if (!isValidPana(cp)) {
-      Alert.alert("Validation", "Enter a valid 3-digit Close Pana.");
+      Alert.alert(t('validation:validation'), t('validation:pleaseEnterValidClosePana'));
       return;
     }
 
     // ✅ ensure they are valid pana from your predefined list
-    const opValid = (getSinglePanaSuggestions(op[0]) || []).includes(op);
-    const cpValid = (getSinglePanaSuggestions(cp[0]) || []).includes(cp);
+    const opValid = (getAllPanaSuggestions(op[0]) || []).includes(op);
+    const cpValid = (getAllPanaSuggestions(cp[0]) || []).includes(cp);
 
     if (!opValid || !cpValid) {
-      Alert.alert("Validation", "Please select valid Pana from suggestions.");
+      Alert.alert(t('validation:validation'), t('validation:pleaseSelectValidPana'));
       return;
     }
 
     const pts = Number(points);
-    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount, t)) {
       return;
     }
 
@@ -140,17 +142,17 @@ const FullSangam = ({ route }) => {
     if (!guard()) return;
 
     if (bets.length === 0) {
-      Alert.alert("No bets", "Please add at least one bet.");
+      Alert.alert(t('validation:noBets'), t('validation:pleaseAddBet'));
       return;
     }
 
     if (!mobileNumber) {
-      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      Alert.alert(t('validation:loginRequired'), t('validation:mobileNumberMissing'));
       return;
     }
 
     if (totalPoints > balance) {
-      Alert.alert("Insufficient balance", "Your wallet balance is too low.");
+      Alert.alert(t('validation:insufficientBalance'), t('validation:walletBalanceTooLow'));
       return;
     }
 
@@ -170,7 +172,7 @@ const FullSangam = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      Alert.alert("Success", "Bets placed successfully!");
+      Alert.alert(t('common:success'), t('games:betPlacedSuccessfully'));
 
       // Update balance safely
       const spent = Number(totalPoints) || 0;
@@ -180,7 +182,7 @@ const FullSangam = ({ route }) => {
       setBets([]);
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", e?.message || "Failed to place bets.");
+      Alert.alert(t('common:error'), e?.message || t('games:betsFailed'));
     }
   };
 
@@ -280,7 +282,7 @@ const FullSangam = ({ route }) => {
 
             {/* TABLE HEADER */}
             <View style={[styles.tableHeader, { backgroundColor: colors.primary }]}>
-              <Text style={[styles.th, { flex: 1.4, color: colors.text }]}>Sangam</Text>
+              <Text style={[styles.th, { flex: 1.1, color: colors.text }]}>Sangam</Text>
               <Text style={[styles.th, { flex: 1, color: colors.text }]}>Amount</Text>
               <Text style={[styles.th, { width: 70, textAlign: "center", color: colors.text }]}>
                 Delete
@@ -290,7 +292,7 @@ const FullSangam = ({ route }) => {
             {/* ROWS */}
             {bets.map((b) => (
               <View key={b.id} style={[styles.rowCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                <Text style={[styles.cell, { flex: 1.4, color: colors.text }]}>{b.sangam}</Text>
+                <Text style={[styles.cell, { flex: 1.1, color: colors.text }]}>{b.sangam}</Text>
                 <Text style={[styles.cell, { flex: 1, textAlign: "center", color: colors.text }]}>
                   {b.points}
                 </Text>
@@ -388,7 +390,7 @@ const styles = StyleSheet.create({
 
   input: {
     height: 44,
-    width: 180,
+    width: 150,
     borderRadius: 22,
     borderWidth: 1,
     fontSize: 16,
@@ -437,12 +439,12 @@ const styles = StyleSheet.create({
     marginTop: 16,
     borderRadius: 6,
     flexDirection: "row",
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 12,
     alignItems: "center",
   },
   th: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "700",
     textAlign: "center",
   },
@@ -450,7 +452,7 @@ const styles = StyleSheet.create({
   rowCard: {
     marginTop: 12,
     borderRadius: 14,
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -458,12 +460,12 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cell: {
-    fontSize: 18,
+    fontSize: 14,
   },
 
   deleteCircle: {
-    width: 42,
-    height: 42,
+    width: 34,
+    height: 34,
     borderRadius: 21,
     justifyContent: "center",
     alignItems: "center",

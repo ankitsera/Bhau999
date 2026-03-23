@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoute } from "@react-navigation/native";
+import { useTranslation } from 'react-i18next';
 
 import ThemeHeader from "../components/ThemeHeader";
 import EmptyState from "../components/EmptyState";
@@ -76,13 +77,13 @@ function addDays(dt, days) {
   return d;
 }
 
-const HeaderRow = () => {
+const HeaderRow = ({ t }) => {
   const { colors } = useTheme();
 
   return (
     <View style={[styles.tableHeader, { backgroundColor: colors.primaryTile }]}>
       <View style={[styles.cellDate, styles.hCell, { borderRightColor: colors.divider }]}>
-        <Text style={[styles.hText, { color: colors.text }]}>Date</Text>
+        <Text style={[styles.hText, { color: colors.text }]}>{t('common:date')}</Text>
       </View>
       {DAYS.map((d) => (
         <View key={d} style={[styles.cellDay, styles.hCell, { borderRightColor: colors.divider }]}>
@@ -117,6 +118,7 @@ const WeekRow = ({ item }) => {
 };
 
 const GameChartPanel = () => {
+  const { t } = useTranslation(['games', 'common']);
   const { colors } = useTheme();
 
   const route = useRoute();
@@ -145,7 +147,7 @@ const GameChartPanel = () => {
     }
   }, [fetchHistory]);
 
-  // ✅ filter to selected game and normalize fields
+  // filter to selected game and normalize fields
   const filtered = useMemo(() => {
     const arr = Array.isArray(gameHistory) ? gameHistory : [];
     return arr
@@ -166,7 +168,7 @@ const GameChartPanel = () => {
       .filter((x) => x.histDate instanceof Date);
   }, [gameHistory, gameName]);
 
-  // ✅ group by week (Mon-Sun) and build chart cells
+  // group by week (Mon-Sun) and build chart cells
   const weeks = useMemo(() => {
     if (!filtered.length) return [];
 
@@ -212,21 +214,21 @@ const GameChartPanel = () => {
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["bottom"]}>
-      <ThemeHeader title={`${gameName || "GAME"} CHART`} />
+      <ThemeHeader title={`${gameName || t('games:game').toUpperCase()} ${t('games:gameChart').toUpperCase()}`} />
 
       <View style={styles.body}>
         {isLoadingGameHistory && weeks.length === 0 ? (
           <View style={styles.loaderWrap}>
             <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={[styles.loaderText, { color: colors.text }]}>Loading...</Text>
+            <Text style={[styles.loaderText, { color: colors.text }]}>{t('common:loading')}</Text>
           </View>
         ) : weeks.length === 0 ? (
-          <EmptyState text="No chart data yet" />
+          <EmptyState text={t('games:noChartData')} />
         ) : (
           // horizontal scroll so table never squishes
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.tableWrap}>
-              <HeaderRow />
+              <HeaderRow t={t} />
               <FlatList
                 data={weeks}
                 keyExtractor={(it) => it.key}

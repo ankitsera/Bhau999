@@ -6,6 +6,7 @@ import {
   SectionList,
   ActivityIndicator,
 } from "react-native";
+import { useTranslation } from 'react-i18next';
 import ThemeHeader from "../../components/ThemeHeader";
 import EmptyState from "../../components/EmptyState";
 import { GameContext } from "../../contexts/GameContext";
@@ -34,6 +35,7 @@ const RateRow = ({ label, value }) => {
 };
 
 const GameRate = () => {
+  const { t } = useTranslation(['games', 'screens', 'common']);
   const { colors } = useTheme();
 
   const { rates, isLoadingRates, loadGameRates } = useContext(GameContext);
@@ -121,7 +123,7 @@ const GameRate = () => {
 
     return [
       {
-        title: "Game Win Ratio for All Bids",
+        title: t('screens:gameWinRatioForAllBids'),
         data: rates.map((r) => {
           const gameName = r.type ?? "Unknown";
           const baseRateNum = Number(r.rate);
@@ -142,14 +144,14 @@ const GameRate = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title="Game Rate" />
+      <ThemeHeader title={t('games:gameRate')} />
 
       {isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : sections.length === 0 ? (
-        <EmptyState icon="chart-line-variant" message="NO RATE DATA FOUND" />
+        <EmptyState icon="chart-line-variant" message={t('screens:noRateDataFound')} />
       ) : (
         <SectionList
           sections={sections}

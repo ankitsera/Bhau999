@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import DynamicHeader from '../../components/DynamicHeader';
 import BottomBetBar from '../../components/games/BottomBetBar';
@@ -28,6 +29,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']; // increasing order
 
 const DoublePanaBulk = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
   const gameName = route?.params?.gameName || 'GAME';

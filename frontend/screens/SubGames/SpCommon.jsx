@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import DynamicHeader from '../../components/DynamicHeader';
 import GameTypePicker from '../../components/games/GameTypePicker';
@@ -29,6 +30,7 @@ const ROW1 = ['1', '2', '3', '4', '5'];
 const ROW2 = ['6', '7', '8', '9', '0'];
 
 const SpCommon = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
   const gameName = route?.params?.gameName || 'GAME';
@@ -74,7 +76,7 @@ const SpCommon = ({ route }) => {
   const addCommonForDigit = digit => {
     const pts = Number(points);
 
-    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount, t)) {
       return;
     }
 
@@ -102,17 +104,17 @@ const SpCommon = ({ route }) => {
     if (!guard()) return;
 
     if (totals.bids === 0) {
-      Alert.alert('No bets', 'Please add at least one pana.');
+      Alert.alert(t('validation:noBets'), t('validation:pleaseAddPana'));
       return;
     }
 
     if (!mobileNumber) {
-      Alert.alert('Login required', 'Mobile number missing. Please login again.');
+      Alert.alert(t('validation:loginRequired'), t('validation:mobileNumberMissing'));
       return;
     }
 
     if (totals.points > balance) {
-      Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
+      Alert.alert(t('validation:insufficientBalance'), t('validation:walletBalanceTooLow'));
       return;
     }
 

@@ -6,6 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import ThemeHeader from '../../components/ThemeHeader';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import EmptyState from '../../components/EmptyState';
@@ -18,7 +19,7 @@ import {
 } from '../../utils/AppConfigService';
 import { useTheme } from '../../contexts/ThemeContext';
 
-const Section = ({ title, points }) => {
+const Section = ({ title, points, t }) => {
   const { colors } = useTheme();
 
   return (
@@ -48,7 +49,7 @@ const Section = ({ title, points }) => {
             </View>
           ))
         ) : (
-          <Text style={[styles.sectionText, { color: colors.textSecondary }]}>No details available</Text>
+          <Text style={[styles.sectionText, { color: colors.textSecondary }]}>{t('screens:noDetailsAvailable')}</Text>
         )}
       </View>
     </View>
@@ -56,6 +57,7 @@ const Section = ({ title, points }) => {
 };
 
 const NoticeBoard = () => {
+  const { t } = useTranslation(['screens', 'games', 'common']);
   const { colors } = useTheme();
 
   const [loading, setLoading] = useState(true);
@@ -90,22 +92,22 @@ const NoticeBoard = () => {
     if (!notices || notices.length === 0) return [];
     return [
       {
-        title: 'Important Notices',
+        title: t('screens:importantNotices'),
         points: notices,
       },
     ];
-  }, [notices]);
+  }, [notices, t]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title="Notice Board" />
+      <ThemeHeader title={t('games:noticeBoardHeader')} />
 
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : sections.length === 0 ? (
-        <EmptyState icon="file-document-outline" message="NO NOTICES FOUND" />
+        <EmptyState icon="file-document-outline" message={t('screens:noNoticesFound')} />
       ) : (
         <ScrollView
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
@@ -113,7 +115,7 @@ const NoticeBoard = () => {
         >
           {sections.map((section, idx) => (
             <React.Fragment key={idx}>
-              <Section title={section.title} points={section.points} />
+              <Section title={section.title} points={section.points} t={t} />
               {idx !== sections.length - 1 && <View style={[styles.divider, { backgroundColor: colors.divider }]} />}
             </React.Fragment>
           ))}

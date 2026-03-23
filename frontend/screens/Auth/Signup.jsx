@@ -11,10 +11,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const Signup = ({ navigation, route }) => {
+  const { t } = useTranslation(['auth', 'validation', 'common']);
   const { colors } = useTheme();
 
   const { signup } = useContext(AuthContext);
@@ -40,13 +42,13 @@ const Signup = ({ navigation, route }) => {
 
   const usernameError = useMemo(() => {
     if (!touched.username) return '';
-    return username.trim() ? '' : 'Name cannot be empty';
-  }, [touched.username, username]);
+    return username.trim() ? '' : t('validation:requiredField');
+  }, [touched.username, username, t]);
 
   const passwordError = useMemo(() => {
     if (!touched.password) return '';
-    return password.trim() ? '' : 'Password cannot be empty';
-  }, [touched.password, password]);
+    return password.trim() ? '' : t('validation:requiredField');
+  }, [touched.password, password, t]);
 
   const handleRegister = () => {
     // mark touched so errors show
@@ -54,7 +56,7 @@ const Signup = ({ navigation, route }) => {
 
     if (!username.trim()) {
       Snackbar.show({
-        text: 'Please enter a username',
+        text: t('validation:pleaseEnterUsername'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: '#d32f2f',
       });
@@ -63,7 +65,7 @@ const Signup = ({ navigation, route }) => {
 
     if (!password.trim()) {
       Snackbar.show({
-        text: 'Please enter a password',
+        text: t('validation:pleaseEnterPassword'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: '#d32f2f',
       });
@@ -72,7 +74,7 @@ const Signup = ({ navigation, route }) => {
 
     if (password.length < 6) {
       Snackbar.show({
-        text: 'Password must be at least 6 characters long',
+        text: t('validation:passwordMinLength'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: '#d32f2f',
       });
@@ -93,7 +95,7 @@ const Signup = ({ navigation, route }) => {
         <View style={styles.titleRow}>
           <View style={[styles.titleBar, { backgroundColor: colors.primary }]} />
           <Text style={[styles.titleText, { color: colors.textSecondary }]}>
-            CREATE NEW{'\n'}ACCOUNT
+            {t('auth:createAccount').toUpperCase()}
           </Text>
         </View>
 
@@ -113,7 +115,7 @@ const Signup = ({ navigation, route }) => {
 
             <TextInput
               style={[styles.input, { color: colors.text }]}
-              placeholder="Enter your name"
+              placeholder={t('auth:name')}
               placeholderTextColor={colors.textTertiary}
               value={username}
               onChangeText={setUsername}
@@ -137,7 +139,7 @@ const Signup = ({ navigation, route }) => {
             <TextInput
               style={[styles.input, { color: colors.text }]}
               value={mobileNumber}
-              placeholder="Phone Number"
+              placeholder={t('auth:phoneNumber')}
               placeholderTextColor={colors.textTertiary}
               onChangeText={setMobileNumber}
               keyboardType="phone-pad"
@@ -158,7 +160,7 @@ const Signup = ({ navigation, route }) => {
 
             <TextInput
               style={[styles.input, { color: colors.text }]}
-              placeholder="Enter password"
+              placeholder={t('auth:password')}
               placeholderTextColor={colors.textTertiary}
               value={password}
               onChangeText={setPassword}
@@ -188,7 +190,7 @@ const Signup = ({ navigation, route }) => {
             onPress={handleRegister}
             activeOpacity={0.85}
           >
-            <Text style={styles.signupText}>SIGN UP</Text>
+            <Text style={styles.signupText}>{t('auth:registerAndLogin').toUpperCase()}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

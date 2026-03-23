@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../contexts/AuthContext';
 import { GameContext } from '../contexts/GameContext';
 import SideBarNavigation from '../components/SideBarNavigation';
@@ -81,7 +82,7 @@ const Header = ({ navigation }) => {
             />
           </Pressable>
           <Image
-            source={require('../assets/Images/logo_no_bg.webp')}
+            source={require('../assets/Images/logo.webp')}
             style={styles.logoImage}
           />
         </View>
@@ -107,6 +108,7 @@ const Header = ({ navigation }) => {
 };
 
 const Home = ({ navigation }) => {
+  const { t } = useTranslation(['common']);
   const { colors } = useTheme();
 
   // Pull to refresh state (UI will be attached to GamesList FlatList)
@@ -158,9 +160,9 @@ const Home = ({ navigation }) => {
     useCallback(() => {
       const onBack = () => {
         if (Platform.OS === 'android') {
-          Alert.alert('Exit', 'Are you sure you want to exit?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Exit', style: 'destructive', onPress: () => BackHandler.exitApp() },
+          Alert.alert(t('quit'), t('quitMessage'), [
+            { text: t('cancel'), style: 'cancel' },
+            { text: t('quit'), style: 'destructive', onPress: () => BackHandler.exitApp() },
           ]);
           return true; // block default back behavior
         }

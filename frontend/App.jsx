@@ -3,18 +3,19 @@ import Navigation from "./navigation/Navigation";
 import { AuthProvider, AuthContext } from "./contexts/AuthContext";
 import { PaymentsProvider } from "./contexts/PaymentsContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { GameProvider } from "./contexts/GameContext";
 import { AppConfigProvider } from "./contexts/AppConfigContext";
-import { AppState } from "react-native";
+import { AppState, NativeModules } from "react-native";
 
-import { checkUpdateIfDue } from "./utils/UpdateService";
+import { checkUpdateIfDue, markColdStart } from "./utils/UpdateService";
 import UpdateGate from "./components/UpdateGate";
 import BlockedGate from "./components/BlockedGate";
 import NotificationGate from "./components/NotificationGate";
 
-// ✅ ADD THIS
 import { NotificationsProvider } from "./contexts/NotificationsContext";
+
+const { UpdateModule } = NativeModules;
 
 function AppInner() {
   const navigationRef = useRef(null);
@@ -25,31 +26,82 @@ function AppInner() {
   const [optionalDismissed, setOptionalDismissed] = useState(false);
 
   const [apkUrl, setApkUrl] = useState(null);
+  const [updateVersion, setUpdateVersion] = useState(null);
 
-  const runCheck = async () => {
+  const runCheck = useCallback (async () => {
     if (isBlocked) return;
 
     try {
       const res = await checkUpdateIfDue({ force: false });
-      if (res?.skipped) return;
+      if (!res) return;
 
+      // If check was skipped, don't update states
+      if (res.skipped) return;
+
+      // Clear all states when no update available
+      if (res?.shouldClearState) {
+        setUpdateAvailable(false);
+        setCompulsoryUpdate(false);
+        setOptionalDismissed(false);
+        setApkUrl(null);
+        setUpdateVersion(null);
+        
+        // Clear native state
+        if (UpdateModule?.clearUpdateState) {
+          try {
+            await UpdateModule.clearUpdateState();
+          } catch (e) {
+            console.log("Failed to clear native update state:", e?.message);
+          }
+        }
+        return;
+      }
+
+      const newVersion = res?.updateVersion || null;
+
+      // Reset dismissed flag when a new version is detected
+      setUpdateVersion( prev => {
+        if ( newVersion && newVersion !== prev) {
+          setOptionalDismissed(false);
+        }
+        return newVersion;
+      })
+
+      // Update all states
       setUpdateAvailable(!!res.updateAvailable);
       setCompulsoryUpdate(!!res.compulsoryUpdate);
       setApkUrl(res?.apkUrl || null);
-      setOptionalDismissed(false);
+
+      // Notify native module of available version
+      if (UpdateModule?.setAvailableVersion && newVersion) {
+        try {
+          await UpdateModule.setAvailableVersion(newVersion);
+        } catch (e) {
+          console.log("Failed to set native version:", e?.message);
+        }
+      }
     } catch (e) {
       console.log("Update check error:", e?.message);
     }
-  };
+  },[isBlocked]);
 
   const showUpdateGate =
     !isBlocked && (compulsoryUpdate || (updateAvailable && !optionalDismissed));
 
   useEffect(() => {
+    // Mark cold start on app mount
+    markColdStart().catch(console.warn);
+
+    // Initial check on mount
     runCheck();
-    const sub = AppState.addEventListener("change", (s) => {
-      if (s === "active") runCheck();
+
+    // Check when app returns to foreground
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        runCheck();
+      }
     });
+
     return () => sub.remove();
   }, [isBlocked]);
 
@@ -64,6 +116,7 @@ function AppInner() {
           compulsory={compulsoryUpdate}
           onDismiss={() => setOptionalDismissed(true)}
           apkUrl={apkUrl}
+          updateVersion={updateVersion}
         />
       </NotificationGate>
   );

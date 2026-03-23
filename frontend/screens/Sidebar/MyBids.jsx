@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
+import { useTranslation } from 'react-i18next';
 import ThemeHeader from "../../components/ThemeHeader";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -14,43 +15,43 @@ import { useTheme } from "../../contexts/ThemeContext";
 const ITEMS = [
   {
     id: "bid-history",
-    title: "Bid History",
-    subtitle: "You can view your market bid history",
+    titleKey: "games:bidHistory",
+    subtitleKey: "screens:bidHistorySubtitle",
     image: require("../../assets/Images/AddFund.webp"),
     onPress: (nav) => nav.navigate("Bid History"),
   },
   {
     id: "game-results",
-    title: "Game Results",
-    subtitle: "You can view your market result history",
+    titleKey: "games:gameResults",
+    subtitleKey: "screens:gameResultsSubtitle",
     image: require("../../assets/Images/WithdrawFund.webp"),
     onPress: (nav) => nav.navigate("Game Results"),
   },
   // {
   //   id: "ls-bid",
-  //   title: "Lucky Starline Bid History",
-  //   subtitle: "You can view starline history",
+  //   titleKey: "games:lsBid",
+  //   subtitleKey: "screens:lsBidSubtitle",
   //   icon: { lib: "MaterialCommunityIcons", name: "bank-transfer" },
   //   onPress: (nav) => nav.navigate("LuckyStarline Bid History"),
   // },
   // {
   //   id: "ls-result",
-  //   title: "Lucky Starline Result History",
-  //   subtitle: "You can view starline result",
+  //   titleKey: "games:lsResult",
+  //   subtitleKey: "screens:lsResultSubtitle",
   //   icon: { lib: "MaterialCommunityIcons", name: "history" },
   //   onPress: (nav) => nav.navigate("LuckyStarline Result History"),
   // },
   // {
   //   id: "lj-bid",
-  //   title: "Lucky Jackpot Bid History",
-  //   subtitle: "You can view Jackpot history",
+  //   titleKey: "games:ljBid",
+  //   subtitleKey: "screens:ljBidSubtitle",
   //   icon: { lib: "MaterialCommunityIcons", name: "bank-transfer" },
   //   onPress: (nav) => nav.navigate("LuckyJackpot Bid History"),
   // },
   // {
   //   id: "lj-result",
-  //   title: "Lucky Jackpot Result History",
-  //   subtitle: "You can view Jackpot result",
+  //   titleKey: "games:ljResult",
+  //   subtitleKey: "screens:ljResultSubtitle",
   //   icon: { lib: "MaterialCommunityIcons", name: "history" },
   //   onPress: (nav) => nav.navigate("LuckyJackpot Result History"),
   // },
@@ -80,7 +81,7 @@ const Chevron = () => {
   );
 };
 
-const Item = ({ item, navigation }) => {
+const Item = ({ item, navigation, t }) => {
   const { colors } = useTheme();
 
   return (
@@ -92,8 +93,8 @@ const Item = ({ item, navigation }) => {
       <TileIcon image={item.image} />
 
       <View style={{ flex: 1 }}>
-        <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{item.subtitle}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{t(item.titleKey)}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t(item.subtitleKey)}</Text>
       </View>
 
       <Chevron />
@@ -102,17 +103,18 @@ const Item = ({ item, navigation }) => {
 };
 
 const MyBids = ({ navigation }) => {
+  const { t } = useTranslation(['games', 'screens', 'common']);
   const { colors } = useTheme();
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title="My Bids" />
+      <ThemeHeader title={t('screens:myBids')} />
 
       <FlatList
         data={ITEMS}
         keyExtractor={(it) => it.id}
         contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => <Item item={item} navigation={navigation} />}
+        renderItem={({ item }) => <Item item={item} navigation={navigation} t={t} />}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         showsVerticalScrollIndicator={false}
       />

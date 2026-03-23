@@ -1,13 +1,16 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import EmptyState from '../../components/EmptyState'
 import ThemeHeader from '../../components/ThemeHeader'
 
 const HowToPlay = ({navigation}) => {
+  const { t } = useTranslation(['screens', 'common']);
+  
   return (
     <View style={styles.container}>
-      <ThemeHeader title="How to Play" />
-      <EmptyState message='How to Play video coming soon...'/>
+      <ThemeHeader title={t('screens:howToPlay')} />
+      <EmptyState message={t('screens:howToPlayComingSoon')}/>
     </View>
   )
 }

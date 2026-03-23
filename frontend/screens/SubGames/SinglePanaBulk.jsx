@@ -9,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from 'react-i18next';
 
 import DynamicHeader from "../../components/DynamicHeader";
 import BottomBetBar from "../../components/games/BottomBetBar";
@@ -28,9 +29,10 @@ import { useTheme } from "../../contexts/ThemeContext";
 const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
 const SinglePanaBulk = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
-  const gameName = route?.params?.gameName || "GAME";
+  const gameName = route?.params?.gameName || t('games:singlePanaBulk.title');
 
   const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
@@ -112,17 +114,17 @@ const SinglePanaBulk = ({ route }) => {
     if (!guard()) return;
 
     if (bids === 0) {
-      Alert.alert("No bets", "Please add at least one bet.");
+      Alert.alert(t('validation:noBets'), t('validation:pleaseAddBet'));
       return;
     }
 
     if (!mobileNumber) {
-      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      Alert.alert(t('validation:loginRequired'), t('validation:mobileNumberMissing'));
       return;
     }
 
     if (totalPoints > balance) {
-      Alert.alert("Insufficient balance", "Your wallet balance is too low.");
+      Alert.alert(t('validation:insufficientBalance'), t('validation:walletBalanceTooLow'));
       return;
     }
 

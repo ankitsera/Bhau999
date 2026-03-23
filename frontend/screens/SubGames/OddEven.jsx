@@ -8,6 +8,7 @@ import {
   Alert,
   Keyboard,
 } from "react-native";
+import { useTranslation } from 'react-i18next';
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -28,6 +29,7 @@ const ODD_DIGITS = ["1", "3", "5", "7", "9"];
 const EVEN_DIGITS = ["0", "2", "4", "6", "8"];
 
 const OddEven = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
   const gameName = route?.params?.gameName || "GAME";
@@ -86,7 +88,7 @@ const OddEven = ({ route }) => {
     Keyboard.dismiss();
 
     const pts = Number(points);
-    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount, t)) {
       return;
     }
 
@@ -111,17 +113,17 @@ const OddEven = ({ route }) => {
     if (!guard()) return;
 
     if (totals.bids === 0) {
-      Alert.alert("No bets", "Please add at least one bet.");
+      Alert.alert(t('validation:noBets'), t('validation:pleaseAddBet'));
       return;
     }
 
     if (!mobileNumber) {
-      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      Alert.alert(t('validation:loginRequired'), t('validation:mobileNumberMissing'));
       return;
     }
 
     if (totals.points > balance) {
-      Alert.alert("Insufficient balance", "Your wallet balance is too low.");
+      Alert.alert(t('validation:insufficientBalance'), t('validation:walletBalanceTooLow'));
       return;
     }
 
@@ -138,7 +140,7 @@ const OddEven = ({ route }) => {
 
     try {
       await placeBets(betsToSend);
-      Alert.alert("Success", "Bets placed successfully!");
+      Alert.alert(t('common:success'), t('games:betPlacedSuccessfully'));
 
       // Update balance safely
       const spent = Number(totals.points) || 0;
@@ -148,7 +150,7 @@ const OddEven = ({ route }) => {
       setBets([]);
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", e?.message || "Failed to place bets.");
+      Alert.alert(t('common:error'), e?.message || t('games:betsFailed'));
     }
   };
 
@@ -169,13 +171,13 @@ const OddEven = ({ route }) => {
           {/* Odd/Even picker */}
           <View style={styles.radioRow}>
             <RadioOption
-              label="Odd Digit"
+              label={t('games:oddDigit')}
               active={pick === "ODD"}
               onPress={() => setPick("ODD")}
               colors={colors}
             />
             <RadioOption
-              label="Even Digit"
+              label={t('games:evenDigit')}
               active={pick === "EVEN"}
               onPress={() => setPick("EVEN")}
               colors={colors}
@@ -184,7 +186,7 @@ const OddEven = ({ route }) => {
 
           {/* Points */}
           <View style={styles.pointInputRow}>
-            <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('games:enterPoints')}</Text>
             <TextInput
               style={[
                 styles.input,
@@ -193,7 +195,7 @@ const OddEven = ({ route }) => {
               keyboardType="number-pad"
               value={points}
               onChangeText={(t) => setPoints(String(t).replace(/[^0-9]/g, ""))}
-              placeholder="Point"
+              placeholder={t('games:point')}
               placeholderTextColor={colors.textTertiary}
             />
           </View>
@@ -204,12 +206,12 @@ const OddEven = ({ route }) => {
             onPress={handleAdd}
             activeOpacity={0.85}
           >
-            <Text style={styles.addText}>Add</Text>
+            <Text style={styles.addText}>{t('common:add')}</Text>
           </TouchableOpacity>
 
           {/* Table */}
           <View style={styles.tableArea}>
-            <EasyModeTable bets={bets} onDelete={handleDelete} digitHeaderLabel="Ank" />
+            <EasyModeTable bets={bets} onDelete={handleDelete} digitHeaderLabel={t('games:ank')} />
           </View>
         </View>
 

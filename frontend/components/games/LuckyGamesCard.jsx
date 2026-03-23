@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useTranslation } from 'react-i18next';
 import { ThemeColor } from '../../contexts/Themes';
 
 const GREEN = ThemeColor;
@@ -14,6 +15,7 @@ const LuckyGamesCard = ({
   canPlay,
   onPressPlay,
 }) => {
+  const { t } = useTranslation(['games']);
   const playColor = canPlay ? GREEN : '#9E9E9E';
 
   return (
@@ -40,7 +42,7 @@ const LuckyGamesCard = ({
         <View style={[styles.playIconCircle, { borderColor: playColor }]}>
           <MaterialCommunityIcons name="play" size={18} color={playColor} />
         </View>
-        <Text style={styles.playText}>Play Game</Text>
+        <Text style={styles.playText}>{t('games:playGame')}</Text>
       </TouchableOpacity>
     </View>
   );

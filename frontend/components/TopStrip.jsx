@@ -10,6 +10,7 @@ import {
   Image,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { useTranslation } from 'react-i18next';
 
 // ✅ AppConfig helpers (defaults already inside these)
 import {
@@ -28,6 +29,7 @@ const MARQUEE_TEXT =
 const normalizeDigits = (v) => String(v || "").replace(/\D/g, "");
 
 const TopStrip = ({ navigation }) => {
+  const { t } = useTranslation(['common']);
   const { colors } = useTheme();
 
   // ✅ config-driven values
@@ -71,7 +73,7 @@ const TopStrip = ({ navigation }) => {
     try {
       return await Linking.openURL(
         `whatsapp://send?phone=${digits}&text=${encodeURIComponent(
-          "Hi, I need assistance!"
+          t('common:whatsappMessage')
         )}`
       );
     } catch { }
@@ -167,7 +169,7 @@ const TopStrip = ({ navigation }) => {
           <View style={[styles.pillIcon, { backgroundColor: colors.primary }]}>
             <Image source={require("../assets/Images/Wallet.webp")} style={{ width: 22, height: 22}} />
           </View>
-          <Text style={[styles.pillText, { color: colors.text }]}>Add Fund</Text>
+          <Text style={[styles.pillText, { color: colors.text }]}>{t('common:addFund')}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -178,7 +180,7 @@ const TopStrip = ({ navigation }) => {
           <View style={[styles.pillIcon, { backgroundColor: colors.primary }]}>
             <Image source={require("../assets/Images/Funds.webp")} style={{ width: 22, height: 22}} />
           </View>
-          <Text style={[styles.pillText, { color: colors.text }]}>Withdraw Fund</Text>
+          <Text style={[styles.pillText, { color: colors.text }]}>{t('common:withdrawFund')}</Text>
         </TouchableOpacity>
       </View>
 

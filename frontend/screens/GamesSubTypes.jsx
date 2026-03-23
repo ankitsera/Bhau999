@@ -2,6 +2,7 @@ import React, { useContext, useMemo, useEffect, useState } from "react";
 import { View, StyleSheet, FlatList, StatusBar, Modal, Pressable, Text } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { useTranslation } from 'react-i18next';
 
 import SubGameTile from "../components/games/SubGameTile";
 import { SUB_GAME_TYPES } from "../data/SubGameType";
@@ -12,7 +13,7 @@ import { useTheme } from "../contexts/ThemeContext";
 
 const RED = "#EF4B3E";
 
-const ClosedPopup = ({ visible, onClose }) => {
+const ClosedPopup = ({ visible, onClose, t }) => {
   const { colors } = useTheme();
 
   return (
@@ -29,13 +30,13 @@ const ClosedPopup = ({ visible, onClose }) => {
             </View>
           </View>
 
-          <Text style={[styles.modalTitle, { color: colors.error }]}>Sorry !</Text>
+          <Text style={[styles.modalTitle, { color: colors.error }]}>{t('screens:sorry')}</Text>
           <Text style={[styles.modalMsg, { color: colors.textSecondary }]}>
-            Betting is Closed for today.{"\n"}Please come next day to play.
+            {t('games:bettingClosedMessage')}
           </Text>
 
           <Pressable onPress={onClose} style={[styles.modalOkBtn, { backgroundColor: colors.primary }]}>
-            <Text style={[styles.modalOkText, { color: '#fff' }]}>OK</Text>
+            <Text style={[styles.modalOkText, { color: '#fff' }]}>{t('common:ok')}</Text>
           </Pressable>
         </View>
       </View>
@@ -44,6 +45,7 @@ const ClosedPopup = ({ visible, onClose }) => {
 };
 
 const GamesSubTypes = () => {
+  const { t } = useTranslation(['games', 'screens', 'common']);
   const { colors, isDarkMode } = useTheme();
 
   const navigation = useNavigation();
@@ -110,7 +112,7 @@ const GamesSubTypes = () => {
   const title = gameName || "GAME";
 
   if (!gameName) {
-    return <EmptyState message="MISSING GAME" />;
+    return <EmptyState message={t('games:missingGame')} />;
   }
 
   if (isLoadingActiveGames && !game) {
@@ -118,7 +120,7 @@ const GamesSubTypes = () => {
       <View style={[styles.container, { backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }]}>
         <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={colors.primary} />
         <ThemeHeader title={title} />
-        <Text style={{ marginTop: 16, color: colors.textSecondary, fontWeight: "700" }}>Loading...</Text>
+        <Text style={{ marginTop: 16, color: colors.textSecondary, fontWeight: "700" }}>{t('common:loading')}</Text>
       </View>
     );
   }
@@ -134,6 +136,7 @@ const GamesSubTypes = () => {
           setShowClosedModal(false);
           navigation.goBack(); // kick back to list
         }}
+        t={t}
       />
 
       <FlatList

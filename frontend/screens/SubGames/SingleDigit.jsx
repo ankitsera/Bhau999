@@ -9,6 +9,7 @@ import {
   TextInput,
   Keyboard,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -33,6 +34,7 @@ const BLACK = '#000';
 const DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
 const SingleDigit = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
   const gameName = route?.params?.gameName || 'GAME';
@@ -108,18 +110,18 @@ const SingleDigit = ({ route }) => {
   // -------- HANDLERS --------
   const handleAddEasyBet = () => {
     if (!easyDigit || easyDigit.trim() === '') {
-      Alert.alert('Validation', 'Please enter a single digit.');
+      Alert.alert(t('validation:validation'), t('validation:pleaseEnterDigit'));
       return;
     }
 
     const digitNum = Number(easyDigit);
     if (Number.isNaN(digitNum) || digitNum < 0 || digitNum > 9) {
-      Alert.alert('Validation', 'Digit must be between 0 and 9.');
+      Alert.alert(t('validation:validation'), t('validation:digitMustBe0To9'));
       return;
     }
 
     const pts = Number(easyPoints);
-    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount, t)) {
       return;
     }
 
@@ -152,17 +154,17 @@ const SingleDigit = ({ route }) => {
     const { bids, points } = activeTotals;
 
     if (bids === 0) {
-      Alert.alert('No bets', 'Please add at least one bet.');
+      Alert.alert(t('validation:noBets'), t('validation:pleaseAddBet'));
       return;
     }
 
     if (!mobileNumber) {
-      Alert.alert('Login required', 'Mobile number missing. Please login again.');
+      Alert.alert(t('validation:loginRequired'), t('validation:mobileNumberMissing'));
       return;
     }
 
     if (points > balance) {
-      Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
+      Alert.alert(t('validation:insufficientBalance'), t('validation:walletBalanceTooLow'));
       return;
     }
 
@@ -192,15 +194,15 @@ const SingleDigit = ({ route }) => {
 
         // typed something but invalid
         if (!Number.isFinite(p) || p <= 0) {
-          Alert.alert('Validation', `Invalid points for Digit ${d}.`);
+          Alert.alert(t('validation:validation'), t('validation:invalidPointsFor', { digit: d }));
           return; // stop all (no API call)
         }
 
         // min/max check (all-or-nothing)
         if (p < minAmount || p > maxAmount) {
           Alert.alert(
-            'Validation',
-            `Points for Digit ${d} must be between ${minAmount} and ${maxAmount}.`,
+            t('validation:validation'),
+            t('validation:betAmountMustBeBetween', { digit: d, min: minAmount, max: maxAmount }),
           );
           return; // stop all (no API call)
         }
@@ -222,7 +224,7 @@ const SingleDigit = ({ route }) => {
 
     try {
       await placeBets(betsToSend);
-      Alert.alert('Success', 'Bets placed successfully!');
+      Alert.alert(t('common:success'), t('games:betPlacedSuccessfully'));
 
       // Update balance safely
       const spent = Number(points) || 0;
@@ -241,7 +243,7 @@ const SingleDigit = ({ route }) => {
       );
     } catch (err) {
       console.error(err);
-      Alert.alert('Error', err?.message || 'Failed to place bets.');
+      Alert.alert(t('common:error'), err?.message || t('games:betsFailed'));
     }
   };
 

@@ -18,6 +18,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import ThemeHeader from '../../components/ThemeHeader';
@@ -78,7 +79,7 @@ const makeKey = (x, idx) =>
     x?.amount ?? 'noa'
   }_${idx}`;
 
-const PassbookRow = ({ item, GREEN }) => {
+const PassbookRow = ({ item, GREEN, t }) => {
   const { colors } = useTheme();
 
   const amountNum = Number(item?.amount || 0) || 0;
@@ -89,8 +90,8 @@ const PassbookRow = ({ item, GREEN }) => {
     item?.remarks != null
       ? String(item.remarks)
       : item?.initiator
-      ? `${isCredit ? 'Credit' : 'Debit'} By ${item.initiator}`
-      : 'Transaction';
+      ? `${isCredit ? t('funds:credit') : t('funds:debit')} ${t('screens:by')} ${item.initiator}`
+      : t('funds:transaction');
 
   return (
     <View
@@ -118,7 +119,7 @@ const PassbookRow = ({ item, GREEN }) => {
   );
 };
 
-const SummaryCard = ({ totalCredit, totalDebit, count }) => {
+const SummaryCard = ({ totalCredit, totalDebit, count, t }) => {
   const { colors } = useTheme();
 
   return (
@@ -129,7 +130,7 @@ const SummaryCard = ({ totalCredit, totalDebit, count }) => {
       ]}
     >
       <Text style={[styles.summaryTitle, { color: colors.textSecondary }]}>
-        Transaction Summary
+        {t('screens:transactionSummary')}
       </Text>
 
       <View style={styles.summaryRow}>
@@ -146,7 +147,7 @@ const SummaryCard = ({ totalCredit, totalDebit, count }) => {
             ₹{totalCredit}
           </Text>
           <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-            Total Credit
+            {t('screens:totalCredit')}
           </Text>
         </View>
 
@@ -165,7 +166,7 @@ const SummaryCard = ({ totalCredit, totalDebit, count }) => {
             ₹{totalDebit}
           </Text>
           <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-            Total Debit
+            {t('screens:totalDebit')}
           </Text>
         </View>
 
@@ -188,7 +189,7 @@ const SummaryCard = ({ totalCredit, totalDebit, count }) => {
             {count}
           </Text>
           <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-            Transactions
+            {t('screens:transactions')}
           </Text>
         </View>
       </View>
@@ -196,7 +197,7 @@ const SummaryCard = ({ totalCredit, totalDebit, count }) => {
   );
 };
 
-const Chip = ({ label, active, onPress }) => {
+const Chip = ({ label, active, onPress, t }) => {
   const { colors } = useTheme();
 
   return (
@@ -216,13 +217,14 @@ const Chip = ({ label, active, onPress }) => {
           { color: active ? colors.text : colors.text },
         ]}
       >
-        {label}
+        {t(label)}
       </Text>
     </Pressable>
   );
 };
 
 const Passbook = () => {
+  const { t } = useTranslation(['screens', 'funds', 'common']);
   const { colors } = useTheme();
 
   const { user } = useContext(AuthContext);
@@ -290,7 +292,7 @@ const Passbook = () => {
     });
   }, [transactions]);
 
-  // ✅ 1) date filter first
+  // 1) date filter first
   const dateFiltered = useMemo(() => {
     const arr = Array.isArray(sorted) ? sorted : [];
     if (!(filters.date instanceof Date)) return arr;
@@ -301,7 +303,7 @@ const Passbook = () => {
     });
   }, [sorted, filters.date]);
 
-  // ✅ summary computed from dateFiltered (so it updates with date selection)
+  // summary computed from dateFiltered (so it updates with date selection)
   const summary = useMemo(() => {
     let credit = 0;
     let debit = 0;
@@ -320,7 +322,7 @@ const Passbook = () => {
     };
   }, [dateFiltered]);
 
-  // ✅ 2) chip filter next
+  // 2) chip filter next
   const filtered = useMemo(() => {
     const arr = Array.isArray(dateFiltered) ? dateFiltered : [];
     if (tab === 'CREDIT') return arr.filter(x => (Number(x?.amount || 0) || 0) > 0);
@@ -378,9 +380,9 @@ const Passbook = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title="Passbook" />
+      <ThemeHeader title={t('funds:passbook')} />
 
-      {/* ✅ filter bar */}
+      {/* filter bar */}
       <View style={styles.filterBar}>
         <Pressable
           style={[styles.filterBtn, { backgroundColor: colors.primary }]}
@@ -403,7 +405,7 @@ const Passbook = () => {
             style={[styles.clearBtn, { backgroundColor: colors.surface }]}
             onPress={clearAll}
           >
-            <Text style={[styles.clearBtnText, { color: colors.text }]}>Clear</Text>
+            <Text style={[styles.clearBtnText, { color: colors.text }]}>{t('screens:clear')}</Text>
           </Pressable>
         ) : null}
       </View>
@@ -414,48 +416,52 @@ const Passbook = () => {
           totalCredit={summary.totalCredit}
           totalDebit={summary.totalDebit}
           count={summary.count}
+          t={t}
         />
 
         <View style={styles.chipsRow}>
           <Chip
-            label="All"
+            label="screens:all"
             active={tab === 'ALL'}
             onPress={() => {
               setTab('ALL');
               setPage(1);
             }}
+            t={t}
           />
           <Chip
-            label="Credit"
+            label="funds:credit"
             active={tab === 'CREDIT'}
             onPress={() => {
               setTab('CREDIT');
               setPage(1);
             }}
+            t={t}
           />
           <Chip
-            label="Debit"
+            label="funds:debit"
             active={tab === 'DEBIT'}
             onPress={() => {
               setTab('DEBIT');
               setPage(1);
             }}
+            t={t}
           />
         </View>
       </View>
 
-      {/* ✅ list */}
+      {/* list */}
       {isLoadingTransactions && filtered.length === 0 ? (
         <View style={styles.loaderWrap}>
           <ActivityIndicator size="small" color={primary} />
-          <Text style={[styles.loaderText, { color: colors.text }]}>Loading...</Text>
+          <Text style={[styles.loaderText, { color: colors.text }]}>{t('common:loading')}</Text>
         </View>
       ) : filtered.length === 0 ? (
         <EmptyState
           message={
             filters.date instanceof Date
-              ? 'NO TRANSACTIONS FOUND FOR THIS DATE'
-              : 'NO TRANSACTIONS FOUND'
+              ? t('screens:noTransactionsFoundForDate')
+              : t('screens:noTransactionsFound')
           }
         />
       ) : (
@@ -464,7 +470,7 @@ const Passbook = () => {
           keyExtractor={(item, idx) => makeKey(item, idx)}
           contentContainerStyle={styles.listContent}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-          renderItem={({ item }) => <PassbookRow item={item} GREEN={GREEN} />}
+          renderItem={({ item }) => <PassbookRow item={item} GREEN={GREEN} t={t} />}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
@@ -491,12 +497,12 @@ const Passbook = () => {
 
         <View style={[styles.modalCard, { backgroundColor: colors.background }]}>
           <View style={[styles.modalHeader, { backgroundColor: colors.primary }]}>
-            <Text style={styles.modalHeaderText}>Filter Type</Text>
+            <Text style={styles.modalHeaderText}>{t('screens:filterType')}</Text>
           </View>
 
           <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
             <DateFilterRow
-              label="By Date"
+              label={t('screens:byDate')}
               value={draft.date}
               onChange={date => setDraft(prev => ({ ...prev, date }))}
             />
@@ -507,21 +513,21 @@ const Passbook = () => {
               style={[styles.footerBtnLeft, { backgroundColor: colors.primary }]}
               onPress={closeFilter}
             >
-              <Text style={styles.footerBtnText}>Cancel</Text>
+              <Text style={styles.footerBtnText}>{t('common:cancel')}</Text>
             </Pressable>
 
             <Pressable
               style={[styles.footerBtnMid, { backgroundColor: colors.primaryTile }]}
               onPress={clearDraft}
             >
-              <Text style={styles.footerBtnText}>Reset</Text>
+              <Text style={styles.footerBtnText}>{t('screens:reset')}</Text>
             </Pressable>
 
             <Pressable
               style={[styles.footerBtnRight, { backgroundColor: colors.primary }]}
               onPress={applyFilter}
             >
-              <Text style={styles.footerBtnText}>Filter</Text>
+              <Text style={styles.footerBtnText}>{t('common:filter')}</Text>
             </Pressable>
           </View>
         </View>

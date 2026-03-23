@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, Switch } from "react-native";
+import { useTranslation } from 'react-i18next';
 import ThemeHeader from "../../components/ThemeHeader";
 import { useTheme } from "../../contexts/ThemeContext";
 
@@ -20,6 +21,7 @@ const Row = ({ label, value, onChange }) => {
 };
 
 const Settings = ({ navigation }) => {
+  const { t } = useTranslation(['screens', 'common']);
   const { colors } = useTheme();
 
   const [game, setGame] = useState(true);
@@ -36,19 +38,19 @@ const Settings = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title="Setting" />
+      <ThemeHeader title={t('common:setting')} />
       <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
         <View style={[styles.banner, { backgroundColor: colors.primary }]}>
-          <Text style={styles.bannerText}>Notification Setting</Text>
+          <Text style={styles.bannerText}>{t('screens:notificationSetting')}</Text>
         </View>
 
-        <Row label="Game Notification:" value={game} onChange={setGame} />
+        <Row label={t('screens:gameNotification')} value={game} onChange={setGame} />
         <View style={[styles.sep, { backgroundColor: colors.divider }]} />
-        <Row label="Main Notification:" value={main} onChange={setMain} />
+        <Row label={t('screens:mainNotification')} value={main} onChange={setMain} />
         {/* <View style={[styles.sep, { backgroundColor: colors.divider }]} />
-        <Row label="Lucky Starline Notification" value={starline} onChange={setStarline} />
+        <Row label={t('screens:starlineNotification')} value={starline} onChange={setStarline} />
         <View style={[styles.sep, { backgroundColor: colors.divider }]} />
-        <Row label="Lucky JackPot Notification" value={jackpot} onChange={setJackpot} /> */}
+        <Row label={t('screens:jackpotNotification')} value={jackpot} onChange={setJackpot} /> */}
       </View>
     </View>
   );

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -41,6 +42,7 @@ const hasDuplicateDigits = s => {
 };
 
 const DpMotor = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
   const gameName = route?.params?.gameName || 'GAME';
@@ -90,15 +92,17 @@ const DpMotor = ({ route }) => {
   }, [bets]);
 
   // ✅ Don’t block duplicates while typing (prevents flicker on physical device)
-  // Only keep digits-only + max 6, and show error if duplicates exist.
+  // Only keep digits-only + max 10, and show error if duplicates exist.
   const handleChangeDigits = txt => {
-    const clean = String(txt || '').replace(/[^0-9]/g, '').slice(0, 6);
+    const clean = String(txt || '').replace(/[^0-9]/g, '').slice(0, 10);
     setDigits(clean);
     setDigitsError(hasDuplicateDigits(clean));
   };
 
   // ✅ Auto-sanitize only when typing is “done” (blur/end edit)
-  const handleDigitsBlur = () => {    setDigitsFocused(false);    const uniq = sanitizeMotorDigits(digits, 6);
+  const handleDigitsBlur = () => {
+    setDigitsFocused(false);
+    const uniq = sanitizeMotorDigits(digits, 10);
     if (uniq !== digits) setDigits(uniq);
     setDigitsError(hasDuplicateDigits(uniq));
   };
@@ -108,7 +112,7 @@ const DpMotor = ({ route }) => {
   // ✅ block Add if invalid digits/points (UX + prevents bad requests)
   const canAdd = useMemo(() => {
     if (!digits) return false;
-    if (digits.length < 4 || digits.length > 6) return false;
+    if (digits.length < 4 || digits.length > 10) return false;
     if (digitsError) return false;
     if (!ptsNum || ptsNum <= 0) return false;
     if (ptsNum < minAmount || ptsNum > maxAmount) return false;
@@ -116,12 +120,12 @@ const DpMotor = ({ route }) => {
   }, [digits, digitsError, ptsNum, minAmount, maxAmount]);
 
   const handleAdd = () => {
-    const uniqDigits = sanitizeMotorDigits(digits, 6);
+    const uniqDigits = sanitizeMotorDigits(digits, 10);
 
-    if (uniqDigits.length < 4 || uniqDigits.length > 6) {
+    if (uniqDigits.length < 4 || uniqDigits.length > 10) {
       Alert.alert(
-        'Validation',
-        'Please enter minimum 4 and maximum 6 unique digits.',
+        t('validation:validation'),
+        t('validation:enterMinMaxDigits'),
       );
       return;
     }
@@ -129,19 +133,19 @@ const DpMotor = ({ route }) => {
     // if duplicates were present, stop and let user see error
     if (hasDuplicateDigits(digits)) {
       setDigitsError(true);
-      Alert.alert('Validation', 'Please enter unique digits (no duplicates).');
+      Alert.alert(t('validation:validation'), t('validation:enterUniqueDigits'));
       return;
     }
 
     const pts = Number(points);
-    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount, t)) {
       return;
     }
 
     const panas = getDoublePanaMotorPanas(uniqDigits);
 
     if (panas.length === 0) {
-      Alert.alert('No match', 'No Double Pana found for these digits.');
+      Alert.alert(t('validation:noMatch'), t('validation:noDoublePanaFound'));
       return;
     }
 
@@ -247,7 +251,7 @@ const DpMotor = ({ route }) => {
                   style={[
                     styles.input,
                     { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text },
-                    (digitsError || (digitsFocused && (digits.length < 4 || digits.length > 6))) && [
+                    (digitsError || (digitsFocused && (digits.length < 4 || digits.length > 10))) && [
                       styles.errorInput,
                       { borderColor: colors.error },
                     ],
@@ -258,13 +262,13 @@ const DpMotor = ({ route }) => {
                   onFocus={() => setDigitsFocused(true)}
                   onEndEditing={handleDigitsBlur}
                   placeholder="Number"
-                  maxLength={6}
+                  maxLength={10}
                   placeholderTextColor={colors.textTertiary}
                 />
                 {digitsError ? (
                   <Text style={[styles.errorText, { color: colors.error }]}>Please enter unique digits</Text>
-                ) : digitsFocused && (digits.length < 4 || digits.length > 6) ? (
-                  <Text style={[styles.errorText, { color: colors.error }]}>4-6 digits required</Text>
+                ) : digitsFocused && (digits.length < 4 || digits.length > 10) ? (
+                  <Text style={[styles.errorText, { color: colors.error }]}>4-10 digits required</Text>
                 ) : null}
               </View>
             </View>

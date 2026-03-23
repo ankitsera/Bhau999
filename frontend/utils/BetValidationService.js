@@ -31,28 +31,38 @@ export const isValidBetAmount = (amount, minAmount, maxAmount) => {
  * @param {number} amount - The bet amount to validate
  * @param {number} minAmount - Minimum bet amount
  * @param {number} maxAmount - Maximum bet amount
+ * @param {function} t - Translation function (required)
  * @returns {boolean} - true if valid, false otherwise
  */
-export const validateAndAlertBetAmount = (amount, minAmount, maxAmount) => {
+export const validateAndAlertBetAmount = (amount, minAmount, maxAmount, t) => {
   const parsedAmount = Number(amount);
   
   if (!parsedAmount || parsedAmount <= 0) {
-    Alert.alert('Invalid Amount', 'Please enter a valid amount greater than 0.');
+    Alert.alert(
+      t('validation:validationMessage'),
+      t('validation:pleaseEnterValidAmountGreaterThan0')
+    );
     return false;
   }
   
   if (parsedAmount < minAmount) {
-    Alert.alert('Minimum Bet Amount', `Minimum bet amount is ${minAmount}`);
+    Alert.alert(
+      t('validation:validationMessage'),
+      t('validation:minimumBetAmountIs', { minAmount })
+    );
     return false;
   }
   
   if (parsedAmount > maxAmount) {
-    Alert.alert('Maximum Bet Amount', `Maximum bet amount is ${maxAmount}`);
+    Alert.alert(
+      t('validation:validationMessage'),
+      t('validation:maximumBetAmountIs', { maxAmount })
+    );
     return false;
   }
   
   return true;
-};
+}
 
 /**
  * Hook to fetch and cache min/max bet amounts

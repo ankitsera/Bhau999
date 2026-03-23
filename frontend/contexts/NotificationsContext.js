@@ -1,15 +1,15 @@
-import React, { createContext, useEffect, useMemo, useRef } from "react";
+import React, { createContext, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import messaging from "@react-native-firebase/messaging";
 
-import { registerPushToken } from "../utils/NotificationsService";
+import { registerPushToken, getAllNotifications } from "../utils/NotificationsService";
 import { AuthContext } from "./AuthContext";
 
 export const NotificationsContext = createContext(null);
 
 const LAST_FCM_TOKEN_KEY = "LAST_FCM_TOKEN";
 
-async function syncTokenOnce({ mobileNumber }) {
+async function syncTokenOnce({ mobileNumber, gameNotification = true }) {
   if (!mobileNumber) return;
 
   const token = await messaging().getToken();
@@ -18,7 +18,7 @@ async function syncTokenOnce({ mobileNumber }) {
   const last = await AsyncStorage.getItem(LAST_FCM_TOKEN_KEY);
   if (last === token) return;
 
-  await registerPushToken({ mobileNumber, token });
+  await registerPushToken({ mobileNumber, token, gameNotification: !!gameNotification });
   await AsyncStorage.setItem(LAST_FCM_TOKEN_KEY, token);
 }
 
@@ -28,8 +28,29 @@ export const NotificationsProvider = ({ children }) => {
 
   const tokenRefreshUnsubRef = useRef(null);
 
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
+  const [notificationsError, setNotificationsError] = useState(null);
+
+  const fetchNotifications = useCallback(async () => {
+    setNotificationsLoading(true);
+    setNotificationsError(null);
+    try {
+      const data = await getAllNotifications();
+      setNotifications(data);
+    } catch (err) {
+      setNotificationsError(err.message || "Failed to load notifications");
+      setNotifications([]);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    // cleanup previous listener
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  useEffect(() => {
     if (tokenRefreshUnsubRef.current) {
       try {
         tokenRefreshUnsubRef.current();
@@ -43,13 +64,19 @@ export const NotificationsProvider = ({ children }) => {
 
     (async () => {
       try {
-        await syncTokenOnce({ mobileNumber });
+        await syncTokenOnce({ mobileNumber, gameNotification: true });
         if (cancelled) return;
 
         tokenRefreshUnsubRef.current = messaging().onTokenRefresh(async (newToken) => {
           try {
             if (!newToken) return;
-            await registerPushToken({ mobileNumber, token: newToken });
+
+            await registerPushToken({
+              mobileNumber,
+              token: newToken,
+              gameNotification: true,
+            });
+
             await AsyncStorage.setItem(LAST_FCM_TOKEN_KEY, newToken);
           } catch {
             // ignore; retry later
@@ -67,10 +94,35 @@ export const NotificationsProvider = ({ children }) => {
 
   const value = useMemo(
     () => ({
-      // expose this if you ever want a manual retry button in settings
-      resyncToken: async () => syncTokenOnce({ mobileNumber }),
+      resyncToken: async () => syncTokenOnce({ mobileNumber, gameNotification: true }),
+
+      // ✅ OPTIONAL: when you wire your toggle screen, call this:
+      updateGameNotificationPreference: async (enabled) => {
+        if (!mobileNumber) return;
+
+        // reuse stored token, fallback to getToken
+        let token = await AsyncStorage.getItem(LAST_FCM_TOKEN_KEY);
+        if (!token) token = await messaging().getToken();
+        if (!token) return;
+
+        await registerPushToken({
+          mobileNumber,
+          token,
+          gameNotification: !!enabled,
+        });
+
+        // store if not present
+        if (!(await AsyncStorage.getItem(LAST_FCM_TOKEN_KEY))) {
+          await AsyncStorage.setItem(LAST_FCM_TOKEN_KEY, token);
+        }
+      },
+
+      notifications,
+      notificationsLoading,
+      notificationsError,
+      refreshNotifications: fetchNotifications,
     }),
-    [mobileNumber]
+    [mobileNumber, notifications, notificationsLoading, notificationsError, fetchNotifications]
   );
 
   return (

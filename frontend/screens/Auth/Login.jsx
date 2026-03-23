@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -15,13 +16,14 @@ const TileIcon = ({ name }) => {
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.tile, { backgroundColor: colors.primaryTile }]}>
+    <View style={[styles.tile, { backgroundColor: colors.primary }]}>
       <MaterialCommunityIcons name={name} size={26} color="#fff" />
     </View>
   );
 };
 
 const Login = ({ navigation, route }) => {
+  const { t } = useTranslation(['auth', 'common']);
   const { colors } = useTheme();
 
   const { login } = useContext(AuthContext);
@@ -45,10 +47,10 @@ const Login = ({ navigation, route }) => {
       {/* White rounded sheet */}
       <View style={[styles.card, { backgroundColor: colors.background, shadowColor: colors.text }]}>
         <View style={styles.textHeader}>
-          <Text style={[styles.title, { color: colors.text }]}>Login Now</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Sign in your account</Text>
+          <Text style={[styles.title, { color: colors.text }]}>{t('auth:loginNow')}</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t('auth:signInAccount')}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary, marginTop: 4 }]}>
-            Enter Your Password
+            {t('auth:enterPassword')}
           </Text>
         </View>
 
@@ -81,7 +83,7 @@ const Login = ({ navigation, route }) => {
           <TileIcon name="key-variant" />
           <TextInput
             style={[styles.input, { color: colors.text }]}
-            placeholder="Password"
+            placeholder={t('auth:password')}
             placeholderTextColor={colors.textTertiary}
             secureTextEntry={!showPassword}
             value={password}
@@ -98,7 +100,7 @@ const Login = ({ navigation, route }) => {
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             accessibilityRole="button"
             accessibilityLabel={
-              showPassword ? 'Hide password' : 'Show password'
+              showPassword ? t('common:hide') + ' ' + t('auth:password') : t('common:show') + ' ' + t('auth:password')
             }
           >
             <MaterialCommunityIcons
@@ -111,11 +113,11 @@ const Login = ({ navigation, route }) => {
 
         {/* Login button */}
         <TouchableOpacity
-          style={[styles.loginBtn, { backgroundColor: colors.primaryTile, shadowColor: colors.text }]}
+          style={[styles.loginBtn, { backgroundColor: colors.primary, shadowColor: colors.text }]}
           onPress={onLogin}
           activeOpacity={0.85}
         >
-          <Text style={styles.loginText}>Login</Text>
+          <Text style={styles.loginText}>{t('auth:login')}</Text>
           <MaterialCommunityIcons
             name="chevron-right"
             size={24}

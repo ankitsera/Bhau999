@@ -8,6 +8,7 @@ import {
   Alert,
   TextInput,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import DynamicHeader from '../../components/DynamicHeader';
@@ -41,6 +42,7 @@ const BLACK = '#000';
 const GROUP_KEYS = Object.keys(SINGLE_PANA_BY_RESULT_DIGIT); // "0".."9"
 
 const SinglePana = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
   const gameName = route?.params?.gameName || 'GAME';
@@ -138,7 +140,7 @@ const SinglePana = ({ route }) => {
     }
 
     const pts = Number(easyPoints);
-    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount, t)) {
       return;
     }
 

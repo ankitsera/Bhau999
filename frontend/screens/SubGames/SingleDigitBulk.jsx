@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert,
 } from "react-native";
+import { useTranslation } from 'react-i18next';
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -28,6 +29,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 const DIGITS = ["1","2","3","4","5","6","7","8","9","0"];
 
 const SingleDigitBulk = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
   const gameName = route?.params?.gameName || "GAME";
@@ -80,7 +82,7 @@ const SingleDigitBulk = ({ route }) => {
 
   const handlePressDigit = (digit) => {
     const pts = Number(pointInput);
-    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount, t)) {
       return;
     }
 
@@ -94,17 +96,17 @@ const SingleDigitBulk = ({ route }) => {
     if (!guard()) return;
 
     if (bids === 0) {
-      Alert.alert("No bets", "Please select at least one digit.");
+      Alert.alert(t('validation:noBets'), t('validation:pleaseSelectDigit'));
       return;
     }
 
     if (!mobileNumber) {
-      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      Alert.alert(t('validation:loginRequired'), t('validation:mobileNumberMissing'));
       return;
     }
 
     if (totalPoints > balance) {
-      Alert.alert("Insufficient balance", "Your wallet balance is too low.");
+      Alert.alert(t('validation:insufficientBalance'), t('validation:walletBalanceTooLow'));
       return;
     }
 
@@ -127,7 +129,7 @@ const SingleDigitBulk = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      Alert.alert("Success", "Bets placed successfully!");
+      Alert.alert(t('common:success'), t('games:betPlacedSuccessfully'));
 
       // Update balance safely
       const spent = Number(totalPoints) || 0;
@@ -144,7 +146,7 @@ const SingleDigitBulk = ({ route }) => {
       );
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", e?.message || "Failed to place bets.");
+      Alert.alert(t('common:error'), e?.message || t('games:betsFailed'));
     }
   };
 
@@ -162,7 +164,7 @@ const SingleDigitBulk = ({ route }) => {
           >
             {/* Select Game Type */}
             <GameTypePicker
-              label="Select Game Type:"
+              label={t('games:selectGameType')}
               value={selectedType}
               options={pickerOptions}
               onChange={setSelectedType}
@@ -171,7 +173,7 @@ const SingleDigitBulk = ({ route }) => {
 
             {/* Enter Points */}
             <View style={styles.pointInputRow}>
-              <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>{t('games:enterPoints')}</Text>
               <TextInput
                 style={[
                   styles.input,
@@ -180,7 +182,7 @@ const SingleDigitBulk = ({ route }) => {
                 keyboardType="number-pad"
                 value={pointInput}
                 onChangeText={setPointInput}
-                placeholder="Point"
+                placeholder={t('games:point')}
                 placeholderTextColor={colors.textTertiary}
               />
             </View>

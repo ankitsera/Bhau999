@@ -7,64 +7,206 @@ import {
   StyleSheet,
   BackHandler,
   NativeModules,
+  AppState,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
 
 const { UpdateModule } = NativeModules;
 
-export default function UpdateGate({ visible, compulsory, onDismiss, apkUrl }) {
+export default function UpdateGate({
+  visible,
+  compulsory,
+  onDismiss,
+  apkUrl,
+  updateVersion,
+}) {
+  const { t } = useTranslation(['common']);
   const { colors } = useTheme();
 
   const [busy, setBusy] = useState(false);
   const [needsPermission, setNeedsPermission] = useState(false);
   const [lastStatus, setLastStatus] = useState(null);
+  const [progress, setProgress] = useState(null);
+  const [pollErrorCount, setPollErrorCount] = useState(0);
+  const [pollStartTime, setPollStartTime] = useState(null);
 
-  // Block back ONLY for compulsory update
+  // block back only for compulsory update
   useEffect(() => {
     if (!visible || !compulsory) return;
     const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
     return () => sub.remove();
   }, [visible, compulsory]);
 
-  const start = useCallback(async () => {
-    if (busy) return;
-
-    const url = String(apkUrl || '').trim();
-    if (!url) {
-      console.log('No APK url available (APK_URL missing in backend config)');
-      return;
+  // reset local state when modal closes
+  useEffect(() => {
+    if (!visible) {
+      setBusy(false);
+      setNeedsPermission(false);
+      setLastStatus(null);
+      setProgress(null);
+      setPollErrorCount(0);
+      setPollStartTime(null);
     }
+  }, [visible]);
+
+  const start = useCallback(async () => {
+    const url = String(apkUrl || '').trim();
+    if (!url) return;
+
+    // prevent spamming
+    if (busy) return;
+    if (lastStatus === 'DOWNLOADING') return;
 
     setBusy(true);
     try {
+      setProgress(null);
       setLastStatus(null);
 
-      const status = await UpdateModule.startUpdate(url);
+      const version = updateVersion || '';
+      const statusRaw = await UpdateModule.startUpdate(url, version);
+      const status = String(statusRaw || '').trim();
+
+      // normalize statuses
+      if (status === 'ALREADY_DOWNLOADING') {
+        setLastStatus('DOWNLOADING');
+        return;
+      }
+
       setLastStatus(status);
 
       if (status === 'NEED_UNKNOWN_SOURCES') {
-        // Settings opened, download NOT started yet
         setNeedsPermission(true);
-        return; // do NOT dismiss
+        return;
       }
 
-      // Download started (or install opened)
       setNeedsPermission(false);
-
-      // Optional update: dismiss only after download actually started
-      if (!compulsory && status === 'DOWNLOADING') {
-        onDismiss?.();
-      }
+      // NOTE: don't auto-dismiss; user wanted to see progress + disabled state
     } catch (e) {
       console.log('Update failed:', e?.message);
     } finally {
       setBusy(false);
     }
-  }, [busy, compulsory, onDismiss, apkUrl]);
+  }, [apkUrl, updateVersion, busy, lastStatus]);
+
+  // when user returns from settings, clear permission flag so they can try download
+  useEffect(() => {
+    if (!visible) return;
+
+    const sub = AppState.addEventListener('change', async s => {
+      if (s !== 'active') return;
+      if (!needsPermission) return;
+
+      //Clear the permission flag to allow user to retry download after returning from settings
+      setNeedsPermission(false);
+    });
+
+    return () => sub.remove();
+  }, [visible, needsPermission]);
+
+  // poll progress while downloading
+  useEffect(() => {
+    if (!visible) return;
+
+    let timer = null;
+    const MAX_CONSECUTIVE_ERRORS = 5;
+    const MAX_POLLING_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+
+    if (
+      lastStatus === 'DOWNLOADING' &&
+      typeof UpdateModule.getDownloadProgress === 'function'
+    ) {
+      // Initialize poll start time on first poll
+      if (!pollStartTime) {
+        setPollStartTime(Date.now());
+      }
+
+      timer = setInterval(async () => {
+        try {
+          const res = await UpdateModule.getDownloadProgress();
+          const st = String(res?.status || '');
+          const pct = Number(res?.percent);
+
+          // Reset error count on successful poll
+          if (pollErrorCount > 0) {
+            setPollErrorCount(0);
+          }
+
+          if (Number.isFinite(pct)) setProgress(pct);
+
+          if (st === 'SUCCESS') {
+            setProgress(100);
+            setPollErrorCount(0);
+            setPollStartTime(null);
+            clearInterval(timer);
+            timer = null;
+            return;
+          }
+
+          if (st === 'FAILED' || st === 'NOT_FOUND') {
+            // allow user to retry
+            setLastStatus(null);
+            setProgress(null);
+            setPollErrorCount(0);
+            setPollStartTime(null);
+            clearInterval(timer);
+            timer = null;
+          }
+        } catch (e) {
+          // Increment error count and check limits
+          const newErrorCount = pollErrorCount + 1;
+          setPollErrorCount(newErrorCount);
+
+          console.warn(`Download progress poll error (${newErrorCount}/${MAX_CONSECUTIVE_ERRORS}):`, e?.message);
+
+          // Stop polling after too many consecutive errors
+          if (newErrorCount >= MAX_CONSECUTIVE_ERRORS) {
+            console.error('Max polling errors reached, stopping download polling');
+            setLastStatus(null);
+            setProgress(null);
+            setPollErrorCount(0);
+            setPollStartTime(null);
+            clearInterval(timer);
+            timer = null;
+            return;
+          }
+
+          // Stop polling after timeout duration
+          const now = Date.now();
+          if (pollStartTime && (now - pollStartTime) > MAX_POLLING_DURATION_MS) {
+            console.error('Polling timeout reached, stopping download polling');
+            setLastStatus(null);
+            setProgress(null);
+            setPollErrorCount(0);
+            setPollStartTime(null);
+            clearInterval(timer);
+            timer = null;
+            return;
+          }
+        }
+      }, 700);
+    }
+
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [visible, lastStatus, pollErrorCount, pollStartTime]);
 
   if (!visible) return null;
 
+  const hasUrl = !!String(apkUrl || '').trim();
   const canDismiss = !compulsory;
+
+  const isDownloading = lastStatus === 'DOWNLOADING';
+  const disableUpdate = !hasUrl || busy || isDownloading;
+
+  let updateBtnLabel = t('common:updateNow');
+  if (!hasUrl) updateBtnLabel = t('common:linkMissing');
+  else if (needsPermission) updateBtnLabel = t('common:enablePermission');
+  else if (isDownloading) {
+    updateBtnLabel =
+      progress === null ? t('common:downloading') : `${t('common:downloading')} ${progress}%`;
+  } else if (busy) updateBtnLabel = t('common:starting');
 
   return (
     <Modal
@@ -76,54 +218,92 @@ export default function UpdateGate({ visible, compulsory, onDismiss, apkUrl }) {
       }}
     >
       <View style={styles.backdrop}>
-        <View style={[styles.card, { backgroundColor: colors.background, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.background,
+              borderColor: colors.border,
+            },
+          ]}
+        >
           <Text style={[styles.title, { color: colors.text }]}>
-            {compulsory ? 'Update required' : 'Update available'}
+            {compulsory ? t('common:updateRequired') : t('common:updateAvailable')}
           </Text>
 
           <Text style={[styles.body, { color: colors.textSecondary }]}>
             {compulsory
-              ? 'You must update to continue using the app.'
-              : 'A new version is available. You can update now or later.'}
+              ? t('common:mustUpdateToContinue')
+              : t('common:newVersionAvailable')}
           </Text>
 
-          {!String(apkUrl || '').trim() ? (
+          {!hasUrl ? (
             <Text style={[styles.note, { color: colors.textTertiary }]}>
-              Update link is missing. Please try again later.
+              {t('common:updateLinkMissing')}
             </Text>
           ) : null}
 
           {needsPermission ? (
             <Text style={[styles.note, { color: colors.textTertiary }]}>
-              Please enable{' '}
-              <Text style={styles.bold}>“Allow from this source”</Text> in
-              Settings. After enabling, come back and tap{' '}
-              <Text style={styles.bold}>Update now</Text> again.
+              {t('common:enableAllowFromThisSource')}
             </Text>
           ) : null}
 
-          {lastStatus === 'DOWNLOADING' ? (
+          {isDownloading ? (
             <Text style={[styles.note, { color: colors.textTertiary }]}>
-              Download started. When it finishes, the installer will open.
+              {t('common:downloadingInBackground')}
             </Text>
           ) : null}
 
-          <Pressable
-            style={[
-              styles.btn,
-              { backgroundColor: colors.primary },
-              (busy || !String(apkUrl || '').trim()) && styles.btnDisabled,
-            ]}
-            onPress={start}
-          >
-            <Text style={styles.btnText}>
-              {busy ? 'Working...' : 'Update now'}
-            </Text>
-          </Pressable>
+          {canDismiss ? (
+            <View style={styles.row}>
+              <Pressable
+                style={[
+                  styles.btn,
+                  styles.btnHalf,
+                  { backgroundColor: colors.primary },
+                  disableUpdate && styles.btnDisabled,
+                ]}
+                onPress={start}
+              >
+                <Text style={[styles.btnText, { color: colors.text || '#fff' }]}>
+                  {updateBtnLabel}
+                </Text>
+              </Pressable>
 
-          {canDismiss && (
-            <Pressable style={[styles.laterBtn, { borderColor: colors.primary, backgroundColor: colors.background }]} onPress={() => onDismiss?.()}>
-              <Text style={[styles.laterText, { color: colors.primary }]}>Later</Text>
+              <Pressable
+                style={[
+                  styles.laterBtn,
+                  styles.btnHalf,
+                  {
+                    borderColor: colors.primary,
+                    backgroundColor: colors.surface,
+                  },
+                  isDownloading && styles.btnDisabled,
+                ]}
+                onPress={() => {
+                  // if downloading, don't allow dismiss (keeps UI clear)
+                  if (isDownloading) return;
+                  onDismiss?.();
+                }}
+              >
+                <Text style={[styles.laterText, { color: colors.text }]}>
+                  {t('common:later')}
+                </Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable
+              style={[
+                styles.btn,
+                { backgroundColor: colors.primary },
+                disableUpdate && styles.btnDisabled,
+              ]}
+              onPress={start}
+            >
+              <Text style={[styles.btnText, { color: colors.text || '#fff' }]}>
+                {updateBtnLabel}
+              </Text>
             </Pressable>
           )}
         </View>
@@ -152,32 +332,39 @@ const styles = StyleSheet.create({
   body: {
     fontSize: 14,
     marginBottom: 10,
-    opacity: 0.9,
   },
   note: {
     fontSize: 12,
     marginBottom: 12,
-    opacity: 0.8,
     lineHeight: 16,
   },
   bold: {
     fontWeight: '800',
   },
+
+  row: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 4,
+  },
+  btnHalf: {
+    flex: 1,
+  },
+
   btn: {
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
   },
   btnDisabled: {
-    opacity: 0.7,
+    opacity: 0.6,
   },
   btnText: {
-    color: 'white',
     fontWeight: '800',
   },
+
   laterBtn: {
-    marginTop: 10,
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
     borderWidth: 2,

@@ -1,3 +1,6 @@
+import { getDoublePanaSuggestions } from './doublePanaMap';
+import { getTriplePanaSuggestions } from './triplePanaMap';
+
 export const SINGLE_PANA_BY_RESULT_DIGIT = {
   0: ['127','136','145','190','235','280','370','389','460','479','569','578',],
   1: ['128','137','146','236','245','290','380','470','489','560','579','678',],
@@ -106,4 +109,23 @@ export function getSinglePanaCommonDigitPanas(digit) {
   const d = String(digit ?? "").replace(/[^0-9]/g, "");
   if (d.length !== 1) return [];
   return SINGLE_PANA_BY_ANY_DIGIT[d] || [];
+}
+
+/**
+ * Combined suggestions from ALL three pana types: single, double, and triple.
+ * Returns a merged, deduplicated, sorted list of all matching panas.
+ */
+export function getAllPanaSuggestions(input) {
+  const singleSuggestions = getSinglePanaSuggestions(input);
+  const doubleSuggestions = getDoublePanaSuggestions(input);
+  const tripleSuggestions = getTriplePanaSuggestions(input);
+
+  // Combine and remove duplicates, then sort numerically
+  const all = [
+    ...singleSuggestions,
+    ...doubleSuggestions,
+    ...tripleSuggestions,
+  ];
+
+  return Array.from(new Set(all)).sort((a, b) => Number(a) - Number(b));
 }

@@ -8,9 +8,11 @@ import {
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from 'react-i18next';
 import { useTheme } from "../contexts/ThemeContext";
 
 const Footer = ({ navigation, active = "Home", onSupportPress }) => {
+  const { t } = useTranslation(['common']);
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const isActive = (tab) => tab === active;
@@ -23,13 +25,13 @@ const Footer = ({ navigation, active = "Home", onSupportPress }) => {
         {/* Left section */}
         <View style={styles.sideTabs}>
           <TabItem
-            label="My Bids"
+            label={t('common:myBids')}
             icon={<Image source={require("../assets/Images/MyBids.webp")} style={{ width: 32, height: 32}} />}
             onPress={() => navigation.navigate("My Bids")}
             colors={colors}
           />
           <TabItem
-            label="Passbook"
+            label={t('common:passbook')}
             icon={<Image source={require("../assets/Images/Passbook.webp")} style={{ width: 32, height: 32, resizeMode: "contain"}} />}
             onPress={() => navigation.navigate("Passbook")}
             colors={colors}
@@ -39,13 +41,13 @@ const Footer = ({ navigation, active = "Home", onSupportPress }) => {
         {/* Right section */}
         <View style={styles.sideTabs}>
           <TabItem
-            label="Funds"
+            label={t('common:funds')}
             icon={<Image source={require("../assets/Images/Funds.webp")} style={{ width: 32, height: 32}} />}
             onPress={() => navigation.navigate("Funds")}
             colors={colors}
           />
           <TabItem
-            label="Support"
+            label={t('common:support')}
             icon={<Image source={require("../assets/Images/Support.webp")} style={{ width: 32, height: 32}} />}
             onPress={onSupportPress ? onSupportPress : (() => navigation.navigate("Support"))}
             colors={colors}

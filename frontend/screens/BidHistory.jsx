@@ -19,6 +19,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { useTranslation } from 'react-i18next';
 import ThemeHeader from '../components/ThemeHeader';
 import PaginationBar from '../components/PaginationBar';
 
@@ -85,7 +86,7 @@ const normOC = v => {
   return s ? s.toUpperCase() : '';
 };
 
-// ✅ normalize result for filtering + UI
+// normalize result for filtering + UI
 const normResult = v => {
   const s = String(v ?? '').trim().toUpperCase();
   return s; // could be "", "WON", "LOST", etc.
@@ -125,6 +126,7 @@ const makeSig = x => {
 };
 
 const ResultPill = ({ result }) => {
+  const { t } = useTranslation(['games', 'screens', 'common']);
   const { colors } = useTheme();
 
   const r = String(result || '')
@@ -144,6 +146,7 @@ const ResultPill = ({ result }) => {
 };
 
 const InfoBlock = ({ label, value, align = 'left' }) => {
+  const { t } = useTranslation(['games', 'screens', 'common']);
   const { colors } = useTheme();
 
   return (
@@ -154,7 +157,7 @@ const InfoBlock = ({ label, value, align = 'left' }) => {
         align === 'right' && styles.right,
       ]}
     >
-      <Text style={[styles.infoLabel, { color: colors.textTertiary }]}>{label}</Text>
+      <Text style={[styles.infoLabel, { color: colors.textTertiary }]}>{t(label)}</Text>
       <Text style={[styles.infoValue, { color: colors.text }]} numberOfLines={1}>
         {value}
       </Text>
@@ -162,7 +165,7 @@ const InfoBlock = ({ label, value, align = 'left' }) => {
   );
 };
 
-const BidHistoryCard = ({ item }) => {
+const BidHistoryCard = ({ item, t }) => {
   const { colors } = useTheme();
 
   const gameType = String(item?.type || '--');
@@ -186,36 +189,38 @@ const BidHistoryCard = ({ item }) => {
         </View>
 
         <View style={styles.row3}>
-          <InfoBlock label="Game Type" value={gameType} align="left" />
-          <InfoBlock label="Digit" value={String(digit)} align="center" />
-          <InfoBlock label="Points" value={String(points)} align="right" />
+          <InfoBlock label="games:gameType" value={gameType} align="left" />
+          <InfoBlock label="games:digit" value={String(digit)} align="center" />
+          <InfoBlock label="games:points" value={String(points)} align="right" />
         </View>
 
         <View style={[styles.divider, { backgroundColor: colors.divider }]} />
 
         <View style={styles.row2}>
-          <InfoBlock label="Bid Id" value={String(bidId)} align="left" />
-          <InfoBlock label="Bid Date" value={bidDate} align="right" />
+          <InfoBlock label="screens:bidId" value={String(bidId)} align="left" />
+          <InfoBlock label="screens:bidDate" value={bidDate} align="right" />
         </View>
 
-        <Text style={[styles.txnTime, { color: colors.textTertiary }]}>Transaction Time : {txnTime}</Text>
+        <Text style={[styles.txnTime, { color: colors.textTertiary }]}>{t('screens:transactionTime')} : {txnTime}</Text>
       </View>
     </View>
   );
 };
 
 const EmptyState = ({ text }) => {
+  const { t } = useTranslation(['games', 'screens', 'common']);
   const { colors } = useTheme();
 
   return (
     <View style={styles.emptyWrap}>
-      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{text}</Text>
+      <Text style={[styles.emptyText, { color: colors.textSecondary }]}>{t(text)}</Text>
     </View>
   );
 };
 
-// ✅ tiny checkbox (no extra deps)
+// tiny checkbox (no extra deps)
 const CheckRow = ({ label, checked, onToggle }) => {
+  const { t } = useTranslation(['games', 'screens', 'common']);
   const { colors } = useTheme();
 
   return (
@@ -230,13 +235,13 @@ const CheckRow = ({ label, checked, onToggle }) => {
         {checked ? <Text style={[styles.tick, { color: colors.success }]}>✓</Text> : null}
       </View>
       <Text style={[styles.checkLabel, { color: colors.text }]} numberOfLines={1}>
-        {label}
+        {t(label)}
       </Text>
     </Pressable>
   );
 };
 
-// ✅ maps UI filters to actual backend values
+// maps UI filters to actual backend values
 const matchesResultFilter = (item, wantedSet) => {
   if (!wantedSet || wantedSet.size === 0) return true;
 
@@ -271,6 +276,7 @@ const matchesGameFilter = (item, wantedSet) => {
 };
 
 const BidHistory = () => {
+  const { t } = useTranslation(['games', 'screens', 'common']);
   const { colors } = useTheme();
 
   const { user } = useContext(AuthContext);
@@ -282,10 +288,10 @@ const BidHistory = () => {
   const [page, setPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
 
-  // ✅ Filter modal state (kept in-screen for now; later can move into ThemeHeader)
+  // Filter modal state (kept in-screen for now; later can move into ThemeHeader)
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // ✅ applied filters (these affect list)
+  // applied filters (these affect list)
   const [filters, setFilters] = useState({
     openClose: new Set(), // "OPEN","CLOSE"
     result: new Set(), // "WIN","LOOSE","PENDING"
@@ -293,7 +299,7 @@ const BidHistory = () => {
     date: null, // Date | null
   });
 
-  // ✅ draft filters (used inside modal before hitting "Filter")
+  // draft filters (used inside modal before hitting "Filter")
   const [draft, setDraft] = useState({
     openClose: new Set(),
     result: new Set(),
@@ -321,7 +327,7 @@ const BidHistory = () => {
     }
   }, [fetchData]);
 
-  // ✅ list of games for filter UI (from what we received)
+  // list of games for filter UI (from what we received)
   const allGames = useMemo(() => {
     const arr = Array.isArray(bidHistory) ? bidHistory : [];
     const set = new Set();
@@ -332,7 +338,7 @@ const BidHistory = () => {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [bidHistory]);
 
-  // ✅ apply filters BEFORE dedupe/sort/pagination so UX is clean
+  // apply filters BEFORE dedupe/sort/pagination so UX is clean
   const filteredRaw = useMemo(() => {
     const arr = Array.isArray(bidHistory) ? bidHistory : [];
 
@@ -349,7 +355,7 @@ const BidHistory = () => {
       if (!matchesOpenCloseFilter(it, filters.openClose)) return false;
       if (!matchesGameFilter(it, filters.games)) return false;
 
-      // ✅ Date filter
+      // Date filter
       const dt = parseLocalDateTime(it?.betTime || it?.bet_time);
       if (!matchesSingleDateFilter(dt, filters.date)) return false;
 
@@ -357,7 +363,7 @@ const BidHistory = () => {
     });
   }, [bidHistory, filters]);
 
-  // ✅ dedupe + sort (this fixes your "same key" warning AND duplicate cards)
+  // dedupe + sort (this fixes your "same key" warning AND duplicate cards)
   const sorted = useMemo(() => {
     const arr = Array.isArray(filteredRaw) ? filteredRaw : [];
 
@@ -380,7 +386,7 @@ const BidHistory = () => {
 
   const safePage = Math.min(Math.max(1, page), totalPages);
 
-  // ✅ keep page valid when data size changes (prevents 5/1 weirdness)
+  // keep page valid when data size changes (prevents 5/1 weirdness)
   useEffect(() => {
     setPage(p => {
       const next = Math.min(Math.max(1, p), totalPages);
@@ -454,9 +460,9 @@ const BidHistory = () => {
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={['bottom']}>
-      <ThemeHeader title="Bid History" />
+      <ThemeHeader title={t('games:bidHistory')} />
 
-      {/* ✅ Filter button kept inside screen (later can move into ThemeHeader) */}
+      {/* Filter button kept inside screen (later can move into ThemeHeader) */}
       <View style={styles.filterBar}>
         <Pressable style={[styles.filterBtn, { backgroundColor: colors.primary }]} onPress={openFilter}>
           <View style={styles.filterBtnContent}>
@@ -477,7 +483,7 @@ const BidHistory = () => {
               setPage(1);
             }}
           >
-            <Text style={[styles.clearBtnText, { color: colors.text }]}>Clear</Text>
+            <Text style={[styles.clearBtnText, { color: colors.text }]}>{t('screens:clear')}</Text>
           </Pressable>
         ) : null}
       </View>
@@ -486,13 +492,13 @@ const BidHistory = () => {
         {isLoadingBidHistory && sorted.length === 0 ? (
           <View style={styles.loaderWrap}>
             <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={[styles.loaderText, { color: colors.text }]}>Loading...</Text>
+            <Text style={[styles.loaderText, { color: colors.text }]}>{t('common:loading')}</Text>
           </View>
         ) : (
           <FlatList
             data={pageItems}
             keyExtractor={item => makeSig(item)}
-            renderItem={({ item }) => <BidHistoryCard item={item} />}
+            renderItem={({ item }) => <BidHistoryCard item={item} t={t} />}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
             refreshControl={
@@ -500,7 +506,7 @@ const BidHistory = () => {
             }
             ListEmptyComponent={
               <EmptyState
-                text={mobileNumber ? 'No bid history yet' : 'User not found'}
+                text={mobileNumber ? t('screens:noBidHistoryYet') : t('screens:userNotFound')}
               />
             }
           />
@@ -515,7 +521,7 @@ const BidHistory = () => {
         onNext={() => hasNext && setPage(p => Math.min(totalPages, p + 1))}
       />
 
-      {/* ✅ Filter Modal */}
+      {/* Filter Modal */}
       <Modal
         visible={isFilterOpen}
         transparent
@@ -526,28 +532,28 @@ const BidHistory = () => {
 
         <View style={[styles.modalCard, { backgroundColor: colors.background }]}>
           <View style={[styles.modalHeader, { backgroundColor: colors.primary }]}>
-            <Text style={styles.modalHeaderText}>Filter Type</Text>
+            <Text style={styles.modalHeaderText}>{t('common:filter')}</Text>
           </View>
 
           <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-            {/* ✅ Date filter row */}
+            {/* Date filter row */}
             <DateFilterRow
-              label="By Date"
+              label={t('screens:byDate')}
               value={draft.date}
               onChange={date => setDraft(prev => ({ ...prev, date }))}
             />
 
             <View style={[styles.hr, { backgroundColor: colors.divider }]} />
 
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>By Game Type</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('screens:byGameType')}</Text>
             <View style={styles.row2Col}>
               <CheckRow
-                label="Open"
+                label={t('games:open')}
                 checked={draft.openClose.has('OPEN')}
                 onToggle={() => toggleDraftSet('openClose', 'OPEN')}
               />
               <CheckRow
-                label="Close"
+                label={t('games:close')}
                 checked={draft.openClose.has('CLOSE')}
                 onToggle={() => toggleDraftSet('openClose', 'CLOSE')}
               />
@@ -555,20 +561,20 @@ const BidHistory = () => {
 
             <View style={[styles.hr, { backgroundColor: colors.divider }]} />
 
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>By Winning Status</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('screens:byWinningStatus')}</Text>
             <View style={styles.row3Col}>
               <CheckRow
-                label="Win"
+                label={t('screens:win')}
                 checked={draft.result.has('WIN')}
                 onToggle={() => toggleDraftSet('result', 'WIN')}
               />
               <CheckRow
-                label="Loose"
+                label={t('screens:loose')}
                 checked={draft.result.has('LOOSE')}
                 onToggle={() => toggleDraftSet('result', 'LOOSE')}
               />
               <CheckRow
-                label="Pending"
+                label={t('screens:pending')}
                 checked={draft.result.has('PENDING')}
                 onToggle={() => toggleDraftSet('result', 'PENDING')}
               />
@@ -576,10 +582,10 @@ const BidHistory = () => {
 
             <View style={[styles.hr, { backgroundColor: colors.divider }]} />
 
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>By Games</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('screens:byGames')}</Text>
             <View style={styles.gamesWrap}>
               {allGames.length === 0 ? (
-                <Text style={[styles.noGamesText, { color: colors.textSecondary }]}>No games found</Text>
+                <Text style={[styles.noGamesText, { color: colors.textSecondary }]}>{t('games:noGamesFound')}</Text>
               ) : (
                 allGames.map(g => {
                   const checked = draft.games.has(g);
@@ -610,18 +616,18 @@ const BidHistory = () => {
 
           <View style={[styles.modalFooter, { backgroundColor: colors.background }]}>
             <Pressable style={[styles.footerBtnLeft, { backgroundColor: colors.primary }]} onPress={closeFilter}>
-              <Text style={styles.footerBtnText}>Cancel</Text>
+              <Text style={styles.footerBtnText}>{t('common:cancel')}</Text>
             </Pressable>
 
             <Pressable
               style={[styles.footerBtnMid, { backgroundColor: colors.primaryTile }]}
               onPress={clearDraft}
             >
-              <Text style={styles.footerBtnText}>Reset</Text>
+              <Text style={styles.footerBtnText}>{t('screens:reset')}</Text>
             </Pressable>
 
             <Pressable style={[styles.footerBtnRight, { backgroundColor: colors.primary }]} onPress={applyFilter}>
-              <Text style={styles.footerBtnText}>Filter</Text>
+              <Text style={styles.footerBtnText}>{t('common:filter')}</Text>
             </Pressable>
           </View>
         </View>

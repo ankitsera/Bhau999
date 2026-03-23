@@ -1,11 +1,13 @@
 import React from 'react';
 import { Modal, View, Pressable, Text, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
 
 const RED = '#EF4B3E';
 
 const BettingClosedModal = ({ visible, onClose }) => {
+  const { t } = useTranslation(['games', 'common']);
   const { colors } = useTheme();
 
   return (
@@ -27,13 +29,13 @@ const BettingClosedModal = ({ visible, onClose }) => {
             </View>
           </View>
 
-          <Text style={[styles.title, { color: colors.error }]}>Sorry !</Text>
+          <Text style={[styles.title, { color: colors.error }]}>{t('common:sorry')}</Text>
           <Text style={[styles.msg, { color: colors.textSecondary }]}>
-            Betting is Closed for today.{'\n'}Please come next day to play.
+            {t('games:bettingClosedMessage')}
           </Text>
 
           <Pressable onPress={onClose} style={[styles.okBtn, { backgroundColor: colors.primary }]}>
-            <Text style={styles.okText}>OK</Text>
+            <Text style={styles.okText}>{t('common:ok')}</Text>
           </Pressable>
         </View>
       </View>

@@ -8,6 +8,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from 'react-i18next';
 
 import DynamicHeader from "../../components/DynamicHeader";
 import SpecialModeGrid from "../../components/games/SpecialModeGrid";
@@ -35,6 +36,7 @@ const RED_JODI_NUMBERS = [
 ];
 
 const RedJodi = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
   const gameName = route?.params?.gameName || "GAME";
@@ -42,7 +44,6 @@ const RedJodi = ({ route }) => {
   const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
   const mobileNumber = user?.mobileNumber;
-
 
   const { showClosedModal, closeClosedModal, guard } = useBettingGuard({
     gameName,
@@ -92,17 +93,17 @@ const RedJodi = ({ route }) => {
     if (!guard()) return;
 
     if (totals.bids === 0) {
-      Alert.alert("No bets", "Please enter points for at least one Red Jodi.");
+      Alert.alert(t('validation:noBets'), t('validation:pleaseEnterPointsRedJodi'));
       return;
     }
 
     if (!mobileNumber) {
-      Alert.alert("Login required", "Mobile number missing. Please login again.");
+      Alert.alert(t('validation:loginRequired'), t('validation:mobileNumberMissing'));
       return;
     }
 
     if (totals.points > balance) {
-      Alert.alert("Insufficient balance", "Your wallet balance is too low.");
+      Alert.alert(t('validation:insufficientBalance'), t('validation:walletBalanceTooLow'));
       return;
     }
 
@@ -117,14 +118,14 @@ const RedJodi = ({ route }) => {
       const p = Number(raw);
 
       if (!Number.isFinite(p) || p <= 0) {
-        Alert.alert('Invalid Bet Amount', `Invalid points for ${j}.`);
+        Alert.alert(t('validation:invalidBetAmount'), t('validation:invalidPointsFor', { digit: j }));
         return; // stop ALL
       }
 
       if (p < minAmount || p > maxAmount) {
         Alert.alert(
-          'Invalid Bet Amount',
-          `Bet amount for ${j} must be between ₹${minAmount} and ₹${maxAmount}`,
+          t('validation:invalidBetAmount'),
+          t('validation:betAmountMustBeBetween', { digit: j, min: minAmount, max: maxAmount }),
         );
         return; // stop ALL
       }
@@ -133,7 +134,7 @@ const RedJodi = ({ route }) => {
     }
 
     if (list.length === 0) {
-      Alert.alert("No bets", "Please enter points for at least one Red Jodi.");
+      Alert.alert(t('validation:noBets'), t('validation:pleaseEnterPointsRedJodi'));
       return;
     }
 
@@ -150,7 +151,7 @@ const RedJodi = ({ route }) => {
 
     try {
       await placeBets(betsToSend);
-      Alert.alert("Success", "Bets placed successfully!");
+      Alert.alert(t('common:success'), t('games:betPlacedSuccessfully'));
 
       // Update balance safely
       const spent = Number(totals.points) || 0;
@@ -166,7 +167,7 @@ const RedJodi = ({ route }) => {
       );
     } catch (e) {
       console.error(e);
-      Alert.alert("Error", e?.message || "Failed to place bets.");
+      Alert.alert(t('common:error'), e?.message || t('games:betsFailed'));
     }
   };
 
@@ -196,7 +197,7 @@ const RedJodi = ({ route }) => {
             onPress={handleSubmit}
             activeOpacity={0.85}
           >
-            <Text style={styles.specialSubmitText}>Submit</Text>
+            <Text style={styles.specialSubmitText}>{t('common:submit')}</Text>
           </TouchableOpacity>
         </View>
       </View>

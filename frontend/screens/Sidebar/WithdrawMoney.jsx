@@ -15,6 +15,7 @@ import {
   Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AuthContext } from '../../contexts/AuthContext';
@@ -37,7 +38,8 @@ const maskMobile = (m) => {
   return `${s.slice(0, 2)}****${s.slice(-4)}`;
 };
 
-const TopCarouselBar = ({ data, statusText = "Withdraw Successfully" }) => {
+const TopCarouselBar = ({ data, statusText }) => {
+  const { t } = useTranslation(['screens', 'funds', 'common']);
   const { colors } = useTheme();
   const listRef = useRef(null);
   const idxRef = useRef(0);
@@ -191,6 +193,7 @@ function formatTime({ hour, minute }) {
 }
 
 const WithdrawMoney = ({ navigation }) => {
+  const { t } = useTranslation(['screens', 'funds', 'common']);
   const { colors } = useTheme();
 
   const { user } = useContext(AuthContext);
@@ -311,14 +314,14 @@ const WithdrawMoney = ({ navigation }) => {
       }
 
       if (!Number.isFinite(amtNum) || amtNum <= 0) {
-        Alert.alert('Invalid Amount', 'Please enter a valid amount.');
+        Alert.alert(t('screens:invalidAmount'), t('screens:pleaseEnterValidAmount'));
         return;
       }
 
       if (MIN_WITHDRAW > 0 && amtNum < MIN_WITHDRAW) {
         Alert.alert(
-          'Invalid Amount',
-          `Minimum withdrawal amount is ₹${MIN_WITHDRAW}.`,
+          t('screens:invalidAmount'),
+          t('screens:minimumWithdrawalAmount', { amount: MIN_WITHDRAW }),
         );
         return;
       }
@@ -333,18 +336,18 @@ const WithdrawMoney = ({ navigation }) => {
       const hasBankDetails = !!accName && !!accNo && !!ifsc;
 
       if (anyBankField && !hasBankDetails) {
-        Alert.alert("Bank details incomplete", "Please update your bank details and fill all fields.");
+        Alert.alert(t('screens:bankDetailsIncomplete'), t('screens:pleaseUpdateBankDetails'));
         return;
       }
 
       if (!hasBankDetails) {
         Alert.alert(
-          "Bank details required",
-          "Please add your bank account details before withdrawing.",
+          t('screens:bankDetailsRequired'),
+          t('screens:pleaseAddBankDetails'),
           [
-            { text: "Cancel", style: "cancel" },
+            { text: t('common:cancel'), style: "cancel" },
             {
-              text: "Add Bank Details",
+              text: t('screens:addBankDetails'),
               onPress: () => navigation.navigate("Bank Details"),
             },
           ]
@@ -354,7 +357,7 @@ const WithdrawMoney = ({ navigation }) => {
 
       const currentBal = Number(user?.balance || 0);
       if (amtNum > currentBal) {
-        Alert.alert('Insufficient Balance', 'You do not have enough balance to withdraw.');
+        Alert.alert(t('screens:insufficientBalance'), t('screens:notEnoughBalance'));
         return;
       }
 
@@ -363,7 +366,7 @@ const WithdrawMoney = ({ navigation }) => {
       // optional: clear input on success
       setAmount('');
     } catch (e) {
-      Alert.alert('Withdraw Failed', e?.message || 'Something went wrong.');
+      Alert.alert(t('screens:withdrawFailed'), e?.message || t('common:somethingWentWrong'));
     }
   };
 
@@ -380,7 +383,7 @@ const WithdrawMoney = ({ navigation }) => {
           >
             <MaterialIcons name="arrow-back" size={26} color={colors.text} />
           </Pressable>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>Withdrawal Fund</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('funds:withdrawFund')}</Text>
           <View style={styles.walletRight}>
             <MaterialCommunityIcons
               name="wallet-outline"
@@ -399,16 +402,16 @@ const WithdrawMoney = ({ navigation }) => {
         contentContainerStyle={{ padding: 16, paddingBottom: 160 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* ✅ TOP CAROUSEL */}
-        <TopCarouselBar data={WITHDRAW_MONEY_CAROUSEL_DUMMY} statusText="Withdraw Successfully" />
+        {/* TOP CAROUSEL */}
+        <TopCarouselBar data={WITHDRAW_MONEY_CAROUSEL_DUMMY} statusText={t('screens:withdrawSuccessfully')} />
 
         <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
           <View style={[styles.innerCard, { backgroundColor: colors.background, shadowColor: colors.text }]}>
-            <Image source={require("../../assets/Images/logo_no_bg.webp")} style={styles.walletImage} />
+            <Image source={require("../../assets/Images/logo.webp")} style={styles.walletImage} />
 
             <View style={{ width: "70%", borderWidth: 1, borderColor: colors.divider }}></View>
             <View style={[styles.balanceStrip, { backgroundColor: colors.background }]}>
-              <Text style={[styles.balanceLabel, { color: colors.text }]}>Available Balance</Text>
+              <Text style={[styles.balanceLabel, { color: colors.text }]}>{t('screens:availableBalance')}</Text>
               <Text style={[styles.balanceValue, { color: colors.text }]}>₹ {user?.balance ? user.balance : '0.0'}</Text>
 
             </View>
@@ -416,17 +419,17 @@ const WithdrawMoney = ({ navigation }) => {
 
           <View style={[styles.divider, { backgroundColor: colors.divider }]} />
           <Text style={[styles.helpTitle, { color: colors.text }]}>
-            For Fund Query's please Call Or Whatsapp
+            {t('screens:forFundQueries')}
           </Text>
 
           <View style={styles.helpBtns}>
             <TouchableOpacity style={[styles.helpBtn, { backgroundColor: colors.background, shadowColor: colors.text }]} onPress={openDialer}>
               <MaterialIcons name="call" size={20} color={colors.text} />
-              <Text style={[styles.helpText, { color: colors.text }]}>Call</Text>
+              <Text style={[styles.helpText, { color: colors.text }]}>{t('common:call')}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.helpBtn, { backgroundColor: colors.background, shadowColor: colors.text }]} onPress={openWhatsapp}>
               <MaterialCommunityIcons name="whatsapp" size={20} color='#1ed514' />
-              <Text style={[styles.helpText, { color: colors.text }]}>Whatsapp</Text>
+              <Text style={[styles.helpText, { color: colors.text }]}>{t('common:whatsapp')}</Text>
             </TouchableOpacity>
           </View>
           <View style={[styles.divider, { backgroundColor: colors.divider }]} />
@@ -441,7 +444,7 @@ const WithdrawMoney = ({ navigation }) => {
               />
             </View>
             <TextInput
-              placeholder="Enter Amount"
+              placeholder={t('screens:enterAmount')}
               placeholderTextColor={colors.textTertiary}
               keyboardType="numeric"
               style={[styles.amountInput, { color: colors.text }]}
@@ -461,7 +464,7 @@ const WithdrawMoney = ({ navigation }) => {
           disabled={isDisabled}
           activeOpacity={0.85}
         >
-          {payLoading ? <ActivityIndicator color={colors.background} /> : <Text style={styles.bottomText}>Send Request</Text>}
+          {payLoading ? <ActivityIndicator color={colors.background} /> : <Text style={styles.bottomText}>{t('screens:sendRequest')}</Text>}
         </TouchableOpacity>
       </View>
 
@@ -481,19 +484,19 @@ const WithdrawMoney = ({ navigation }) => {
               <MaterialIcons name="close" size={36} color="#EF4444" />
             </View>
             <Text style={[styles.closedTitle, { color: colors.text }]}>
-              Cannot withdraw at this time.
+              {t('screens:cannotWithdrawNow')}
             </Text>
             <View style={[styles.modalHr, { backgroundColor: colors.divider }]} />
 
             <Text style={[styles.modalRow, { color: colors.text }]}>
-              <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Open Time : </Text>
+              <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>{t('games:openTime')} : </Text>
               <Text style={[styles.modalValue, { color: colors.text }]}>
                 {WITHDRAW_OPEN_CFG ? formatTime(WITHDRAW_OPEN_CFG) : '--:--'}
               </Text>
             </Text>
 
             <Text style={[styles.modalRow, { marginBottom: 16, color: colors.text }]}>
-              <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Close Time : </Text>
+              <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>{t('games:closeTime')} : </Text>
               <Text style={[styles.modalValue, { color: colors.text }]}>
                 {WITHDRAW_CLOSE_CFG ? formatTime(WITHDRAW_CLOSE_CFG) : '--:--'}
               </Text>
@@ -506,7 +509,7 @@ const WithdrawMoney = ({ navigation }) => {
                 navigation.navigate('Home');
               }}
             >
-              <Text style={styles.modalPrimaryText}>OK</Text>
+              <Text style={styles.modalPrimaryText}>{t('common:ok')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -521,7 +524,7 @@ const WithdrawMoney = ({ navigation }) => {
       >
         <View style={styles.modalBackdrop}>
           <View style={[styles.tncCard, { backgroundColor: colors.background, shadowColor: colors.text }]}>
-            <Text style={[styles.tncTitle, { backgroundColor: colors.primary }]}>Terms & Conditions</Text>
+            <Text style={[styles.tncTitle, { backgroundColor: colors.primary }]}>{t('screens:termsAndConditions')}</Text>
             <ScrollView
               style={{ maxHeight: 360 }}
               contentContainerStyle={{
@@ -531,22 +534,22 @@ const WithdrawMoney = ({ navigation }) => {
               showsVerticalScrollIndicator={false}
             >
               {MIN_WITHDRAW > 0 ? (
-                <TncItem text={`Minimum Withdraw is ${MIN_WITHDRAW}/- Rs.`} />
+                <TncItem text={t('screens:tncMinWithdraw', { amount: MIN_WITHDRAW })} />
               ) : null}
-              <TncItem text="Maximum Withdraw is 25,00,000/- per day." />
-              <TncItem text="Above 5 Lakh you should request us manually." />
-              <TncItem text="Process time minimum 1 hour, maximum 72 hours (depends on bank server)." />
+              <TncItem text={t('screens:tncMaxWithdraw')} />
+              <TncItem text={t('screens:tncAbove5Lakh')} />
+              <TncItem text={t('screens:tncProcessTime')} />
               <TncItem
-                text={`Withdraw request timing is Morning ${withdrawOpenStr} to Night ${withdrawCloseStr}.`}
+                text={t('screens:tncWithdrawTiming', { openTime: withdrawOpenStr, closeTime: withdrawCloseStr })}
               />
-              <TncItem text="Withdraw is available on all days of week." />
-              <TncItem text="Confirm your bank details are correct; wrong details are not our responsibility." />
+              <TncItem text={t('screens:tncAvailableAllDays')} />
+              <TncItem text={t('screens:tncConfirmBankDetails')} />
             </ScrollView>
             <TouchableOpacity
               style={[styles.modalPrimaryBtn, { margin: 16, backgroundColor: colors.primary }]}
               onPress={() => setShowTncModal(false)}
             >
-              <Text style={styles.modalPrimaryText}>ACCEPT</Text>
+              <Text style={styles.modalPrimaryText}>{t('common:accept')}</Text>
             </TouchableOpacity>
           </View>
         </View>

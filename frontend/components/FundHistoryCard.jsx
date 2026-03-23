@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { useTranslation } from 'react-i18next';
 import { useTheme } from "../contexts/ThemeContext";
 
 const STATUS_COLORS = {
@@ -17,6 +18,7 @@ const FundHistoryCard = ({
   requestType = "Credit",
   depositMode = "UPI / Bank",
 }) => {
+  const { t } = useTranslation(['common']);
   const { colors } = useTheme();
 
   const color = STATUS_COLORS[status] ?? STATUS_COLORS.pending;
@@ -27,9 +29,9 @@ const FundHistoryCard = ({
     : "timer-sand-complete"; // pending
 
   const statusText =
-    status === "success" ? "Success"
-    : status === "failed" ? "Failed"
-    : "Pending";
+    status === "success" ? t('common:success')
+    : status === "failed" ? t('common:failed')
+    : t('common:pending');
 
   return (
     <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
@@ -50,7 +52,7 @@ const FundHistoryCard = ({
         <View style={{ flex: 1 }} />
 
         <View>
-          <Text style={[styles.metaLabel, { color: colors.textTertiary }]}>Order id</Text>
+          <Text style={[styles.metaLabel, { color: colors.textTertiary }]}>{t('common:orderId')}</Text>
           <Text style={[styles.orderId, { color: colors.text }]}>{orderId}</Text>
         </View>
       </View>
@@ -60,11 +62,11 @@ const FundHistoryCard = ({
       {/* request type + deposit mode */}
       <View style={styles.bottomRow}>
         <View style={styles.metaBlock}>
-          <Text style={[styles.metaLabel, { color: colors.textTertiary }]}>Request Type</Text>
+          <Text style={[styles.metaLabel, { color: colors.textTertiary }]}>{t('common:requestType')}</Text>
           <Text style={[styles.metaValue, { color: colors.text }]}>{requestType}</Text>
         </View>
         <View style={styles.metaBlock}>
-          <Text style={[styles.metaLabel, { color: colors.textTertiary }]}>Deposit Mode</Text>
+          <Text style={[styles.metaLabel, { color: colors.textTertiary }]}>{t('common:depositMode')}</Text>
           <Text style={[styles.metaValue, { color: colors.text }]}>{depositMode}</Text>
         </View>
       </View>

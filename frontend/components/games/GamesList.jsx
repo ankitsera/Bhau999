@@ -11,6 +11,7 @@ import {
   Image,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { useTranslation } from 'react-i18next';
 import EmptyState from "../../components/EmptyState";
 import { GameContext } from "../../contexts/GameContext";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -70,6 +71,7 @@ const addMinutesTo12h = (t, minsToAdd = 10) => {
 /* ------------------ Modal ------------------ */
 
 const ClosedPopup = ({ visible, onClose, game }) => {
+  const { t } = useTranslation(['games', 'common']);
   const { colors } = useTheme();
 
   const gameName = String(game?.gameName || "GAME").toUpperCase();
@@ -105,7 +107,7 @@ const ClosedPopup = ({ visible, onClose, game }) => {
           </View>
 
           <Text style={[styles.closedTitle2, { color: RED }]}>
-            Bidding Is Closed For Today
+            {t('games:bettingClosedMessage')}
           </Text>
 
           <Text style={[styles.gameName2, { color: colors.text }]} numberOfLines={1}>
@@ -116,28 +118,28 @@ const ClosedPopup = ({ visible, onClose, game }) => {
           <View style={styles.timeTable2}>
             <View style={styles.timeRow2}>
               <Text style={[styles.timeLabel2, { color: colors.textSecondary }]}>
-                Open Result Time :
+                {t('games:openResultTime')} :
               </Text>
               <Text style={[styles.timeValue2, { color: colors.text }]}>{openResult}</Text>
             </View>
 
             <View style={styles.timeRow2}>
               <Text style={[styles.timeLabel2, { color: colors.textSecondary }]}>
-                Open Bid Last Time :
+                {t('games:openBidLastTime')} :
               </Text>
               <Text style={[styles.timeValue2, { color: colors.text }]}>{openBidLast}</Text>
             </View>
 
             <View style={styles.timeRow2}>
               <Text style={[styles.timeLabel2, { color: colors.textSecondary }]}>
-                Close Result Time :
+                {t('games:closeResultTime')} :
               </Text>
               <Text style={[styles.timeValue2, { color: colors.text }]}>{closeResult}</Text>
             </View>
 
             <View style={styles.timeRow2}>
               <Text style={[styles.timeLabel2, { color: colors.textSecondary }]}>
-                Close Bid Last Time :
+                {t('games:closeBidLastTime')} :
               </Text>
               <Text style={[styles.timeValue2, { color: colors.text }]}>{closeBidLast}</Text>
             </View>
@@ -150,7 +152,7 @@ const ClosedPopup = ({ visible, onClose, game }) => {
               { backgroundColor: colors.primary }, // keep theme
             ]}
           >
-            <Text style={[styles.modalOkText2, { color: colors.text }]}>OK</Text>
+            <Text style={[styles.modalOkText2, { color: colors.text }]}>{t('common:ok')}</Text>
           </Pressable>
         </View>
       </View>
@@ -161,6 +163,7 @@ const ClosedPopup = ({ visible, onClose, game }) => {
 /* ------------------ Card ------------------ */
 
 const GameCard = ({ item, navigation, onPressClosed }) => {
+  const { t } = useTranslation(['games']);
   const { colors } = useTheme();
 
   const handlePress = () => {
@@ -191,7 +194,7 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
           <View style={styles.timeRow}>
             <View>
               <Text style={[styles.timeLabel, { color: colors.textSecondary }]}>
-                Open Bids
+                {t('games:openBids')}
               </Text>
               <Text style={[styles.timeValue, { color: colors.textSecondary }]}>
                 {item.openTimeText}
@@ -200,7 +203,7 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
 
             <View style={{ marginLeft: 18 }}>
               <Text style={[styles.timeLabel, { color: colors.textSecondary }]}>
-                Close Bids
+                {t('games:closeBids')}
               </Text>
               <Text style={[styles.timeValue, { color: colors.textSecondary }]}>
                 {item.closeTimeText}
@@ -215,7 +218,7 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
             style={styles.playIcon}
             resizeMode="contain"
           />
-          <Text style={[styles.playText, { color: colors.text }]}>Play Game</Text>
+          <Text style={[styles.playText, { color: colors.text }]}>{t('games:playGame')}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -223,6 +226,7 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
 };
 
 const GamesList = ({ navigation, refreshing, onRefresh }) => {
+  const { t } = useTranslation(['games']);
   const { colors } = useTheme();
 
   const { activeGamesUi, isLoadingActiveGames, loadActiveGames } =
@@ -246,7 +250,7 @@ const GamesList = ({ navigation, refreshing, onRefresh }) => {
   }
 
   if (!activeGamesUi || activeGamesUi.length === 0) {
-    return <EmptyState message="NO GAMES FOUND" />;
+    return <EmptyState message={t('games:noGamesFound')} />;
   }
 
   return (

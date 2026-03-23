@@ -10,6 +10,7 @@ import {
   TextInput,
   Keyboard,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -46,9 +47,10 @@ const FIRST_DIGIT_MAP = Array.from({ length: 10 }, (_, d) => {
 }, {});
 
 const Jodi = ({ route }) => {
+  const { t } = useTranslation(['games', 'validation', 'common']);
   const { colors } = useTheme();
 
-  const gameName = route?.params?.gameName || 'GAME';
+  const gameName = route?.params?.gameName || t('games:defaultGameName');
 
   const { user, updateUser } = useContext(AuthContext);
   const balance = Number(user?.balance || 0);
@@ -120,12 +122,12 @@ const Jodi = ({ route }) => {
     const clean = String(jodiDigit || '').replace(/[^0-9]/g, '');
 
     if (!/^\d{2}$/.test(clean)) {
-      Alert.alert('Validation', 'Please enter a valid 2-digit Jodi.');
+      Alert.alert(t('validation:validation'), t('validation:pleaseEnterValidJodi'));
       return;
     }
 
     const pts = Number(easyPoints);
-    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount)) {
+    if (!validateAndAlertBetAmount(pts, minAmount, maxAmount, t)) {
       return;
     }
 
@@ -158,17 +160,17 @@ const Jodi = ({ route }) => {
     const { bids, points } = activeTotals;
 
     if (bids === 0) {
-      Alert.alert('No bets', 'Please add at least one bet.');
+      Alert.alert(t('validation:noBets'), t('validation:pleaseAddBet'));
       return;
     }
 
     if (!mobileNumber) {
-      Alert.alert('Login required', 'Mobile number missing. Please login again.');
+      Alert.alert(t('validation:loginRequired'), t('validation:mobileNumberMissing'));
       return;
     }
 
     if (points > balance) {
-      Alert.alert('Insufficient balance', 'Your wallet balance is too low.');
+      Alert.alert(t('validation:insufficientBalance'), t('validation:walletBalanceTooLow'));
       return;
     }
 
@@ -197,14 +199,14 @@ const Jodi = ({ route }) => {
         const p = Number(raw);
 
         if (!Number.isFinite(p) || p <= 0) {
-          Alert.alert("Validation", `Invalid points for Jodi ${n}.`);
+          Alert.alert(t('validation:validation'), t('validation:invalidPointsFor', { digit: n }));
           return;
         }
 
         if (p < minAmount || p > maxAmount) {
           Alert.alert(
-            "Validation",
-            `Points for Jodi ${n} must be between ${minAmount} and ${maxAmount}.`
+            t('validation:validation'),
+            t('validation:betAmountMustBeBetween', { digit: n, min: minAmount, max: maxAmount })
           );
           return;
         }
@@ -226,7 +228,7 @@ const Jodi = ({ route }) => {
 
     try {
       const res = await placeBets(betsToSend);
-      Alert.alert('Success', 'Bets placed successfully!');
+      Alert.alert(t('common:success'), t('games:betPlacedSuccessfully'));
 
       const spent = Number(activeTotals.points) || 0;
       const nextBalance = Math.max(0, balance - spent);
@@ -243,7 +245,7 @@ const Jodi = ({ route }) => {
       setEasyPoints('');
     } catch (e) {
       console.error(e);
-      Alert.alert('Error', e?.message || 'Failed to place bets.');
+      Alert.alert(t('common:error'), e?.message || t('games:betsFailed'));
     }
   };
 
