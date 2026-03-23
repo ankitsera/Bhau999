@@ -51,9 +51,9 @@ const Notifications = ({ navigation }) => {
         { backgroundColor: colors.surface, shadowColor: colors.text },
       ]}
     >
-      <View style={[styles.iconContainer, { backgroundColor: colors.primary }]}>
+      <View style={[styles.iconContainer]}>
         <Image
-          source={require('../../assets/Images/notification_dummy.png')} // <-- replace with your real image
+          source={require('../../assets/Images/notification.webp')} // <-- replace with your real image
           style={styles.iconImage}
           resizeMode="contain"
         />

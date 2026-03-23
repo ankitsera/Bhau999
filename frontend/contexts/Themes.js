@@ -11,7 +11,7 @@ export const lightColors = {
   primaryTile: '#FFB84D',
   primaryIconBg: '#FFF4E0',
   background: '#f1f1f1',
-  surface: '#f8f8f8',
+  surface: '#f5f4f4',
   text: '#000000',
   textSecondary: '#333333',
   textTertiary: '#666666',
