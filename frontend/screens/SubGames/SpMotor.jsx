@@ -258,7 +258,7 @@ const SpMotor = ({ route }) => {
 
           <View style={styles.form}>
             <View style={styles.pointInputRow}>
-              <Text style={[styles.label, { color: colors.text }]}>Enter Digit:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>{t('games:enterDigit')}</Text>
               <View style={{ alignItems: 'flex-end' }}>
                 <TextInput
                   style={[
@@ -278,7 +278,7 @@ const SpMotor = ({ route }) => {
                   onChangeText={handleChangeDigits}
                   onFocus={() => setDigitsFocused(true)}
                   onEndEditing={handleDigitsBlur}
-                  placeholder="Number"
+                  placeholder={t('games:number')}
                   maxLength={10}
                   placeholderTextColor={colors.textTertiary}
                 />
@@ -295,7 +295,7 @@ const SpMotor = ({ route }) => {
             </View>
 
             <View style={styles.pointInputRow}>
-              <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>{t('games:enterPoints')}</Text>
               <TextInput
                 style={[
                   styles.input,
@@ -310,7 +310,7 @@ const SpMotor = ({ route }) => {
                 onChangeText={t =>
                   setPoints(String(t || '').replace(/[^0-9]/g, ''))
                 }
-                placeholder="Point"
+                placeholder={t('games:point')}
                 placeholderTextColor={colors.textTertiary}
               />
             </View>
@@ -333,7 +333,7 @@ const SpMotor = ({ route }) => {
             <EasyModeTable
               bets={bets}
               onDelete={handleDelete}
-              digitHeaderLabel="Pana"
+              digitHeaderLabel={t('games:pana')}
             />
           </View>
         </View>

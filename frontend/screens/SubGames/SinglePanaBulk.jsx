@@ -172,7 +172,7 @@ const SinglePanaBulk = ({ route }) => {
         <View style={styles.content}>
           {/* Game type dropdown */}
           <GameTypePicker
-            label="Select Game Type:"
+            label={t('games:selectGameType')}
             value={selectedType}
             options={pickerOptions}
             onChange={setSelectedType}
@@ -182,7 +182,7 @@ const SinglePanaBulk = ({ route }) => {
           {/* Points row */}
           <View style={styles.pointInputRow}>
             <Text style={[styles.label, { color: colors.text }]}>
-              Enter Points:
+              {t('games:enterPoints')}
             </Text>
             <TextInput
               style={[
@@ -197,7 +197,7 @@ const SinglePanaBulk = ({ route }) => {
               keyboardType="number-pad"
               value={points}
               onChangeText={handlePointsChange}
-              placeholder="Point"
+              placeholder={t('games:point')}
               placeholderTextColor={colors.textTertiary}
             />
           </View>
@@ -226,7 +226,7 @@ const SinglePanaBulk = ({ route }) => {
                 type: b.type,
               }))}
               onDelete={handleDeleteBet}
-              digitHeaderLabel="Pana"
+              digitHeaderLabel={t('games:pana')}
             />
           </View>
         </View>

@@ -60,5 +60,7 @@
   "openResultTime": "ओपन रिझल्ट वेळ",
   "openBidLastTime": "ओपन बेट शेवटची वेळ",
   "closeResultTime": "क्लोज रिझल्ट वेळ",
-  "closeBidLastTime": "क्लोज बेट शेवटची वेळ"
+  "closeBidLastTime": "क्लोज बेट शेवटची वेळ",
+  "easyMode": "EASY MODE",
+  "specialMode": "SPECIAL MODE"
 }

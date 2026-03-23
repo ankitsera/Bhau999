@@ -63,5 +63,7 @@
   "openResultTime": "Open Result Time",
   "openBidLastTime": "Open Bid Last Time",
   "closeResultTime": "Close Result Time",
-  "closeBidLastTime": "Close Bid Last Time"
+  "closeBidLastTime": "Close Bid Last Time",
+  "easyMode": "EASY MODE",
+  "specialMode": "SPECIAL MODE"
 }

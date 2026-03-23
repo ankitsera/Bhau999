@@ -157,7 +157,7 @@ const SpCommon = ({ route }) => {
 
         <View style={styles.content}>
           <GameTypePicker
-            label="Select Game Type:"
+            label={t('games:selectGameType')}
             value={selectedType}
             options={pickerOptions}
             onChange={setSelectedType}
@@ -165,7 +165,7 @@ const SpCommon = ({ route }) => {
           />
 
           <View style={styles.row}>
-            <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('games:enterPoints')}</Text>
             <TextInput
               style={[
                 styles.input,
@@ -184,7 +184,7 @@ const SpCommon = ({ route }) => {
                 setPoints(v);
                 if (pointsError) setPointsError(false);
               }}
-              placeholder="Point"
+              placeholder={t('games:point')}
               placeholderTextColor={colors.textTertiary}
             />
           </View>
@@ -217,7 +217,7 @@ const SpCommon = ({ route }) => {
             <EasyModeTable
               bets={bets}
               onDelete={handleDelete}
-              digitHeaderLabel="Pana"
+              digitHeaderLabel={t('games:pana')}
             />
           </View>
         </View>

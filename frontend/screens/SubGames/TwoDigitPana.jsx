@@ -243,7 +243,7 @@ const TwoDigitPana = ({ route }) => {
 
           {/* Digit row (with dropdown suggestions) */}
           <View style={styles.pointInputRow}>
-            <Text style={[styles.label, { color: colors.text }]}>Enter Digit:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('games:enterDigit')}</Text>
 
             <View style={styles.inputWrapper}>
               <TextInput
@@ -259,7 +259,7 @@ const TwoDigitPana = ({ route }) => {
                 maxLength={2}
                 value={digit}
                 onChangeText={setDigit}
-                placeholder="Digit"
+                placeholder={t('games:digit')}
                 placeholderTextColor={colors.textTertiary}
               />
 
@@ -293,7 +293,7 @@ const TwoDigitPana = ({ route }) => {
 
           {/* Points row */}
           <View style={styles.pointInputRow}>
-            <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('games:enterPoints')}</Text>
             <TextInput
               style={[
                 styles.input,
@@ -306,7 +306,7 @@ const TwoDigitPana = ({ route }) => {
               keyboardType="number-pad"
               value={points}
               onChangeText={setPoints}
-              placeholder="Point"
+              placeholder={t('games:point')}
               placeholderTextColor={colors.textTertiary}
             />
           </View>
@@ -325,7 +325,7 @@ const TwoDigitPana = ({ route }) => {
             <EasyModeTable
               bets={bets}
               onDelete={handleDelete}
-              digitHeaderLabel="Pana"
+              digitHeaderLabel={t('games:pana')}
             />
           </View>
         </View>

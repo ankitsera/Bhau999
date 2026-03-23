@@ -284,13 +284,14 @@ const Jodi = ({ route }) => {
                   handleAddEasyBet();
                 }}
                 colors={colors}
+                t={t}
               />
 
               <View style={styles.tableArea}>
                 <EasyModeTable
                   bets={easyBets}
                   onDelete={handleDeleteEasyBet}
-                  digitHeaderLabel="Jodi"
+                  digitHeaderLabel={t('games:jodi')}
                 />
               </View>
             </>
@@ -347,6 +348,7 @@ const JodiEasyForm = ({
   onChangePoints,
   onPressAdd,
   colors,
+  t,
 }) => {
   const suggestions = useMemo(() => {
     const clean = String(jodi || '').replace(/[^0-9]/g, '');
@@ -357,7 +359,7 @@ const JodiEasyForm = ({
   return (
     <View style={formStyles.container}>
       <View style={formStyles.pointInputRow}>
-        <Text style={[formStyles.label, { color: colors.text }]}>Enter Jodi Digit:</Text>
+        <Text style={[formStyles.label, { color: colors.text }]}>{t('games:enterJodiDigit')}</Text>
 
         <View style={formStyles.inputWrapper}>
           <TextInput
@@ -366,7 +368,7 @@ const JodiEasyForm = ({
             maxLength={2}
             value={jodi}
             onChangeText={onChangeJodi}
-            placeholder="Jodi"
+            placeholder={t('games:jodi')}
             placeholderTextColor={colors.textTertiary}
           />
 
@@ -394,13 +396,13 @@ const JodiEasyForm = ({
       </View>
 
       <View style={formStyles.pointInputRow}>
-        <Text style={[formStyles.label, { color: colors.text }]}>Enter Points:</Text>
+        <Text style={[formStyles.label, { color: colors.text }]}>{t('games:enterPoints')}</Text>
         <TextInput
           style={[formStyles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
           keyboardType="number-pad"
           value={points}
           onChangeText={onChangePoints}
-          placeholder="Point"
+          placeholder={t('games:point')}
           placeholderTextColor={colors.textTertiary}
         />
       </View>
@@ -410,7 +412,7 @@ const JodiEasyForm = ({
         onPress={onPressAdd}
         activeOpacity={0.85}
       >
-        <Text style={formStyles.addText}>Add</Text>
+        <Text style={formStyles.addText}>{t('common:add')}</Text>
       </TouchableOpacity>
     </View>
   );

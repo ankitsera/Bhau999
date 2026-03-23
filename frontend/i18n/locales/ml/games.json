@@ -60,5 +60,7 @@
   "openResultTime": "ഓപ്പൺ റിസൾട്ട് സമയം",
   "openBidLastTime": "ഓപ്പൺ ബെറ്റ് അവസാന സമയം",
   "closeResultTime": "ക്ലോസ് റിസൾട്ട് സമയം",
-  "closeBidLastTime": "ക്ലോസ് ബെറ്റ് അവസാന സമയം"
+  "closeBidLastTime": "ക്ലോസ് ബെറ്റ് അവസാന സമയം",
+  "easyMode": "EASY MODE",
+  "specialMode": "SPECIAL MODE"
 }

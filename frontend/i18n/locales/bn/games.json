@@ -60,5 +60,7 @@
   "openResultTime": "ওপেন রেজাল্ট সময়",
   "openBidLastTime": "ওপেন বেট শেষ সময়",
   "closeResultTime": "ক্লোজ রেজাল্ট সময়",
-  "closeBidLastTime": "ক্লোজ বেট শেষ সময়"
+  "closeBidLastTime": "ক্লোজ বেট শেষ সময়",
+  "easyMode": "EASY MODE",
+  "specialMode": "SPECIAL MODE"
 }

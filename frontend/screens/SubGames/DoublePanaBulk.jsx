@@ -176,7 +176,7 @@ const DoublePanaBulk = ({ route }) => {
 
         <View style={styles.content}>
           <GameTypePicker
-            label="Select Game Type:"
+            label={t('games:selectGameType')}
             value={selectedType}
             options={pickerOptions}
             onChange={setSelectedType}
@@ -184,7 +184,7 @@ const DoublePanaBulk = ({ route }) => {
           />
 
           <View style={styles.pointInputRow}>
-            <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('games:enterPoints')}</Text>
             <TextInput
               style={[
                 styles.input,
@@ -194,7 +194,7 @@ const DoublePanaBulk = ({ route }) => {
               keyboardType="number-pad"
               value={points}
               onChangeText={handlePointsChange}
-              placeholder="Point"
+              placeholder={t('games:point')}
               placeholderTextColor={colors.textTertiary}
             />
           </View>
@@ -222,7 +222,7 @@ const DoublePanaBulk = ({ route }) => {
                 type: b.type,
               }))}
               onDelete={handleDeleteBet}
-              digitHeaderLabel="Pana"
+              digitHeaderLabel={t('games:pana')}
             />
           </View>
         </View>

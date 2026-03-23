@@ -258,13 +258,13 @@ const SingleDigit = ({ route }) => {
           {/* Mode toggle */}
           <View style={styles.modeRow}>
             <ModeButton
-              label="EASY MODE"
+              label={t('games:easyMode')}
               active={mode === 'EASY'}
               onPress={() => setMode('EASY')}
               primary={colors.primary}
             />
             <ModeButton
-              label="SPECIAL MODE"
+              label={t('games:specialMode')}
               active={mode === 'SPECIAL'}
               onPress={() => setMode('SPECIAL')}
               primary={colors.primary}
@@ -274,7 +274,7 @@ const SingleDigit = ({ route }) => {
           {/* EASY MODE: label + dropdown */}
           {mode === 'EASY' && (
             <GameTypePicker
-              label="Select Game Type:"
+              label={t('games:selectGameType')}
               value={selectedType}
               options={pickerOptions}
               onChange={setSelectedType}
@@ -304,10 +304,11 @@ const SingleDigit = ({ route }) => {
                   handleAddEasyBet();
                 }}
                 colors={colors}
+                t={t}
               />
 
               <View style={styles.tableArea}>
-                <EasyModeTable bets={easyBets} onDelete={handleDeleteEasyBet} />
+                <EasyModeTable bets={easyBets} onDelete={handleDeleteEasyBet} digitHeaderLabel={t('games:ank')} />
               </View>
             </>
           ) : (
@@ -333,7 +334,7 @@ const SingleDigit = ({ route }) => {
                   onPress={handleSubmit}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.specialSubmitText}>Submit</Text>
+                  <Text style={styles.specialSubmitText}>{t('common:submit')}</Text>
                 </TouchableOpacity>
               </View>
             </>
@@ -363,30 +364,31 @@ const SingleDigitEasyForm = ({
   onChangePoints,
   onPressAdd,
   colors,
+  t,
 }) => {
   return (
     <View style={formStyles.container}>
       <View style={formStyles.pointInputRow}>
-        <Text style={[formStyles.label, { color: colors.text }]}>Enter Single Digit:</Text>
+        <Text style={[formStyles.label, { color: colors.text }]}>{t('games:enterSingleDigit')}</Text>
         <TextInput
           style={[formStyles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
           keyboardType="number-pad"
           maxLength={1}
           value={digit}
           onChangeText={onChangeDigit}
-          placeholder="Ank"
+          placeholder={t('games:ank')}
           placeholderTextColor={colors.textTertiary}
         />
       </View>
 
       <View style={formStyles.pointInputRow}>
-        <Text style={[formStyles.label, { color: colors.text }]}>Enter Points:</Text>
+        <Text style={[formStyles.label, { color: colors.text }]}>{t('games:enterPoints')}</Text>
         <TextInput
           style={[formStyles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
           keyboardType="number-pad"
           value={points}
           onChangeText={onChangePoints}
-          placeholder="Point"
+          placeholder={t('games:point')}
           placeholderTextColor={colors.textTertiary}
         />
       </View>
@@ -396,7 +398,7 @@ const SingleDigitEasyForm = ({
         onPress={onPressAdd}
         activeOpacity={0.85}
       >
-        <Text style={formStyles.addText}>Add</Text>
+        <Text style={formStyles.addText}>{t('common:add')}</Text>
       </TouchableOpacity>
     </View>
   );

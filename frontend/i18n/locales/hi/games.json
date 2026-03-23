@@ -63,5 +63,7 @@
   "openResultTime": "ओपन रिजल्ट टाइम",
   "openBidLastTime": "ओपन बेट अंतिम समय",
   "closeResultTime": "क्लोज रिजल्ट टाइम",
-  "closeBidLastTime": "क्लोज बेट अंतिम समय"
+  "closeBidLastTime": "क्लोज बेट अंतिम समय",
+  "easyMode": "EASY MODE",
+  "specialMode": "SPECIAL MODE"
 }

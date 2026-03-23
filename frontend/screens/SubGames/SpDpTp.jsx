@@ -268,7 +268,7 @@ const SpDpTp = ({ route }) => {
 
           {/* Digit */}
           <View style={styles.pointInputRow}>
-            <Text style={[styles.label, { color: colors.text }]}>Enter Digit:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('games:enterDigit')}</Text>
             <TextInput
               style={[
                 styles.input,
@@ -282,14 +282,14 @@ const SpDpTp = ({ route }) => {
               maxLength={1}
               value={digit}
               onChangeText={setDigit}
-              placeholder="Digit"
+              placeholder={t('games:digit')}
               placeholderTextColor={colors.textTertiary}
             />
           </View>
 
           {/* Points */}
           <View style={styles.pointInputRow}>
-            <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('games:enterPoints')}</Text>
             <TextInput
               style={[
                 styles.input,
@@ -302,7 +302,7 @@ const SpDpTp = ({ route }) => {
               keyboardType="number-pad"
               value={points}
               onChangeText={setPoints}
-              placeholder="Point"
+              placeholder={t('games:point')}
               placeholderTextColor={colors.textTertiary}
             />
           </View>
@@ -323,7 +323,7 @@ const SpDpTp = ({ route }) => {
             <EasyModeTable
               bets={bets}
               onDelete={handleDelete}
-              digitHeaderLabel="Pana"
+              digitHeaderLabel={t('games:pana')}
             />
           </View>
         </View>

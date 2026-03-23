@@ -200,7 +200,7 @@ const FullSangam = ({ route }) => {
           >
             {/* OPEN PANA */}
             <View style={styles.pointInputRow}>
-              <Text style={[styles.label, { color: colors.text }]}>Enter Open Pana:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>{t('games:enterOpenPana')}</Text>
 
               <View style={styles.inputWrapper}>
                 <TextInput
@@ -208,8 +208,8 @@ const FullSangam = ({ route }) => {
                   keyboardType="number-pad"
                   maxLength={3}
                   value={openPana}
-                  onChangeText={(t) => setOpenPana(normalizePana(t))}
-                  placeholder="Pana"
+                  onChangeText={(text) => setOpenPana(normalizePana(text))}
+                  placeholder={t('games:pana')}
                   placeholderTextColor={colors.textTertiary}
                   onFocus={() => setFocusedField("OPEN")}
                   onBlur={() => setTimeout(() => setFocusedField(null), 120)}
@@ -229,7 +229,7 @@ const FullSangam = ({ route }) => {
 
             {/* CLOSE PANA */}
             <View style={styles.pointInputRow}>
-              <Text style={[styles.label, { color: colors.text }]}>Enter Close Pana:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>{t('games:enterClosePana')}</Text>
 
               <View style={styles.inputWrapper}>
                 <TextInput
@@ -237,8 +237,8 @@ const FullSangam = ({ route }) => {
                   keyboardType="number-pad"
                   maxLength={3}
                   value={closePana}
-                  onChangeText={(t) => setClosePana(normalizePana(t))}
-                  placeholder="Pana"
+                  onChangeText={(text) => setClosePana(normalizePana(text))}
+                  placeholder={t('games:pana')}
                   placeholderTextColor={colors.textTertiary}
                   onFocus={() => setFocusedField("CLOSE")}
                   onBlur={() => setTimeout(() => setFocusedField(null), 120)}
@@ -258,15 +258,15 @@ const FullSangam = ({ route }) => {
 
             {/* POINTS */}
             <View style={styles.pointInputRow}>
-              <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>{t('games:enterPoints')}</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                 keyboardType="number-pad"
                 value={points}
-                onChangeText={(t) =>
-                  setPoints(String(t).replace(/[^0-9]/g, ""))
+                onChangeText={(text) =>
+                  setPoints(String(text).replace(/[^0-9]/g, ""))
                 }
-                placeholder="Point"
+                placeholder={t('games:point')}
                 placeholderTextColor={colors.textTertiary}
               />
             </View>
@@ -277,15 +277,15 @@ const FullSangam = ({ route }) => {
               onPress={handleAdd}
               activeOpacity={0.85}
             >
-              <Text style={styles.addText}>Add</Text>
+              <Text style={styles.addText}>{t('common:add')}</Text>
             </TouchableOpacity>
 
             {/* TABLE HEADER */}
             <View style={[styles.tableHeader, { backgroundColor: colors.primary }]}>
-              <Text style={[styles.th, { flex: 1.1, color: colors.text }]}>Sangam</Text>
-              <Text style={[styles.th, { flex: 1, color: colors.text }]}>Amount</Text>
+              <Text style={[styles.th, { flex: 1.1, color: colors.text }]}>{t('games:sangam')}</Text>
+              <Text style={[styles.th, { flex: 1, color: colors.text }]}>{t('funds:amount')}</Text>
               <Text style={[styles.th, { width: 70, textAlign: "center", color: colors.text }]}>
-                Delete
+                {t('common:delete')}
               </Text>
             </View>
 
@@ -323,7 +323,7 @@ const FullSangam = ({ route }) => {
             onPress={handleSubmit}
             activeOpacity={0.85}
           >
-            <Text style={styles.submitText}>Submit</Text>
+            <Text style={styles.submitText}>{t('common:submit')}</Text>
           </TouchableOpacity>
         </View>
       </View>

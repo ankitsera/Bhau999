@@ -159,7 +159,7 @@ const DpCommon = ({ route }) => {
 
         <View style={styles.content}>
           <GameTypePicker
-            label="Select Game Type:"
+            label={t('games:selectGameType')}
             value={selectedType}
             options={pickerOptions}
             onChange={setSelectedType}
@@ -167,7 +167,7 @@ const DpCommon = ({ route }) => {
           />
 
           <View style={styles.row}>
-            <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
+            <Text style={[styles.label, { color: colors.text }]}>{t('games:enterPoints')}</Text>
             <TextInput
               style={[
                 styles.input,
@@ -183,7 +183,7 @@ const DpCommon = ({ route }) => {
                 setPoints(clean);
                 if (pointsError && clean) setPointsError(false);
               }}
-              placeholder="Point"
+              placeholder={t('games:point')}
               placeholderTextColor={colors.textTertiary}
             />
           </View>

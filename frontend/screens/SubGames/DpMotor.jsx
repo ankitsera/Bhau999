@@ -244,7 +244,7 @@ const DpMotor = ({ route }) => {
 
           <View style={styles.form}>
             <View style={styles.pointInputRow}>
-              <Text style={[styles.label, { color: colors.text }]}>Enter Digit:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>{t('games:enterDigit')}</Text>
 
               <View style={{ alignItems: 'flex-end' }}>
                 <TextInput
@@ -261,7 +261,7 @@ const DpMotor = ({ route }) => {
                   onChangeText={handleChangeDigits}
                   onFocus={() => setDigitsFocused(true)}
                   onEndEditing={handleDigitsBlur}
-                  placeholder="Number"
+                  placeholder={t('games:number')}
                   maxLength={10}
                   placeholderTextColor={colors.textTertiary}
                 />
@@ -274,7 +274,7 @@ const DpMotor = ({ route }) => {
             </View>
 
             <View style={styles.pointInputRow}>
-              <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>{t('games:enterPoints')}</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                 keyboardType="number-pad"
@@ -282,7 +282,7 @@ const DpMotor = ({ route }) => {
                 onChangeText={t =>
                   setPoints(String(t || '').replace(/[^0-9]/g, ''))
                 }
-                placeholder="Point"
+                placeholder={t('games:point')}
                 placeholderTextColor={colors.textTertiary}
               />
             </View>

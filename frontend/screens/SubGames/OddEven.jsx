@@ -194,7 +194,7 @@ const OddEven = ({ route }) => {
               ]}
               keyboardType="number-pad"
               value={points}
-              onChangeText={(t) => setPoints(String(t).replace(/[^0-9]/g, ""))}
+              onChangeText={(text) => setPoints(String(text).replace(/[^0-9]/g, ""))}
               placeholder={t('games:point')}
               placeholderTextColor={colors.textTertiary}
             />

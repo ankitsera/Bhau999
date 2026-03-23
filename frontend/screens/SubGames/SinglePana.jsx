@@ -292,13 +292,13 @@ const SinglePana = ({ route }) => {
           {/* Mode toggle */}
           <View style={styles.modeRow}>
             <ModeButton
-              label="EASY MODE"
+              label={t('games:easyMode')}
               active={mode === 'EASY'}
               onPress={() => setMode('EASY')}
               primary={colors.primary}
             />
             <ModeButton
-              label="SPECIAL MODE"
+              label={t('games:specialMode')}
               active={mode === 'SPECIAL'}
               onPress={() => setMode('SPECIAL')}
               primary={colors.primary}
@@ -308,7 +308,7 @@ const SinglePana = ({ route }) => {
           {/* EASY MODE: label + dropdown */}
           {mode === 'EASY' && (
             <GameTypePicker
-              label="Select Game Type:"
+              label={t('games:selectGameType')}
               value={selectedType}
               options={pickerOptions}
               onChange={setSelectedType}
@@ -335,6 +335,7 @@ const SinglePana = ({ route }) => {
                 onChangePoints={setEasyPoints}
                 onPressAdd={handleAddEasyBet}
                 colors={colors}
+                t={t}
               />
 
               <View style={styles.tableArea}>
@@ -346,7 +347,7 @@ const SinglePana = ({ route }) => {
                     type: b.type,
                   }))}
                   onDelete={handleDeleteEasyBet}
-                  digitHeaderLabel="Pana"
+                  digitHeaderLabel={t('games:pana')}
                 />
               </View>
             </>
@@ -449,6 +450,7 @@ const SinglePanaEasyForm = ({
   onChangePoints,
   onPressAdd,
   colors,
+  t,
 }) => {
   const suggestions = useMemo(() => getSinglePanaSuggestions(pana), [pana]);
 
@@ -457,7 +459,7 @@ const SinglePanaEasyForm = ({
       {/* Enter Single Pana row */}
       <View style={formStyles.pointInputRow}>
         <Text style={[formStyles.label, { color: colors.text }]}>
-          Enter Single Pana:
+          {t('games:enterSinglePana')}
         </Text>
 
         <View style={formStyles.inputWrapper}>
@@ -474,7 +476,7 @@ const SinglePanaEasyForm = ({
             maxLength={3}
             value={pana}
             onChangeText={onChangePana}
-            placeholder="Pana"
+            placeholder={t('games:pana')}
             placeholderTextColor={colors.textTertiary}
           />
 
@@ -506,7 +508,7 @@ const SinglePanaEasyForm = ({
       {/* Points row */}
       <View style={formStyles.pointInputRow}>
         <Text style={[formStyles.label, { color: colors.text }]}>
-          Enter Points:
+          {t('games:enterPoints')}
         </Text>
         <TextInput
           style={[
@@ -520,7 +522,7 @@ const SinglePanaEasyForm = ({
           keyboardType="number-pad"
           value={points}
           onChangeText={onChangePoints}
-          placeholder="Point"
+          placeholder={t('games:point')}
           placeholderTextColor={colors.textTertiary}
         />
       </View>
@@ -530,7 +532,7 @@ const SinglePanaEasyForm = ({
         onPress={onPressAdd}
         activeOpacity={0.85}
       >
-        <Text style={[formStyles.addText, { color: colors.text }]}>Add</Text>
+        <Text style={[formStyles.addText, { color: colors.text }]}>{t('common:add')}</Text>
       </TouchableOpacity>
     </View>
   );

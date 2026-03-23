@@ -192,13 +192,13 @@ const HalfSangamB = ({ route }) => {
           >
             {/* Open Ank */}
             <View style={styles.pointInputRow}>
-              <Text style={[styles.label, { color: colors.text }]}>Enter Open Ank:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>{t('games:enterOpenAnk')}</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                 keyboardType="number-pad"
                 value={openAnk}
                 onChangeText={t => setOpenAnk(sanitizeDigits(t).slice(0, 1))}
-                placeholder="Ank"
+                placeholder={t('games:ank')}
                 placeholderTextColor={colors.textTertiary}
                 maxLength={1}
               />
@@ -206,7 +206,7 @@ const HalfSangamB = ({ route }) => {
 
             {/* Close Pana */}
             <View style={styles.pointInputRow}>
-              <Text style={[styles.label, { color: colors.text }]}>Enter Close Pana:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>{t('games:enterClosePana')}</Text>
 
               <View style={styles.inputWrapper}>
                 <TextInput
@@ -216,7 +216,7 @@ const HalfSangamB = ({ route }) => {
                   onChangeText={t =>
                     setClosePana(sanitizeDigits(t).slice(0, 3))
                   }
-                  placeholder="Pana"
+                  placeholder={t('games:pana')}
                   placeholderTextColor={colors.textTertiary}
                   maxLength={3}
                   onFocus={() => setShowCloseSug(true)}
@@ -251,13 +251,13 @@ const HalfSangamB = ({ route }) => {
 
             {/* Points */}
             <View style={styles.pointInputRow}>
-              <Text style={[styles.label, { color: colors.text }]}>Enter Points:</Text>
+              <Text style={[styles.label, { color: colors.text }]}>{t('games:enterPoints')}</Text>
               <TextInput
                 style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                 keyboardType="number-pad"
                 value={points}
                 onChangeText={t => setPoints(sanitizeDigits(t))}
-                placeholder="Point"
+                placeholder={t('games:point')}
                 placeholderTextColor={colors.textTertiary}
               />
             </View>
@@ -267,14 +267,14 @@ const HalfSangamB = ({ route }) => {
               onPress={handleAdd}
               activeOpacity={0.85}
             >
-              <Text style={styles.addText}>Add</Text>
+              <Text style={styles.addText}>{t('common:add')}</Text>
             </TouchableOpacity>
 
             {/* Table */}
             <View style={[styles.tableHeader, { backgroundColor: colors.primary }]}>
-              <Text style={[styles.headerCell, { flex: 1.2, color: colors.text }]}>Sangam</Text>
-              <Text style={[styles.headerCell, { flex: 0.9, color: colors.text }]}>Amount</Text>
-              <Text style={[styles.headerCell, { flex: 0.7, color: colors.text }]}>Delete</Text>
+              <Text style={[styles.headerCell, { flex: 1.2, color: colors.text }]}>{t('games:sangam')}</Text>
+              <Text style={[styles.headerCell, { flex: 0.9, color: colors.text }]}>{t('funds:amount')}</Text>
+              <Text style={[styles.headerCell, { flex: 0.7, color: colors.text }]}>{t('common:delete')}</Text>
             </View>
 
             {bets.map(b => (
@@ -313,7 +313,7 @@ const HalfSangamB = ({ route }) => {
             onPress={handleSubmit}
             activeOpacity={0.9}
           >
-            <Text style={styles.submitText}>Submit</Text>
+            <Text style={styles.submitText}>{t('common:submit')}</Text>
           </TouchableOpacity>
         </View>
       </View>
