@@ -30,10 +30,10 @@ public class RateController {
         if (rate == null || rate.getType() == null) {
             return ResponseEntity.badRequest().body("Missing rate payload or type");
         }
-        // read min_bet_amount from properties; default to 1
+        // read base_rate from properties; default to 1
         double minBet = 1.0;
         try {
-            java.util.Optional<Properties> po = propertiesRepository.findById("min_bet_amount");
+            java.util.Optional<Properties> po = propertiesRepository.findById("base_rate");
             if (po.isPresent()) {
                 String val = po.get().getValue();
                 if (val != null) {
@@ -42,7 +42,7 @@ public class RateController {
                 }
             }
         } catch (Exception ex) {
-            log.warn("Unable to read min_bet_amount property, defaulting to 1", ex);
+            log.warn("Unable to read base_rate property, defaulting to 1", ex);
             minBet = 1.0;
         }
 
@@ -75,7 +75,7 @@ public class RateController {
         List<Rate> list = rateRepository.findAll();
         double minBet = 1.0;
         try {
-            java.util.Optional<Properties> po = propertiesRepository.findById("min_bet_amount");
+            java.util.Optional<Properties> po = propertiesRepository.findById("base_rate");
             if (po.isPresent()) {
                 String val = po.get().getValue();
                 if (val != null) {
@@ -84,7 +84,7 @@ public class RateController {
                 }
             }
         } catch (Exception ex) {
-            log.warn("Unable to read min_bet_amount property, defaulting to 1", ex);
+            log.warn("Unable to read base_rate property, defaulting to 1", ex);
             minBet = 1.0;
         }
 
