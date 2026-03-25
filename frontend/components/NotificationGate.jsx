@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   BackHandler,
   AppState,
+  Image,
+  Animated,
 } from "react-native";
 import {
   isNotificationPermissionGranted,
@@ -26,6 +28,28 @@ const NotificationGate = ({ children }) => {
   const [requesting, setRequesting] = useState(false);
   const [denyCount, setDenyCount] = useState(0);
   const [neverAskAgain, setNeverAskAgain] = useState(false);
+
+  // 🔔 Bell Animation
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const animateBell = () => {
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 1.12,
+        duration: 250,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 4,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  useEffect(() => {
+    animateBell();
+  }, []);
 
   const check = useCallback(async () => {
     setChecking(true);
@@ -89,10 +113,9 @@ const NotificationGate = ({ children }) => {
   if (checking) {
     return (
       <View style={[styles.screen, { backgroundColor: colors.background }]}>
-        <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <Text style={[styles.title, { color: colors.text }]}>{t('common:justASec')}</Text>
-          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t('common:checkingNotificationPermission')}</Text>
-        </View>
+        <Text style={{ color: colors.text }}>
+          {t("common:checkingNotificationPermission")}
+        </Text>
       </View>
     );
   }
@@ -101,49 +124,106 @@ const NotificationGate = ({ children }) => {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <Text style={[styles.title, { color: colors.text }]}>{t('common:notificationsRequired')}</Text>
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: colors.surface,
+            borderColor: colors.border,
+          },
+        ]}
+      >
+        {/* 🔔 Animated Bell */}
+        <Animated.Image
+          source={require("../assets/Images/bell.webp")} // replace with your asset
+          style={[
+            styles.bell,
+            {
+              transform: [{ scale: scaleAnim }],
+            },
+          ]}
+        />
 
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          {t('common:notificationPermissionNeeded')}
+        <Text style={[styles.title, { color: colors.text }]}>
+          {t("common:notificationsRequired")}
         </Text>
 
-        <View style={styles.bullets}>
-          <Text style={[styles.bullet, { color: colors.textSecondary }]}>• {t('common:resultDeclaredAlerts')}</Text>
-          <Text style={[styles.bullet, { color: colors.textSecondary }]}>• {t('common:adminAnnouncements')}</Text>
-        </View>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          {t("common:notificationPermissionNeeded")}
+        </Text>
 
         {!neverAskAgain ? (
-          <TouchableOpacity
-            style={[styles.primaryBtn, { backgroundColor: colors.primary }, requesting && styles.disabledBtn]}
-            onPress={onAllow}
-            disabled={requesting}
-            activeOpacity={0.85}
-          >
-            <Text style={[styles.primaryBtnText, { color: isDarkMode ? "#ffffff" : "#07110A" }]}>
-              {requesting ? t('common:requesting') : t('common:allowNotifications')}
-            </Text>
-          </TouchableOpacity>
+          <>
+            {/* ✅ Allow Button */}
+            <TouchableOpacity
+              style={[
+                styles.primaryBtn,
+                { backgroundColor: colors.primary },
+                requesting && styles.disabledBtn,
+              ]}
+              onPress={onAllow}
+              disabled={requesting}
+              activeOpacity={0.85}
+            >
+              <Text
+                style={[
+                  styles.primaryText,
+                  { color: isDarkMode ? "#fff" : "#07110A" },
+                ]}
+              >
+                {requesting
+                  ? t("common:requesting")
+                  : t("common:allowNotifications")}
+              </Text>
+            </TouchableOpacity>
+
+            {/* ❌ No Thanks */}
+            <TouchableOpacity
+              style={[
+                styles.secondaryBtn,
+                { backgroundColor: colors.surfaceVariant || "#eee" },
+              ]}
+              onPress={() => setNeverAskAgain(true)}
+              activeOpacity={0.85}
+            >
+              <Text style={{ color: colors.textSecondary, fontWeight: "600" }}>
+                {t("common:noThanks")}
+              </Text>
+            </TouchableOpacity>
+          </>
         ) : (
           <>
             <TouchableOpacity
-              style={[styles.primaryBtn, { backgroundColor: colors.primary }]}
+              style={[
+                styles.primaryBtn,
+                { backgroundColor: colors.primary },
+              ]}
               onPress={openAppSettings}
-              activeOpacity={0.85}
             >
-              <Text style={[styles.primaryBtnText, { color: isDarkMode ? "#ffffff" : "#07110A" }]}>{t('common:openSettings')}</Text>
+              <Text
+                style={[
+                  styles.primaryText,
+                  { color: isDarkMode ? "#fff" : "#07110A" },
+                ]}
+              >
+                {t("common:openSettings")}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.secondaryBtn, { borderColor: colors.border }]}
+              style={[
+                styles.secondaryBtn,
+                { backgroundColor: colors.surfaceVariant || "#eee" },
+              ]}
               onPress={() => BackHandler.exitApp()}
-              activeOpacity={0.85}
             >
-              <Text style={[styles.secondaryBtnText, { color: colors.text }]}>{t('common:exitApp')}</Text>
+              <Text style={{ color: colors.textSecondary, fontWeight: "600" }}>
+                {t("common:exitApp")}
+              </Text>
             </TouchableOpacity>
 
             <Text style={[styles.hint, { color: colors.textTertiary }]}>
-              {t('common:enableNotificationsInSettings')}
+              {t("common:enableNotificationsInSettings")}
             </Text>
           </>
         )}
@@ -155,66 +235,69 @@ const NotificationGate = ({ children }) => {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    padding: 20,
     justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
+
   card: {
     width: "100%",
-    borderRadius: 18,
-    padding: 18,
+    borderRadius: 22,
+    padding: 22,
+    alignItems: "center",
     borderWidth: 1,
+    elevation: 3,
   },
+
+  bell: {
+    width: 90,
+    height: 90,
+    marginBottom: 16,
+  },
+
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "800",
-    textAlign: "center",
     marginBottom: 8,
+    textAlign: "center",
   },
+
   subtitle: {
     fontSize: 14,
     textAlign: "center",
-    marginBottom: 14,
+    marginBottom: 20,
     lineHeight: 20,
   },
-  bullets: {
-    marginBottom: 16,
-    paddingHorizontal: 8,
-  },
-  bullet: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 4,
-  },
+
   primaryBtn: {
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: "center",
-    marginTop: 6,
-  },
-  primaryBtnText: {
-    fontWeight: "800",
-    fontSize: 15,
-  },
-  disabledBtn: {
-    opacity: 0.7,
-  },
-  secondaryBtn: {
-    backgroundColor: "transparent",
-    paddingVertical: 12,
-    borderRadius: 12,
+    width: "100%",
+    paddingVertical: 14,
+    borderRadius: 14,
     alignItems: "center",
     marginTop: 10,
-    borderWidth: 1,
   },
-  secondaryBtnText: {
+
+  primaryText: {
+    fontSize: 16,
     fontWeight: "700",
-    fontSize: 15,
   },
+
+  secondaryBtn: {
+    width: "100%",
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: "center",
+    marginTop: 10,
+  },
+
   hint: {
     marginTop: 12,
     fontSize: 12,
     textAlign: "center",
-    lineHeight: 16,
+  },
+
+  disabledBtn: {
+    opacity: 0.7,
   },
 });
 
