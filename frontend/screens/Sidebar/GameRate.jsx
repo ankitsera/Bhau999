@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   SectionList,
-  ActivityIndicator,
 } from "react-native";
 import { useTranslation } from 'react-i18next';
 import ThemeHeader from "../../components/ThemeHeader";
 import EmptyState from "../../components/EmptyState";
+import LoadingView from "../../components/LoadingView";
 import { GameContext } from "../../contexts/GameContext";
 import { getMinBetAmount } from "../../utils/AppConfigService";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -143,17 +143,14 @@ const GameRate = () => {
   const isLoading = (isLoadingRates || isConfigLoading) && !refreshing;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title={t('games:gameRate')} />
+    <LoadingView loading={isLoading}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <ThemeHeader title={t('games:gameRate')} />
 
-      {isLoading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      ) : sections.length === 0 ? (
-        <EmptyState icon="chart-line-variant" message={t('screens:noRateDataFound')} />
-      ) : (
-        <SectionList
+        {sections.length === 0 ? (
+          <EmptyState icon="chart-line-variant" message={t('screens:noRateDataFound')} />
+        ) : (
+          <SectionList
           sections={sections}
           keyExtractor={(item, index) => (item.label || "rate") + index}
           renderSectionHeader={({ section }) => (
@@ -171,6 +168,7 @@ const GameRate = () => {
         />
       )}
     </View>
+    </LoadingView>
   );
 };
 

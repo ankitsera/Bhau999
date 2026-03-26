@@ -86,5 +86,8 @@
   "add": "যোগ করুন",
   "chooseYourLanguage": "আপনার ভাষা বেছে নিন",
   "selectPreferredLanguage": "চালিয়ে যাওয়ার জন্য আপনার পছন্দের ভাষা নির্বাচন করুন",
+  "close": "বন্ধ করুন",
+  "ref": "রেফ",
+  "paymentTo": "{{name}} কে পেমেন্ট",
   "noThanks": "না, ধন্যবাদ"
 }

@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ActivityIndicator,
   FlatList,
   RefreshControl,
   ScrollView,
@@ -14,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 
 import ThemeHeader from "../components/ThemeHeader";
 import EmptyState from "../components/EmptyState";
+import LoadingView from "../components/LoadingView";
 import { GameContext } from "../contexts/GameContext";
 import { useTheme } from "../contexts/ThemeContext";
 
@@ -212,17 +212,15 @@ const GameChartPanel = () => {
     return out;
   }, [filtered]);
 
+  const loading = isLoadingGameHistory && weeks.length === 0;
+
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["bottom"]}>
+    <LoadingView loading={loading}>
+      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={["bottom"]}>
       <ThemeHeader title={`${gameName || t('games:game').toUpperCase()} ${t('games:gameChart').toUpperCase()}`} />
 
       <View style={styles.body}>
-        {isLoadingGameHistory && weeks.length === 0 ? (
-          <View style={styles.loaderWrap}>
-            <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={[styles.loaderText, { color: colors.text }]}>{t('common:loading')}</Text>
-          </View>
-        ) : weeks.length === 0 ? (
+        {weeks.length === 0 && !isLoadingGameHistory ? (
           <EmptyState text={t('games:noChartData')} />
         ) : (
           // horizontal scroll so table never squishes
@@ -244,6 +242,7 @@ const GameChartPanel = () => {
         )}
       </View>
     </SafeAreaView>
+    </LoadingView>
   );
 };
 

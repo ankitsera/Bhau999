@@ -10,13 +10,13 @@ import {
   Modal,
   Linking,
   Alert,
-  ActivityIndicator,
   FlatList,
   Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import ButtonLoader from '../../components/ButtonLoader';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AuthContext } from '../../contexts/AuthContext';
 import { PaymentsContext } from '../../contexts/PaymentsContext';
@@ -464,7 +464,7 @@ const WithdrawMoney = ({ navigation }) => {
           disabled={isDisabled}
           activeOpacity={0.85}
         >
-          {payLoading ? <ActivityIndicator color={colors.background} /> : <Text style={styles.bottomText}>{t('screens:sendRequest')}</Text>}
+          {payLoading ? <ButtonLoader size={24} /> : <Text style={styles.bottomText}>{t('screens:sendRequest')}</Text>}
         </TouchableOpacity>
       </View>
 

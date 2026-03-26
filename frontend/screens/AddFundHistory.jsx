@@ -11,7 +11,6 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
   RefreshControl,
   Modal,
   Pressable,
@@ -24,6 +23,7 @@ import { useTranslation } from 'react-i18next';
 import ThemeHeader from '../components/ThemeHeader';
 import PaginationBar from '../components/PaginationBar';
 import EmptyState from '../components/EmptyState';
+import LoadingView from '../components/LoadingView';
 
 import { AuthContext } from '../contexts/AuthContext';
 import { PaymentsContext } from '../contexts/PaymentsContext';
@@ -270,8 +270,11 @@ const AddFundHistory = () => {
     setPage(1);
   }, []);
 
+  const loading = isLoadingDeposits && filtered.length === 0;
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <LoadingView loading={loading}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ThemeHeader title={t('funds:addFundHistory')} />
 
       {/* Filter button */}
@@ -311,14 +314,7 @@ const AddFundHistory = () => {
         ) : null}
       </View>
 
-      {isLoadingDeposits && filtered.length === 0 ? (
-        <View style={styles.loaderWrap}>
-          <ActivityIndicator size="small" color={colors.primary} />
-          <Text style={[styles.loaderText, { color: colors.text }]}>
-            {t('common:loading')}
-          </Text>
-        </View>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 && !isLoadingDeposits ? (
         <EmptyState
           message={
             filters.date instanceof Date
@@ -395,6 +391,7 @@ const AddFundHistory = () => {
         </View>
       </Modal>
     </View>
+    </LoadingView>
   );
 };
 

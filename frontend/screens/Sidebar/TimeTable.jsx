@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
   RefreshControl,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 import ThemeHeader from '../../components/ThemeHeader';
 import EmptyState from '../../components/EmptyState';
+import LoadingView from '../../components/LoadingView';
 import { GameContext } from '../../contexts/GameContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -71,20 +71,19 @@ const TimeTable = () => {
     />
   );
 
-  return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title={t('games:timeTable')} />
+  const loading = isLoadingAllGames && (!allGamesUi || allGamesUi.length === 0);
 
-      {isLoadingAllGames && (!allGamesUi || allGamesUi.length === 0) ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      ) : !allGamesUi || allGamesUi.length === 0 ? (
-        <View style={styles.center}>
-          <EmptyState text={t('games:noGamesFound')} />
-        </View>
-      ) : (
-        <FlatList
+  return (
+    <LoadingView loading={loading}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <ThemeHeader title={t('games:timeTable')} />
+
+        {!allGamesUi || allGamesUi.length === 0 ? (
+          <View style={styles.center}>
+            <EmptyState text={t('games:noGamesFound')} />
+          </View>
+        ) : (
+          <FlatList
           data={allGamesUi}
           keyExtractor={(it, i) => String(it?.gameName ?? i)}
           renderItem={renderItem}
@@ -102,6 +101,7 @@ const TimeTable = () => {
         />
       )}
     </View>
+    </LoadingView>
   );
 };
 

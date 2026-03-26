@@ -11,7 +11,6 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
   RefreshControl,
   Modal,
   Pressable,
@@ -24,6 +23,7 @@ import { useTranslation } from 'react-i18next';
 import ThemeHeader from '../components/ThemeHeader';
 import PaginationBar from '../components/PaginationBar';
 import EmptyState from '../components/EmptyState';
+import LoadingView from '../components/LoadingView';
 
 import { AuthContext } from '../contexts/AuthContext';
 import { PaymentsContext } from '../contexts/PaymentsContext';
@@ -284,14 +284,16 @@ const WithdrawFundHistory = () => {
     setPage(1);
   }, []);
 
-  return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title={t('funds:withdrawHistory')} />
+  const loading = isLoadingWithdrawals && filtered.length === 0;
 
-      {/* filter bar */}
-      <View style={styles.filterBar}>
+  return (
+    <LoadingView loading={loading}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <ThemeHeader title={t('funds:withdrawHistory')} />
+
+        <View style={styles.filterBar}>
         <Pressable
-          style={[styles.filterBtn, { backgroundColor: colors.primary }]}
+          style={[styles.filterBtn, { backgroundColor: colors.surface }]}
           onPress={openFilter}
         >
           <View style={styles.filterBtnContent}>
@@ -325,14 +327,7 @@ const WithdrawFundHistory = () => {
         ) : null}
       </View>
 
-      {isLoadingWithdrawals && filtered.length === 0 ? (
-        <View style={styles.loaderWrap}>
-          <ActivityIndicator size="small" color={primary} />
-          <Text style={[styles.loaderText, { color: colors.text }]}>
-            {t('common:loading')}
-          </Text>
-        </View>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 && !isLoadingWithdrawals ? (
         <EmptyState
           message={
             filters.date instanceof Date
@@ -411,6 +406,7 @@ const WithdrawFundHistory = () => {
         </View>
       </Modal>
     </View>
+    </LoadingView>
   );
 };
 

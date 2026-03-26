@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import ThemeHeader from '../../components/ThemeHeader';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import EmptyState from '../../components/EmptyState';
+import LoadingView from '../../components/LoadingView';
 import {
   getNoticeBoard1,
   getNoticeBoard2,
@@ -99,17 +99,14 @@ const NoticeBoard = () => {
   }, [notices, t]);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title={t('games:noticeBoardHeader')} />
+    <LoadingView loading={loading}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <ThemeHeader title={t('games:noticeBoardHeader')} />
 
-      {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      ) : sections.length === 0 ? (
-        <EmptyState icon="file-document-outline" message={t('screens:noNoticesFound')} />
-      ) : (
-        <ScrollView
+        {sections.length === 0 ? (
+          <EmptyState icon="file-document-outline" message={t('screens:noNoticesFound')} />
+        ) : (
+          <ScrollView
           contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
         >
@@ -122,6 +119,7 @@ const NoticeBoard = () => {
         </ScrollView>
       )}
     </View>
+    </LoadingView>
   );
 };
 

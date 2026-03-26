@@ -98,5 +98,8 @@
   "addFund": "फंड जोड़ें",
   "withdrawFund": "फंड निकालें",
   "whatsappMessage": "नमस्ते, मुझे सहायता चाहिए!",
+  "close": "बंद करें",
+  "ref": "संदर्भ",
+  "paymentTo": "{{name}} को भुगतान",
   "noThanks": "नहीं, धन्यवाद"
 }

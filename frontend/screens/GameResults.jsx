@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -13,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 
 import ThemeHeader from "../components/ThemeHeader";
 import EmptyState from "../components/EmptyState";
+import LoadingView from "../components/LoadingView";
 import { GameContext } from "../contexts/GameContext";
 import { ThemeColor } from "../contexts/Themes";
 
@@ -77,18 +77,15 @@ const GameResults = () => {
   }, [loadActiveGames]);
 
   const list = Array.isArray(activeGamesUi) ? activeGamesUi : [];
+  const loading = isLoadingActiveGames && list.length === 0;
 
   return (
-    <SafeAreaView style={styles.screen} edges={["bottom"]}>
+    <LoadingView loading={loading}>
+      <SafeAreaView style={styles.screen} edges={["bottom"]}>
       <ThemeHeader title={t('games:marketResultHistory')} />
 
       <View style={styles.body}>
-        {isLoadingActiveGames && list.length === 0 ? (
-          <View style={styles.loaderWrap}>
-            <ActivityIndicator size="small" color={ThemeColor} />
-            <Text style={styles.loaderText}>{t('common:loading')}</Text>
-          </View>
-        ) : list.length === 0 ? (
+        {list.length === 0 && !isLoadingActiveGames ? (
           <EmptyState text={t('games:noResultsFound')} />
         ) : (
           <FlatList
@@ -108,6 +105,7 @@ const GameResults = () => {
         )}
       </View>
     </SafeAreaView>
+    </LoadingView>
   );
 };
 

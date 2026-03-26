@@ -70,5 +70,10 @@
   "withdrawalRequested": "উত্তোলনের অনুরোধ করা হয়েছে ✅",
   "failedToLoadTransactions": "লেনদেন লোড করতে ব্যর্থ",
   "failedToLoadDeposits": "জমা লোড করতে ব্যর্থ",
-  "failedToLoadWithdrawals": "উত্তোলন লোড করতে ব্যর্থ"
+  "failedToLoadWithdrawals": "উত্তোলন লোড করতে ব্যর্থ",
+  "previousPaymentProcessing": "পূর্ববর্তী পেমেন্ট এখনও প্রক্রিয়াধীন। অনুগ্রহ করে অপেক্ষা করুন।",
+  "paymentCouldNotStart": "পেমেন্ট শুরু করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
+  "unableToOpenUpi": "UPI অ্যাপ খুলতে অক্ষম। অনুগ্রহ করে পরীক্ষা করুন যে আপনার কাছে UPI অ্যাপ ইনস্টল আছে।",
+  "paymentStillProcessing": "পেমেন্ট এখনও প্রক্রিয়াধীন। অনুগ্রহ করে আপনার লেনদেনের ইতিহাস পরীক্ষা করুন।",
+  "unableToConfirmPayment": "পেমেন্ট স্থিতি নিশ্চিত করতে অক্ষম। অনুগ্রহ করে আপনার লেনদেনের ইতিহাস পরীক্ষা করুন।"
 }

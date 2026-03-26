@@ -1,5 +1,5 @@
 import { API_URL } from "../env-vars";
-import { NativeModules, Platform } from "react-native";
+import { NativeModules, Platform, Linking } from "react-native";
 
 const { UpiIntentModule } = NativeModules;
 
@@ -17,6 +17,15 @@ function fail(res, body, fallback) {
   err.status = res.status;
   err.body = body;
   throw err;
+}
+
+function normalizeGatewayStatus(s) {
+  const v = String(s || "").trim().toLowerCase();
+  // your DB: Pending / Success / Fail
+  if (v === "pending") return "PENDING";
+  if (v === "success") return "SUCCESS";
+  if (v === "fail" || v === "failed") return "FAIL";
+  return "UNKNOWN";
 }
 
 function enc(v) {
@@ -202,6 +211,71 @@ export const submitTransaction = async (payload) => {
     data: body, // ← actual API response (saved entity)
   };
 };
+
+export const createGatewayPayment = async ({ mobileNumber, amount }) => {
+  const res = await fetch(`${API_URL}/gateway-payments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      mobileNumber: String(mobileNumber || "").trim(),
+      amount: Number(amount),
+    }),
+  });
+
+  const body = await readBody(res);
+  if (!res.ok) fail(res, body, "Failed to create gateway payment");
+
+  return {
+    custRefNum: body?.custRefNum || body?.custRef || null,
+    upiIntentUrl: body?.upiIntentUrl || null,
+    amount: body?.amount ?? null,
+    message: body?.message || "Payment created",
+    raw: body,
+  };
+};
+
+export const getGatewayPaymentStatus = async (custRefNum) => {
+  const ref = String(custRefNum || "").trim();
+  if (!ref) throw new Error("custRefNum required for status check");
+
+  const res = await fetch(`${API_URL}/gateway-payments/status/${encodeURIComponent(ref)}`, {
+    method: "GET",
+  });
+
+  const body = await readBody(res);
+  if (!res.ok) fail(res, body, "Failed to check payment status");
+  console.log("Payment status response:", body);
+  return {
+    custRefNum: body?.custRefNum || ref,
+    status: normalizeGatewayStatus(body?.status),
+    amount: body?.amount ?? null,
+    raw: body,
+  };
+};
+
+export const openUpiIntentUrl = async (upiIntentUrl) => {
+  if (Platform.OS !== "android") {
+    throw new Error("UPI intent is Android-only");
+  }
+
+  const url = String(upiIntentUrl || "").trim();
+  if (!url) throw new Error("Missing UPI intent URL");
+
+  // Prefer native chooser (forces app selection even if some app is default)
+  if (UpiIntentModule?.openUpiChooser) {
+    await UpiIntentModule.openUpiChooser(url);
+    return;
+  }
+
+  // fallback if method not present
+  const supported = await Linking.canOpenURL(url);
+  if (!supported) throw new Error("No UPI app found to handle this payment");
+  await Linking.openURL(url);
+};
+
+export function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
 // ✅ NEW: normalize list responses (backend may return { sum, list } now)
 function normalizeTxnList(body) {

@@ -10,7 +10,6 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
   RefreshControl,
   Modal,
   Pressable,
@@ -22,6 +21,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { useTranslation } from 'react-i18next';
 import ThemeHeader from '../components/ThemeHeader';
 import PaginationBar from '../components/PaginationBar';
+import LoadingView from '../components/LoadingView';
 
 import { AuthContext } from '../contexts/AuthContext';
 import { GameContext } from '../contexts/GameContext';
@@ -458,13 +458,24 @@ const BidHistory = () => {
     });
   }, []);
 
-  return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={['bottom']}>
-      <ThemeHeader title={t('games:bidHistory')} />
+  const loading = isLoadingBidHistory && sorted.length === 0;
 
-      {/* Filter button kept inside screen (later can move into ThemeHeader) */}
-      <View style={styles.filterBar}>
-        <Pressable style={[styles.filterBtn, { backgroundColor: colors.primary }]} onPress={openFilter}>
+  return (
+    <LoadingView loading={loading}>
+      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={['bottom']}>
+        <ThemeHeader title={t('games:bidHistory')} />
+
+        {/* Filter button kept inside screen (later can move into ThemeHeader) */}
+        <View style={styles.filterBar}>
+          <Pressable style={[styles.filterBtn, { backgroundColor: colors.primary }]} onPress={openFilter}>
+            <View style={styles.filterBtnContent}>
+              <MaterialCommunityIcons name="filter" size={30} color={colors.text} />
+              {activeFilterCount ? (
+                <View style={[styles.filterBadge, { backgroundColor: colors.background }]}>
+                  <Text style={[styles.filterBadgeText, { color: colors.primary }]}>{activeFilterCount}</Text>
+                </View>
+              ) : null}
+            </View>
           <View style={styles.filterBtnContent}>
             <MaterialCommunityIcons name="filter" size={30} color={colors.text} />
             {activeFilterCount ? (
@@ -489,13 +500,7 @@ const BidHistory = () => {
       </View>
 
       <View style={styles.body}>
-        {isLoadingBidHistory && sorted.length === 0 ? (
-          <View style={styles.loaderWrap}>
-            <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={[styles.loaderText, { color: colors.text }]}>{t('common:loading')}</Text>
-          </View>
-        ) : (
-          <FlatList
+        <FlatList
             data={pageItems}
             keyExtractor={item => makeSig(item)}
             renderItem={({ item }) => <BidHistoryCard item={item} t={t} />}
@@ -510,7 +515,6 @@ const BidHistory = () => {
               />
             }
           />
-        )}
       </View>
 
       <PaginationBar
@@ -633,6 +637,7 @@ const BidHistory = () => {
         </View>
       </Modal>
     </SafeAreaView>
+    </LoadingView>
   );
 };
 

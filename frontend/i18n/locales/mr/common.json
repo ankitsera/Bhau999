@@ -86,5 +86,8 @@
   "add": "जोडा",
   "chooseYourLanguage": "तुमची भाषा निवडा",
   "selectPreferredLanguage": "चालू ठेवण्यासाठी तुमची पसंतीची भाषा निवडा",
+  "close": "बंद करा",
+  "ref": "संदर्भ",
+  "paymentTo": "{{name}} ला पेमेंट",
   "noThanks": "नाही, धन्यवाद"
 }

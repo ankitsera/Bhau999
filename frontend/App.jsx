@@ -14,6 +14,7 @@ import BlockedGate from "./components/BlockedGate";
 import NotificationGate from "./components/NotificationGate";
 
 import { NotificationsProvider } from "./contexts/NotificationsContext";
+import { LoaderProvider } from "./contexts/LoaderContext";
 
 const { UpdateModule } = NativeModules;
 
@@ -126,17 +127,19 @@ function App() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <AuthProvider>
-          <NotificationsProvider>
-            <PaymentsProvider>
-              <GameProvider>
-                <AppConfigProvider>
-                  <AppInner />
-                </AppConfigProvider>
-              </GameProvider>
-            </PaymentsProvider>
-          </NotificationsProvider>
-        </AuthProvider>
+        <LoaderProvider>
+          <AuthProvider>
+            <NotificationsProvider>
+              <PaymentsProvider>
+                <GameProvider>
+                  <AppConfigProvider>
+                    <AppInner />
+                  </AppConfigProvider>
+                </GameProvider>
+              </PaymentsProvider>
+            </NotificationsProvider>
+          </AuthProvider>
+        </LoaderProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   Pressable,
-  ActivityIndicator,
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 
 import ThemeHeader from '../components/ThemeHeader';
 import EmptyState from '../components/EmptyState';
+import LoadingView from '../components/LoadingView';
 import { GameContext } from '../contexts/GameContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -65,18 +65,15 @@ const MatkaChart = () => {
     await loadActiveGames?.();
   }, [loadActiveGames]);
 
+  const loading = isLoadingActiveGames && list.length === 0;
+
   return (
-    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={['bottom']}>
+    <LoadingView loading={loading}>
+      <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={['bottom']}>
       <ThemeHeader title={t('games:gameChartList')} />
 
       <View style={styles.body}>
-        {isLoadingActiveGames && list.length === 0 ? (
-          <View style={styles.loaderWrap}>
-            <ActivityIndicator size="small" color={colors.primary} />
-            <Text style={[styles.loaderText, { color: colors.text }]}>{t('common:loading')}</Text>
-          </View>
-        ) : (
-          <FlatList
+        <FlatList
             data={list}
             keyExtractor={(item, idx) => String(item?.gameName || idx)}
             renderItem={({ item }) => (
@@ -100,9 +97,9 @@ const MatkaChart = () => {
             }
             ListEmptyComponent={<EmptyState text={t('games:noGamesFound')} />}
           />
-        )}
       </View>
     </SafeAreaView>
+    </LoadingView>
   );
 };
 

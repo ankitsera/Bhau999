@@ -318,3 +318,15 @@ export const getUpiId = async (options = {}) =>
       forceRefresh: true,
     })
   );
+
+export const getIsGatewayUp = async (options = {}) => {
+  const value = await fetchConfigValue("IS_GATEWAY_UP", {
+    defaultValue: "true",
+    ...options,
+    critical: true,
+    forceRefresh: true,
+  });
+
+  const normalized = String(value).trim().toLowerCase();
+  return normalized === "true" || normalized === "1";
+};

@@ -9,14 +9,15 @@ import {
   TouchableOpacity,
   Linking,
   Alert,
-  ActivityIndicator,
   FlatList,
   Image,
+  Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
+import ButtonLoader from '../../components/ButtonLoader';
 import { AuthContext } from '../../contexts/AuthContext';
 import { PaymentsContext } from '../../contexts/PaymentsContext';
 import {
@@ -176,7 +177,7 @@ const AddMoney = ({ navigation }) => {
   const { colors } = useTheme();
 
   const { user } = useContext(AuthContext);
-  const { addMoneyViaUpi, loading: payLoading } = useContext(PaymentsContext);
+  const { addMoney, loading: payLoading, gatewayUi, closeGatewayUi } = useContext(PaymentsContext);
 
   const insets = useSafeAreaInsets();
   const [amount, setAmount] = useState('');
@@ -256,18 +257,11 @@ const AddMoney = ({ navigation }) => {
         return;
       }
 
-      const { payeeVpa, payeeName } = getPayeeConfig();
-
-      if (!payeeVpa || !payeeName) {
-        Alert.alert(t('screens:configMissing'), t('screens:paymentConfigNotAvailable'));
-        return;
-      }
-
-      await addMoneyViaUpi({
+      await addMoney({
         amountRupees: amtNum,
-        payeeVpa,
-        payeeName,
-        note: t('screens:paymentTo', { name: payeeName }),
+        payeeVpa: upiId,
+        payeeName: bankingName,
+        note: t('common:paymentTo', { name: bankingName }),
       });
 
       setAmount('');
@@ -275,6 +269,17 @@ const AddMoney = ({ navigation }) => {
       Alert.alert(t('screens:paymentFailed'), e?.message || t('common:somethingWentWrong'));
     }
   };
+
+    const modalTitle =
+    gatewayUi?.step === 'opening'
+      ? t('funds:openingUpi')
+      : gatewayUi?.step === 'confirming'
+      ? t('funds:confirmingPayment')
+      : gatewayUi?.step === 'success'
+      ? t('funds:paymentSuccess')
+      : gatewayUi?.step === 'fail'
+      ? t('funds:paymentUpdate')
+      : t('funds:payment');
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -404,12 +409,57 @@ const AddMoney = ({ navigation }) => {
           activeOpacity={0.85}
         >
           {payLoading ? (
-            <ActivityIndicator color={colors.background} />
+            <ButtonLoader size={24} />
           ) : (
             <Text style={styles.bottomText}>{t('screens:payNow')}</Text>
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Overlay modal */}
+      <Modal
+        visible={!!gatewayUi?.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeGatewayUi}
+      >
+        <View style={modalStyles.backdrop}>
+          <View style={modalStyles.card}>
+            <Text style={modalStyles.title}>{modalTitle}</Text>
+
+            <View style={{ height: 12 }} />
+
+            {(gatewayUi?.step === 'opening' ||
+              gatewayUi?.step === 'confirming') && (
+              <ButtonLoader size={24} />
+            )}
+
+            <View style={{ height: 12 }} />
+
+            <Text style={modalStyles.msg}>
+              {gatewayUi?.message || t('common:pleaseWait')}
+            </Text>
+
+            {!!gatewayUi?.custRefNum && (
+              <Text style={modalStyles.refText}>
+                {t('common:ref')}: {gatewayUi.custRefNum}
+              </Text>
+            )}
+
+            <TouchableOpacity
+              style={[modalStyles.btn, { backgroundColor: colors.primary }]}
+              onPress={closeGatewayUi}
+              activeOpacity={0.85}
+            >
+              <Text style={[modalStyles.btnText, { color: colors.background }]}>{t('common:close')}</Text>
+            </TouchableOpacity>
+
+            <Text style={modalStyles.hint}>
+              {t('funds:closingWillHidePopup')}
+            </Text>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -643,5 +693,57 @@ export const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: '700',
+  },
+});
+
+const modalStyles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 18,
+  },
+  card: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 16,
+    elevation: 8,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#111',
+    textAlign: 'center',
+  },
+  msg: {
+    fontSize: 15,
+    color: '#111',
+    textAlign: 'center',
+  },
+  ref: {
+    marginTop: 8,
+    fontSize: 12,
+    color: '#555',
+    textAlign: 'center',
+  },
+  btn: {
+    marginTop: 14,
+    borderRadius: 12,
+    paddingVertical: 12,
+    minHeight: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnText: {
+    fontWeight: '800',
+    fontSize: 16,
+  },
+  hint: {
+    marginTop: 10,
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
   },
 });

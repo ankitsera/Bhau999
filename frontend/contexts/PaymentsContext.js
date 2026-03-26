@@ -17,6 +17,15 @@ import {
   listWithdrawalsByUser,
   listDepositsByUser,
 } from "../utils/PaymentsService";
+
+import {
+  createGatewayPayment,
+  openUpiIntentUrl,
+  getGatewayPaymentStatus,
+} from "../utils/PaymentsService";
+
+import { getIsGatewayUp } from "../utils/AppConfigService";
+
 import { AuthContext } from "./AuthContext";
 
 export const PaymentsContext = createContext(null);
@@ -30,6 +39,14 @@ const initial = {
   lastSaved: null,
   lastTopup: null,
   lastWithdraw: null,
+
+  // gateway UI state
+  gatewayUi: {
+    visible: false,
+    step: null, // opening | confirming | success | fail
+    message: "",
+    custRefNum: null,
+  },
 
   // lists
   transactions: [],
@@ -46,6 +63,8 @@ const T = {
   SAVED: "SAVED",
   TOPUP: "TOPUP",
   WITHDRAW: "WITHDRAW",
+
+  GATEWAY_UI: "GATEWAY_UI",
 
   TXN_START: "TXN_START",
   TXN_SUCCESS: "TXN_SUCCESS",
@@ -76,7 +95,10 @@ function reducer(state, action) {
     case T.WITHDRAW:
       return { ...state, loading: false, error: null, lastWithdraw: action.payload };
 
-    case T.TXN_START:
+    case T.GATEWAY_UI:
+      return { ...state, gatewayUi: { ...state.gatewayUi, ...action.payload } };
+    
+      case T.TXN_START:
       return { ...state, isLoadingTransactions: true, error: null };
     case T.TXN_SUCCESS:
       return { ...state, isLoadingTransactions: false, transactions: action.payload || [], error: null };
@@ -107,10 +129,15 @@ function reducer(state, action) {
 
 export const PaymentsProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initial);
-  const { user, updateUser } = useContext(AuthContext);
+  const { user, updateUser, refreshUser } = useContext(AuthContext);
 
   // prevents multi-tap causing multiple intents + multiple API calls
   const inFlightPayRef = useRef(false);
+
+  // ONE active pending payment lock (per app instance)
+  const activePayRef = useRef(null);
+  // { custRefNum, startedAtMs, amount, mobileNumber, finished: boolean }
+  const pollRunningRef = useRef(false);
 
   // prevents multi-tap on withdraw
   const inFlightWithdrawRef = useRef(false);
@@ -130,6 +157,15 @@ export const PaymentsProvider = ({ children }) => {
   const clearPaymentsError = useCallback(() => {
     dispatch({ type: T.CLEAR_ERROR });
   }, []);
+
+  const setGatewayUi = useCallback((patch) => {
+    dispatch({ type: T.GATEWAY_UI, payload: patch });
+  }, []);
+
+  const closeGatewayUi = useCallback(() => {
+    // IMPORTANT: hide only; do NOT stop polling
+    setGatewayUi({ visible: false });
+  }, [setGatewayUi]);
 
   const savePayout = useCallback(async (screenPayload) => {
     try {
@@ -194,6 +230,217 @@ export const PaymentsProvider = ({ children }) => {
       throw error; // keep throw (screen may depend on it)
     }
   }, [user?.mobileNumber, updateUser]);
+
+    // ---- Polling helper (max 60s)
+  const pollGatewayStatus = useCallback(async ({ custRefNum, timeoutMs = 65000, intervalMs = 2000 }) => {
+    const start = Date.now();
+
+    while (Date.now() - start < timeoutMs) {
+      const st = await getGatewayPaymentStatus(custRefNum);
+
+      if (st.status === "SUCCESS" || st.status === "FAIL") {
+        return st;
+      }
+
+      await new Promise((r) => setTimeout(r, intervalMs));
+    }
+
+    return { custRefNum, status: "PENDING_TIMEOUT" };
+  }, []);
+
+    /**
+   * Add Money via Gateway (ONE active pending payment at a time)
+   * - creates payment on backend
+   * - opens upiIntentUrl
+   * - polls /status for up to 60s in background
+   * - user can close overlay but polling continues
+   */
+  const addMoneyViaGateway = useCallback(async ({ amountRupees }) => {
+    if (!user?.mobileNumber) throw new Error("Missing mobile number in session");
+
+    const amt = Number(amountRupees);
+    if (!Number.isFinite(amt) || amt <= 0) throw new Error("Enter a valid amount");
+
+    // if there is an active pending payment within 60s -> block starting new one
+    const active = activePayRef.current;
+    if (active && !active.finished) {
+      const age = Date.now() - (active.startedAtMs || 0);
+      if (age < 60000) {
+        // reopen overlay (optional)
+        setGatewayUi({
+          visible: true,
+          step: "confirming",
+          message: i18n.t('funds:previousPaymentProcessing'),
+          custRefNum: active.custRefNum,
+        });
+
+        Snackbar.show({
+          text: i18n.t('funds:previousPaymentProcessing'),
+          duration: Snackbar.LENGTH_SHORT,
+          backgroundColor: "#f59e0b",
+        });
+
+        return;
+      }
+      // older than 60s -> allow new
+      activePayRef.current = null;
+    }
+
+    dispatch({ type: T.LOADING });
+
+    setGatewayUi({
+      visible: true,
+      step: "opening",
+      message: i18n.t('funds:openingUpi'),
+      custRefNum: null,
+    });
+
+    // create payment on backend
+    const created = await createGatewayPayment({
+      mobileNumber: user.mobileNumber,
+      amount: Math.round(amt),
+    });
+
+    if (!created?.custRefNum || !created?.upiIntentUrl) {
+      dispatch({ type: T.ERROR, error: new Error("Gateway response missing custRefNum / upiIntentUrl") });
+      setGatewayUi({
+        visible: true,
+        step: "fail",
+        message: i18n.t('funds:paymentCouldNotStart'),
+        custRefNum: created?.custRefNum || null,
+      });
+      throw new Error(i18n.t('funds:paymentCouldNotStart'));
+    }
+
+    // lock it
+    activePayRef.current = {
+      custRefNum: created.custRefNum,
+      startedAtMs: Date.now(),
+      amount: amt,
+      mobileNumber: user.mobileNumber,
+      finished: false,
+    };
+
+    // move to confirming state BEFORE opening UPI (so user sees overlay even if UPI takes time)
+    setGatewayUi({
+      visible: true,
+      step: "confirming",
+      message: i18n.t('funds:confirmingPayment'),
+      custRefNum: created.custRefNum,
+    });
+
+    // start opening UPI
+    try {
+      await openUpiIntentUrl(created.upiIntentUrl);
+    } catch (e) {
+      // If user has no UPI app, we should fail fast and unlock
+      activePayRef.current.finished = true;
+      activePayRef.current = null;
+
+      dispatch({ type: T.ERROR, error: e });
+      setGatewayUi({
+        visible: true,
+        step: "fail",
+        message: e?.message || i18n.t('funds:unableToOpenUpi'),
+        custRefNum: created.custRefNum,
+      });
+      throw e;
+    } finally {
+      // DO NOT set loading false here — keep it true while confirming
+      // We'll clear loading after polling finishes
+    }
+
+    // Poll in background (but do it from this call once; avoid multiple poll loops)
+    if (pollRunningRef.current) return;
+
+    pollRunningRef.current = true;
+
+    try {
+      const finalStatus = await pollGatewayStatus({
+        custRefNum: created.custRefNum,
+        timeoutMs: 60000,
+        intervalMs: 2000,
+      });
+
+      // Mark finished no matter what
+      if (activePayRef.current && activePayRef.current.custRefNum === created.custRefNum) {
+        activePayRef.current.finished = true;
+      }
+
+      if (finalStatus.status === "SUCCESS") {
+        setGatewayUi({
+          visible: true,
+          step: "success",
+          message: i18n.t('funds:paymentSuccess'),
+          custRefNum: created.custRefNum,
+        });
+
+        Snackbar.show({
+          text: i18n.t('funds:paymentSuccess'),
+          duration: Snackbar.LENGTH_LONG,
+          backgroundColor: "#388e3c",
+        });
+
+        // refresh user from backend (source of truth)
+        await refreshUser();
+
+        dispatch({
+          type: T.TOPUP,
+          payload: {
+            amountRupees: amt,
+            custRefNum: created.custRefNum,
+          },
+        });
+      } else if (finalStatus.status === "FAIL") {
+        setGatewayUi({
+          visible: true,
+          step: "fail",
+          message: i18n.t('funds:paymentFailed'),
+          custRefNum: created.custRefNum,
+        });
+
+        Snackbar.show({
+          text: i18n.t('funds:paymentFailed'),
+          duration: Snackbar.LENGTH_LONG,
+          backgroundColor: "#d32f2f",
+        });
+      } else {
+        // timeout / still pending
+        setGatewayUi({
+          visible: true,
+          step: "fail",
+          message: i18n.t('funds:paymentStillProcessing'),
+          custRefNum: created.custRefNum,
+        });
+
+        Snackbar.show({
+          text: i18n.t('funds:paymentStillProcessing'),
+          duration: Snackbar.LENGTH_LONG,
+          backgroundColor: "#f59e0b",
+        });
+      }
+    } catch (e) {
+      // polling error
+      setGatewayUi({
+        visible: true,
+        step: "fail",
+        message: e?.message || i18n.t('funds:unableToConfirmPayment'),
+        custRefNum: created.custRefNum,
+      });
+
+      Snackbar.show({
+        text: e?.message || i18n.t('funds:unableToConfirmPayment'),
+        duration: Snackbar.LENGTH_LONG,
+        backgroundColor: "#d32f2f",
+      });
+    } finally {
+      pollRunningRef.current = false;
+      activePayRef.current = null;
+      dispatch({ type: T.LOADING, }); // set true then immediately set to false? nah.
+      // better:
+      dispatch({ type: T.ERROR, error: null }); // sets loading false in reducer
+    }
+  }, [user?.mobileNumber, refreshUser, pollGatewayStatus, setGatewayUi, i18n.t]);
 
   const addMoneyViaUpi = useCallback(async ({ amountRupees, payeeVpa, payeeName, note }) => {
     try {
@@ -281,6 +528,24 @@ export const PaymentsProvider = ({ children }) => {
       inFlightPayRef.current = false;
     }
   }, [user?.mobileNumber, user?.balance, updateUser]);
+
+  /**
+   * Unified Add Money function - toggles between Gateway and UPI flows
+   * based on IS_GATEWAY_UP property
+   */
+  const addMoney = useCallback(async ({ amountRupees, payeeVpa, payeeName, note }) => {
+    try {
+      const isGatewayUp = await getIsGatewayUp();
+
+      if (isGatewayUp) {
+        return await addMoneyViaGateway({ amountRupees });
+      } else {
+        return await addMoneyViaUpi({ amountRupees, payeeVpa, payeeName, note });
+      }
+    } catch (error) {
+      throw error;
+    }
+  }, [addMoneyViaGateway, addMoneyViaUpi]);
 
   /**
    * Withdraw money (frontend-driven)
@@ -451,6 +716,11 @@ export const PaymentsProvider = ({ children }) => {
       isLoadingDeposits: state.isLoadingDeposits,
       isLoadingWithdrawals: state.isLoadingWithdrawals,
 
+      addMoney,
+      addMoneyViaGateway,
+      gatewayUi: state.gatewayUi,
+      closeGatewayUi,
+
       resolveIFSC,
       savePayout,
       addMoneyViaUpi,
@@ -468,6 +738,8 @@ export const PaymentsProvider = ({ children }) => {
     state.lastSaved,
     state.lastTopup,
     state.lastWithdraw,
+    state.gatewayUi,
+    closeGatewayUi,
     state.transactions,
     state.deposits,
     state.withdrawals,
@@ -476,6 +748,8 @@ export const PaymentsProvider = ({ children }) => {
     state.isLoadingWithdrawals,
     resolveIFSC,
     savePayout,
+    addMoney,
+    addMoneyViaGateway,
     addMoneyViaUpi,
     withdrawMoney,
     loadTransactions,

@@ -70,5 +70,10 @@
   "withdrawalRequested": "निकासी विनंती केली ✅",
   "failedToLoadTransactions": "व्यवहार लोड करण्यात अयशस्वी",
   "failedToLoadDeposits": "ठेवी लोड करण्यात अयशस्वी",
-  "failedToLoadWithdrawals": "निकासी लोड करण्यात अयशस्वी"
+  "failedToLoadWithdrawals": "निकासी लोड करण्यात अयशस्वी",
+  "previousPaymentProcessing": "मागील पेमेंट अजूनही प्रक्रियेत आहे. कृपया प्रतीक्षा करा.",
+  "paymentCouldNotStart": "पेमेंट सुरू होऊ शकले नाही. कृपया पुन्हा प्रयत्न करा.",
+  "unableToOpenUpi": "UPI अॅप उघडण्यात अक्षम. कृपया तपासा की तुमच्याकडे UPI अॅप इंस्टॉल आहे.",
+  "paymentStillProcessing": "पेमेंट अजूनही प्रक्रियेत आहे. कृपया तुमचा व्यवहार इतिहास तपासा.",
+  "unableToConfirmPayment": "पेमेंट स्थिती पुष्टी करण्यात अक्षम. कृपया तुमचा व्यवहार इतिहास तपासा."
 }

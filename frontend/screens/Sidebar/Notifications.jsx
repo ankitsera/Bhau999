@@ -5,13 +5,13 @@ import {
   Text,
   View,
   FlatList,
-  ActivityIndicator,
   RefreshControl,
   Image,
 } from 'react-native';
 
 import EmptyState from '../../components/EmptyState';
 import ThemeHeader from '../../components/ThemeHeader';
+import LoadingView from '../../components/LoadingView';
 import { useTranslation } from 'react-i18next';
 import { NotificationsContext } from '../../contexts/NotificationsContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -75,18 +75,7 @@ const Notifications = ({ navigation }) => {
     </View>
   );
 
-  // loading
-  if (notificationsLoading && notifications.length === 0) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <ThemeHeader title={t('notifications')} />
-
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      </View>
-    );
-  }
+  const loading = notificationsLoading && notifications.length === 0;
 
   // error
   if (notificationsError && notifications.length === 0) {
@@ -109,25 +98,27 @@ const Notifications = ({ navigation }) => {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title={t('notifications')} />
+    <LoadingView loading={loading}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <ThemeHeader title={t('notifications')} />
 
-      <FlatList
-        data={notifications}
-        renderItem={renderNotificationItem}
-        keyExtractor={item => String(item.id)}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[colors.primary]}
-            tintColor={colors.primary}
-          />
-        }
-      />
-    </View>
+        <FlatList
+          data={notifications}
+          renderItem={renderNotificationItem}
+          keyExtractor={item => String(item.id)}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
+            />
+          }
+        />
+      </View>
+    </LoadingView>
   );
 };
 

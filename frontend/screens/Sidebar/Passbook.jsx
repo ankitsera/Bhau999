@@ -11,7 +11,6 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  ActivityIndicator,
   RefreshControl,
   Modal,
   Pressable,
@@ -24,6 +23,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import ThemeHeader from '../../components/ThemeHeader';
 import PaginationBar from '../../components/PaginationBar';
 import EmptyState from '../../components/EmptyState';
+import LoadingView from '../../components/LoadingView';
 
 import { AuthContext } from '../../contexts/AuthContext';
 import { PaymentsContext } from '../../contexts/PaymentsContext';
@@ -378,8 +378,11 @@ const Passbook = () => {
     setPage(1);
   }, []);
 
+  const loading = isLoadingTransactions && filtered.length === 0;
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <LoadingView loading={loading}>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ThemeHeader title={t('funds:passbook')} />
 
       {/* filter bar */}
@@ -451,12 +454,7 @@ const Passbook = () => {
       </View>
 
       {/* list */}
-      {isLoadingTransactions && filtered.length === 0 ? (
-        <View style={styles.loaderWrap}>
-          <ActivityIndicator size="small" color={primary} />
-          <Text style={[styles.loaderText, { color: colors.text }]}>{t('common:loading')}</Text>
-        </View>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 && !isLoadingTransactions ? (
         <EmptyState
           message={
             filters.date instanceof Date
@@ -533,6 +531,7 @@ const Passbook = () => {
         </View>
       </Modal>
     </View>
+    </LoadingView>
   );
 };
 

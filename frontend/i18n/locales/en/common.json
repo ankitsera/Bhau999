@@ -98,5 +98,8 @@
   "addFund": "Add Fund",
   "withdrawFund": "Withdraw Fund",
   "whatsappMessage": "Hi, I need assistance!",
+  "close": "Close",
+  "ref": "Ref",
+  "paymentTo": "Payment to {{name}}",
   "noThanks": "No, Thanks"
 }

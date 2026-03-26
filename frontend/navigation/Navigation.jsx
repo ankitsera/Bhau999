@@ -5,7 +5,7 @@ import { HeaderButtonsProvider } from "react-navigation-header-buttons/HeaderBut
 import { useTheme } from '../contexts/ThemeContext';
 import { AuthContext } from '../contexts/AuthContext';
 import { lightTheme, darkTheme } from '../contexts/Themes';
-import { View, ActivityIndicator } from 'react-native';
+import LoadingView from '../components/LoadingView';
 import Home from "../screens/Home";
 import UserCheck from "../screens/Auth/UserCheck";
 import Signup from "../screens/Auth/Signup";
@@ -121,19 +121,14 @@ const Navigation = ({ navigationRef }) => {
   }, []);
 
   // Wait for user state to be restored before deciding which screen to show
-  if (isLoading || !languageReady) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
+  const loading = isLoading || !languageReady;
   
   // Determine initial route based on user presence
   const initialRouteName = user ? "Home" : selectedLanguage ? "UserCheck" : "Language Select";
   
   return (
-    <NavigationContainer ref={navigationRef} linking={linking}>
+    <LoadingView loading={loading}>
+      <NavigationContainer ref={navigationRef} linking={linking}>
       <HeaderButtonsProvider stackType={"native"}>
         <Stack.Navigator
           initialRouteName={initialRouteName}
@@ -210,6 +205,7 @@ const Navigation = ({ navigationRef }) => {
         </Stack.Navigator>
       </HeaderButtonsProvider>
     </NavigationContainer>
+    </LoadingView>
   );
 }
 

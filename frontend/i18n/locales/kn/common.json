@@ -86,5 +86,8 @@
   "addFund": "ನಿಧಿ ಸೇರಿಸಿ",
   "withdrawFund": "ನಿಧಿ ಹಿಂಪಡೆಯಿರಿ",
   "whatsappMessage": "ಹಲೋ, ನನಗೆ ಸಹಾಯ ಬೇಕು!",
+  "close": "ಮುಚ್ಚಿ",
+  "ref": "ಉಲ್ಲೇಖ",
+  "paymentTo": "{{name}} ಗೆ ಪಾವತಿ",
   "noThanks": "ಬೇಡ, ಧನ್ಯವಾದಗಳು"
 }

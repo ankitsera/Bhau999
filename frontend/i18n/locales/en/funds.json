@@ -70,5 +70,10 @@
   "withdrawalRequested": "Withdrawal requested ✅",
   "failedToLoadTransactions": "Failed to load transactions",
   "failedToLoadDeposits": "Failed to load deposits",
-  "failedToLoadWithdrawals": "Failed to load withdrawals"
+  "failedToLoadWithdrawals": "Failed to load withdrawals",
+  "previousPaymentProcessing": "Previous payment is still processing. Please wait.",
+  "paymentCouldNotStart": "Payment could not start. Please try again.",
+  "unableToOpenUpi": "Unable to open UPI app. Please check if you have a UPI app installed.",
+  "paymentStillProcessing": "Payment is still processing. Please check your transaction history.",
+  "unableToConfirmPayment": "Unable to confirm payment status. Please check your transaction history."
 }

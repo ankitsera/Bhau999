@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
   Modal,
   Pressable,
   Image,
@@ -15,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import EmptyState from "../../components/EmptyState";
 import { GameContext } from "../../contexts/GameContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import { useLoader } from "../../contexts/LoaderContext";
 
 const RED = "#EF4B3E";
 
@@ -228,6 +228,7 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
 const GamesList = ({ navigation, refreshing, onRefresh }) => {
   const { t } = useTranslation(['games']);
   const { colors } = useTheme();
+  const { showLoader, hideLoader } = useLoader(); 
 
   const { activeGamesUi, isLoadingActiveGames, loadActiveGames } =
     useContext(GameContext);
@@ -241,12 +242,16 @@ const GamesList = ({ navigation, refreshing, onRefresh }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (isLoadingActiveGames) {
+      showLoader();
+    } else {
+      hideLoader();
+    }
+  }, [isLoadingActiveGames, showLoader, hideLoader]);
+
   if (isLoadingActiveGames) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
+    return null;
   }
 
   if (!activeGamesUi || activeGamesUi.length === 0) {

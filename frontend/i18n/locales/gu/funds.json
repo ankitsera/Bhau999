@@ -70,5 +70,10 @@
   "withdrawalRequested": "ઉપાડની વિનંતી કરી ✅",
   "failedToLoadTransactions": "વ્યવહારો લોડ કરવામાં નિષ્ફળ",
   "failedToLoadDeposits": "થાપણો લોડ કરવામાં નિષ્ફળ",
-  "failedToLoadWithdrawals": "ઉપાડ લોડ કરવામાં નિષ્ફળ"
+  "failedToLoadWithdrawals": "ઉપાડ લોડ કરવામાં નિષ્ફળ",
+  "previousPaymentProcessing": "અગાઉની ચુકવણી હજુ પ્રક્રિયામાં છે. કૃપા કરીને રાહ જુઓ.",
+  "paymentCouldNotStart": "ચુકવણી શરૂ થઈ શકી નથી. કૃપા કરીને ફરી પ્રયાસ કરો.",
+  "unableToOpenUpi": "UPI એપ ખોલવામાં અસમર્થ. કૃપા કરીને તપાસો કે તમારી પાસે UPI એપ ઇન્સ્ટોલ છે.",
+  "paymentStillProcessing": "ચુકવણી હજુ પ્રક્રિયામાં છે. કૃપા કરીને તમારો વ્યવહાર ઇતિહાસ તપાસો.",
+  "unableToConfirmPayment": "ચુકવણી સ્થિતિની પુષ્ટિ કરવામાં અસમર્થ. કૃપા કરીને તમારો વ્યવહાર ઇતિહાસ તપાસો."
 }
