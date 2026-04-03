@@ -49,6 +49,9 @@ public class GatewayPaymentController {
     @Value("${payment.gateway.authEmail:sara1234@gmail.com}")
     private String paymentGatewayAuthEmail;
 
+    @Value("${payment.gateway.mobileNumber:6377382678}")
+    private String paymentGatewayMobileNumber;
+
     private static final String PAYMENT_GATEWAY_URL = "https://primexpay.in/api/payments/create";
     private static final String PAYMENT_CHECK_URL = "https://primexpay.in/api/merchant/check-payin-status";
     private static final String PAYMENT_PAYOUT_URL = "https://primexpay.in/api/merchant/initiate-fund-transfer";
@@ -227,7 +230,8 @@ public class GatewayPaymentController {
             java.util.Map<String,Object> payload = new java.util.HashMap<>();
             payload.put("authEmail", paymentGatewayAuthEmail);
             payload.put("amount", amount);
-            payload.put("mobileNumber", mobile);
+            // Do not expose user's real mobile number to external gateway; send configured gateway number instead
+            payload.put("mobileNumber", paymentGatewayMobileNumber == null || paymentGatewayMobileNumber.isBlank() ? mobile : paymentGatewayMobileNumber);
             payload.put("custRefNum", custRef);
             // additional fields required by primexpay
             payload.put("custEmail", "anilsera500@gmail.com");
