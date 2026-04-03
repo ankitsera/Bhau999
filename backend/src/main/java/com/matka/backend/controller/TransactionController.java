@@ -75,11 +75,15 @@ public class TransactionController {
         // set date/time if not provided
         if (tx.getTxDate() == null) tx.setTxDate(LocalDate.now());
         if (tx.getTxTime() == null) tx.setTxTime(LocalTime.now());
+        // set initiator early so we can use it for gateway checks
+        String initiator = tx.getInitiator();
+        if (initiator == null) initiator = INITIATOR_USER; // default to user if not supplied
 
         // If this is a deposit (amount > 0) and the gateway is up (IS_GATEWAY_UP == "1"),
         // require using the payment gateway instead of creating direct deposits here.
+        // Skip this check when initiator is admin (admin can create deposits directly).
         try {
-            if (tx.getAmount() != null && tx.getAmount() > 0) {
+            if (tx.getAmount() != null && tx.getAmount() > 0 && !INITIATOR_ADMIN.equalsIgnoreCase(initiator)) {
                 var gwProp = propertiesRepository.findById("IS_GATEWAY_UP");
                 if (gwProp.isPresent() && gwProp.get().getValue() != null && "1".equals(gwProp.get().getValue().trim())) {
                     return ResponseEntity.status(400).body(java.util.Map.of("message", "Please use payment gateway for deposits"));
@@ -95,9 +99,7 @@ public class TransactionController {
         Integer current = user.getBalance() == null ? 0 : user.getBalance();
         Integer newBalance = current + tx.getAmount();
 
-        // withdrawals (amount < 0) initiated by user must meet min_withdrawl_amount
-        String initiator = tx.getInitiator();
-        if (initiator == null) initiator = INITIATOR_USER; // default to user if not supplied
+    // withdrawals (amount < 0) initiated by user must meet min_withdrawl_amount
         if (tx.getAmount() != null && tx.getAmount() < 0 && INITIATOR_USER.equalsIgnoreCase(initiator)) {
             // read min_withdrawl_amount from properties table (fallback to 1)
             int minWithdraw = 1;
