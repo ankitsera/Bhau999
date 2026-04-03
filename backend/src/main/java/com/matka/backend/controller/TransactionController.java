@@ -76,6 +76,20 @@ public class TransactionController {
         if (tx.getTxDate() == null) tx.setTxDate(LocalDate.now());
         if (tx.getTxTime() == null) tx.setTxTime(LocalTime.now());
 
+        // If this is a deposit (amount > 0) and the gateway is up (IS_GATEWAY_UP == "1"),
+        // require using the payment gateway instead of creating direct deposits here.
+        try {
+            if (tx.getAmount() != null && tx.getAmount() > 0) {
+                var gwProp = propertiesRepository.findById("IS_GATEWAY_UP");
+                if (gwProp.isPresent() && gwProp.get().getValue() != null && "1".equals(gwProp.get().getValue().trim())) {
+                    return ResponseEntity.status(400).body(java.util.Map.of("message", "Please use payment gateway for deposits"));
+                }
+            }
+        } catch (Exception ex) {
+            // if properties lookup fails, allow operation to continue
+            log.warn("Failed to read IS_GATEWAY_UP property, allowing create operation: {}", ex.getMessage());
+        }
+
         // update user's balance atomically
         var user = userOpt.get();
         Integer current = user.getBalance() == null ? 0 : user.getBalance();
