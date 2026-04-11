@@ -219,6 +219,15 @@ export const getWithdrawalTimeEnd = async (options = {}) =>
     })
   );
 
+export const getBaseRate = async (options = {}) =>
+  Number(
+    await fetchConfigValue("base_rate", {
+      defaultValue: "10",
+      ...options,
+      critical: false,
+    })
+  );
+
 export const getMinBetAmount = async (options = {}) =>
   Number(
     await fetchConfigValue("min_bet_amount", {

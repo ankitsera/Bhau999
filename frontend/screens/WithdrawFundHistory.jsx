@@ -293,7 +293,7 @@ const WithdrawFundHistory = () => {
 
         <View style={styles.filterBar}>
         <Pressable
-          style={[styles.filterBtn, { backgroundColor: colors.surface }]}
+          style={[styles.filterBtn]}
           onPress={openFilter}
         >
           <View style={styles.filterBtnContent}>

@@ -73,6 +73,11 @@ export default function UpdateGate({
         return;
       }
 
+      if (status === 'INSTALL_OPENED') {
+        setLastStatus('INSTALLING');
+        return;
+      }
+
       setLastStatus(status);
 
       if (status === 'NEED_UNKNOWN_SOURCES') {
@@ -136,6 +141,7 @@ export default function UpdateGate({
 
           if (st === 'SUCCESS') {
             setProgress(100);
+            setLastStatus('INSTALLING'); // 🔥 key fix: map download completion to installation state
             setPollErrorCount(0);
             setPollStartTime(null);
             clearInterval(timer);
@@ -198,7 +204,8 @@ export default function UpdateGate({
   const canDismiss = !compulsory;
 
   const isDownloading = lastStatus === 'DOWNLOADING';
-  const disableUpdate = !hasUrl || busy || isDownloading;
+  const isInstalling = lastStatus === 'INSTALLING';
+  const disableUpdate = !hasUrl || busy || isDownloading || isInstalling;
 
   let updateBtnLabel = t('common:updateNow');
   if (!hasUrl) updateBtnLabel = t('common:linkMissing');
@@ -206,6 +213,8 @@ export default function UpdateGate({
   else if (isDownloading) {
     updateBtnLabel =
       progress === null ? t('common:downloading') : `${t('common:downloading')} ${progress}%`;
+  } else if (isInstalling) {
+    updateBtnLabel = t('common:installing') || 'Installing...';
   } else if (busy) updateBtnLabel = t('common:starting');
 
   return (
@@ -255,6 +264,12 @@ export default function UpdateGate({
             </Text>
           ) : null}
 
+          {isInstalling ? (
+            <Text style={[styles.note, { color: colors.textTertiary }]}>
+              {t('common:installingUpdate') || 'Installing update... Please wait'}
+            </Text>
+          ) : null}
+
           {canDismiss ? (
             <View style={styles.row}>
               <Pressable
@@ -279,11 +294,11 @@ export default function UpdateGate({
                     borderColor: colors.primary,
                     backgroundColor: colors.surface,
                   },
-                  isDownloading && styles.btnDisabled,
+                  (isDownloading || isInstalling) && styles.btnDisabled,
                 ]}
                 onPress={() => {
-                  // if downloading, don't allow dismiss (keeps UI clear)
-                  if (isDownloading) return;
+                  // if downloading or installing, don't allow dismiss (keeps UI clear)
+                  if (isDownloading || isInstalling) return;
                   onDismiss?.();
                 }}
               >

@@ -10,7 +10,7 @@ import ThemeHeader from "../../components/ThemeHeader";
 import EmptyState from "../../components/EmptyState";
 import LoadingView from "../../components/LoadingView";
 import { GameContext } from "../../contexts/GameContext";
-import { getMinBetAmount } from "../../utils/AppConfigService";
+import { getBaseRate } from "../../utils/AppConfigService";
 import { useTheme } from "../../contexts/ThemeContext";
 
 const SectionHeader = ({ title }) => {
@@ -52,7 +52,7 @@ const GameRate = () => {
         await Promise.all([
           loadGameRates?.(),
           (async () => {
-            const v = await getMinBetAmount(options); // ✅ default handled inside helper
+            const v = await getBaseRate(options); // ✅ default handled inside helper
             if (!mounted) return;
             setMinBetAmount(v);
           })(),
@@ -79,7 +79,7 @@ const GameRate = () => {
         await Promise.all([
           loadGameRates?.(),
           (async () => {
-            const v = await getMinBetAmount(); // Cached ok on mount
+            const v = await getBaseRate(); // Cached ok on mount
             if (!mounted) return;
             setMinBetAmount(v);
           })(),
@@ -104,7 +104,7 @@ const GameRate = () => {
     try {
       await Promise.all([
         loadGameRates?.(),
-        getMinBetAmount({ forceRefresh: true }), // ✅ bypass cache on manual refresh
+        getBaseRate({ forceRefresh: true }), // ✅ bypass cache on manual refresh
       ]).then((vals) => {
         // vals[1] is min bet (from helper)
         const v = vals?.[1];

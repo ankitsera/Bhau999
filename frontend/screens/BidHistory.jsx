@@ -109,7 +109,13 @@ const sortNewestFirst = (a, b) => {
 const buildTitle = item => {
   const name = String(item?.gameName || 'GAME').toUpperCase();
   const oc = normOC(item?.openClose || item?.open_close);
-  return oc ? `${name}  (${oc})` : name;
+  
+  // Don't show OC if game type contains "JODI" or "SANGAM"
+  const gameType = String(item?.type || '').toUpperCase();
+  const shouldHideOC = gameType.includes('JODI') || gameType.includes('SANGAM');
+  const displayOC = shouldHideOC ? '' : oc;
+  
+  return displayOC ? `${name}  (${displayOC})` : name;
 };
 
 const makeSig = x => {
@@ -476,14 +482,6 @@ const BidHistory = () => {
                 </View>
               ) : null}
             </View>
-          <View style={styles.filterBtnContent}>
-            <MaterialCommunityIcons name="filter" size={30} color={colors.text} />
-            {activeFilterCount ? (
-              <View style={[styles.filterBadge, { backgroundColor: colors.background }]}>
-                <Text style={[styles.filterBadgeText, { color: colors.primary }]}>{activeFilterCount}</Text>
-              </View>
-            ) : null}
-          </View>
         </Pressable>
 
         {activeFilterCount ? (

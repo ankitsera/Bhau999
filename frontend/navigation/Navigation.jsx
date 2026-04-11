@@ -5,6 +5,7 @@ import { HeaderButtonsProvider } from "react-navigation-header-buttons/HeaderBut
 import { useTheme } from '../contexts/ThemeContext';
 import { AuthContext } from '../contexts/AuthContext';
 import { lightTheme, darkTheme } from '../contexts/Themes';
+import { getSelectedLanguage } from '../utils/LanguagePreference';
 import LoadingView from '../components/LoadingView';
 import Home from "../screens/Home";
 import UserCheck from "../screens/Auth/UserCheck";

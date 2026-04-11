@@ -75,6 +75,8 @@
   "updateLinkMissing": "Update link is missing. Please try again later.",
   "enableAllowFromThisSource": "Please enable \"Allow from this source\" in Settings. After enabling, come back and tap Update now again.",
   "downloadingInBackground": "Downloading in background… installer will open automatically after download.",
+  "installing": "Installing...",
+  "installingUpdate": "Installing update... Please wait",
   "byDate": "By Date",
   "myBids": "My Bids",
   "passbook": "Passbook",
