@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useCallback } from 'react';
 import CustomLoader from '../components/CustomLoader';
 
 const LoaderContext = createContext();
@@ -14,8 +14,13 @@ export const useLoader = () => {
 export const LoaderProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
-  const showLoader = () => setLoading(true);
-  const hideLoader = () => setLoading(false);
+  const showLoader = useCallback(() => {
+      setLoading(prev => prev || true);
+  }, []);
+
+  const hideLoader = useCallback(() => {
+      setLoading(prev => prev ? false : prev);
+  }, []);
 
   return (
     <LoaderContext.Provider value={{ showLoader, hideLoader, loading }}>

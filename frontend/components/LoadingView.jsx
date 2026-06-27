@@ -10,6 +10,10 @@ const LoadingView = ({ loading, children }) => {
     } else {
       hideLoader();
     }
+
+    return () => {
+      hideLoader();
+    };
   }, [loading, showLoader, hideLoader]);
 
   if (loading) {

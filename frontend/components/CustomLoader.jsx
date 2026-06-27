@@ -3,16 +3,23 @@ import { View, StyleSheet, Modal } from 'react-native';
 import LottieView from 'lottie-react-native';
 
 const CustomLoader = ({ visible = false, transparent = true }) => {
-  if (!visible) return null;
-
   return (
     <Modal
       transparent={transparent}
       animationType="fade"
       visible={visible}
       statusBarTranslucent
+      onRequestClose={() => {}}
     >
-      <View style={styles.container}>
+      <View
+        pointerEvents={visible ? 'auto' : 'none'}
+        style={[
+          styles.container,
+          {
+            opacity: visible ? 1 : 0,
+          },
+        ]}
+      >
         <View style={styles.loaderBox}>
           <LottieView
             source={require('../assets/loader.json')}
