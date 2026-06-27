@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Image,
 } from "react-native";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from 'react-i18next';
 import { useTheme } from "../contexts/ThemeContext";
@@ -94,7 +93,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 14,
     paddingTop: 10,
     paddingHorizontal: 18,
-    paddingBottom: 2,
+    paddingBottom: 12,
     elevation: 10,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
@@ -115,10 +114,10 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: "absolute",
-    bottom: 10,
+    bottom: 25,
     alignSelf: "center",
-    width: 64,
-    height: 64,
+    width: 68,
+    height: 68,
     borderRadius: 32,
     alignItems: "center",
     justifyContent: "center",
