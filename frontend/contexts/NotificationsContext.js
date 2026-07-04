@@ -1,6 +1,6 @@
 import React, { createContext, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import messaging from "@react-native-firebase/messaging";
+import { getMessaging, getToken, onTokenRefresh } from "@react-native-firebase/messaging";
 
 import { registerPushToken, getAllNotifications } from "../utils/NotificationsService";
 import { AuthContext } from "./AuthContext";
@@ -12,7 +12,8 @@ const LAST_FCM_TOKEN_KEY = "LAST_FCM_TOKEN";
 async function syncTokenOnce({ mobileNumber, gameNotification = true }) {
   if (!mobileNumber) return;
 
-  const token = await messaging().getToken();
+  const messaging = getMessaging();
+  const token = await getToken(messaging);
   if (!token) return;
 
   const last = await AsyncStorage.getItem(LAST_FCM_TOKEN_KEY);
@@ -67,7 +68,8 @@ export const NotificationsProvider = ({ children }) => {
         await syncTokenOnce({ mobileNumber, gameNotification: true });
         if (cancelled) return;
 
-        tokenRefreshUnsubRef.current = messaging().onTokenRefresh(async (newToken) => {
+        const messagingInstance = getMessaging();
+        tokenRefreshUnsubRef.current = onTokenRefresh(messagingInstance, async (newToken) => {
           try {
             if (!newToken) return;
 
@@ -102,7 +104,10 @@ export const NotificationsProvider = ({ children }) => {
 
         // reuse stored token, fallback to getToken
         let token = await AsyncStorage.getItem(LAST_FCM_TOKEN_KEY);
-        if (!token) token = await messaging().getToken();
+        if (!token) {
+          const messagingInstance = getMessaging();
+          token = await getToken(messagingInstance);
+        }
         if (!token) return;
 
         await registerPushToken({
