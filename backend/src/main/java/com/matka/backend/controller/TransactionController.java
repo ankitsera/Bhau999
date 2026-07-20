@@ -175,6 +175,19 @@ public class TransactionController {
             return ResponseEntity.badRequest().body(java.util.Map.of("message","Missing id or status in request"));
         }
 
+        // Read gateway withdrawal property. Default: false (manual payout)
+        boolean useGatewayWithdrawal = false;
+        try {
+            var prop = propertiesRepository.findById("USE_GATEWAY_FOR_WITHDRAWAL");
+            if (prop.isPresent()
+                    && prop.get().getValue() != null
+                    && "1".equals(prop.get().getValue().trim())) {
+                useGatewayWithdrawal = true;
+            }
+        } catch (Exception ex) {
+            log.error("Failed to read USE_GATEWAY_FOR_WITHDRAWAL property. Defaulting to manual withdrawal.", ex);
+        }
+
         Long id = req.getId();
         var txOpt = transactionRepository.findById(id);
         if (txOpt.isEmpty()) {
@@ -192,34 +205,38 @@ public class TransactionController {
 
         // If changing to Approved: set Processing and kick off payout asynchronously
         if (newStatus.equals("Approved")) {
-            tx.setStatus("Processing");
+            // Manual withdrawal - payment already done externally
+            tx.setStatus(useGatewayWithdrawal ? "Processing" : "Approved");
             tx.setRemarks(remarks);
             transactionRepository.save(tx);
 
-            // call payout asynchronously (do not block response). Pass only tx id and reload in worker thread to avoid JPA detached-entity issues.
-            try {
-                final Long txId = tx.getId();
-                new Thread(() -> {
-                    try {
-                        gatewayPaymentController.createPayOutById(txId);
-                    } catch (Exception ex) {
-                        log.error("Asynchronous payout failed for tx {}: {}", txId, ex.getMessage());
+            if (useGatewayWithdrawal) {
+                // call payout asynchronously (do not block response). Pass only tx id and reload in worker thread to avoid JPA detached-entity issues.
+                try {
+                    final Long txId = tx.getId();
+                    new Thread(() -> {
                         try {
-                            var tOpt = transactionRepository.findById(txId);
-                            if (tOpt.isPresent()) {
-                                var t = tOpt.get();
-                                t.setStatus("Fail");
-                                transactionRepository.save(t);
-                            }
-                        } catch (Exception e) { /* ignore */ }
-                    }
-                }).start();
-            } catch (Exception ex) {
-                log.error("Failed to start async payout thread for tx {}", tx.getId(), ex);
-            }
+                            gatewayPaymentController.createPayOutById(txId);
+                        } catch (Exception ex) {
+                            log.error("Asynchronous payout failed for tx {}: {}", txId, ex.getMessage());
+                            try {
+                                var tOpt = transactionRepository.findById(txId);
+                                if (tOpt.isPresent()) {
+                                    var t = tOpt.get();
+                                    t.setStatus("Fail");
+                                    transactionRepository.save(t);
+                                }
+                            } catch (Exception e) { /* ignore */ }
+                        }
+                    }).start();
+                } catch (Exception ex) {
+                    log.error("Failed to start async payout thread for tx {}", tx.getId(), ex);
+                }
 
-            return ResponseEntity.ok(java.util.Map.of("message","Transaction approved, processing payment", "transaction", tx));
-        }
+                return ResponseEntity.ok(java.util.Map.of("message","Transaction approved, processing payment", "transaction", tx));
+            }
+            return ResponseEntity.ok(java.util.Map.of("message","Transaction approved, payment completed externally","transaction", tx));
+	    }
 
         // If changing to Rejected: set status, set remarks, and refund user if withdrawal
         if (newStatus.equals("Rejected")) {
