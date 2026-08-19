@@ -101,6 +101,32 @@ public class TransactionController {
 
     // withdrawals (amount < 0) initiated by user must meet min_withdrawl_amount
         if (tx.getAmount() != null && tx.getAmount() < 0 && INITIATOR_USER.equalsIgnoreCase(initiator)) {
+            // check maximum number of withdrawals allowed per day
+            int maxWithdrawals = 5;
+
+            try {
+                var p = propertiesRepository.findById("MAX_WITHDRAWLS_IN_A_DAY");
+                if (p.isPresent() && p.get().getValue() != null && !p.get().getValue().isBlank()) {
+                    maxWithdrawals = Integer.parseInt(p.get().getValue());
+                }
+            } catch (Exception ex) {
+                // ignore and use default
+            }
+
+            long withdrawalCount = transactionRepository
+                    .countByMobileNumberAndAmountLessThanAndInitiatorIgnoreCaseAndTxDate(
+                            tx.getMobileNumber(),
+                            0,
+                            INITIATOR_USER,
+                            tx.getTxDate()
+                    );
+
+            if (withdrawalCount > maxWithdrawals) {
+                return ResponseEntity.status(400).body(java.util.Map.of(
+                        "message", "Maximum number of withdrawals allowed per day has been reached",
+                        "max_withdrawals_in_a_day", maxWithdrawals
+                ));
+            }
             // read min_withdrawl_amount from properties table (fallback to 1)
             int minWithdraw = 1;
             try {
