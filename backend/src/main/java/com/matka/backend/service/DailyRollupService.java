@@ -143,8 +143,6 @@ public class DailyRollupService {
             } else {
                 log.info("No bets to move to history");
             }
-
-            log.info("Daily rollup job completed successfully");
             // 5) Cleanup old notifications according to properties.save_notification_for_days (default 7 days)
             try {
                 int keepDays = 7;
@@ -166,6 +164,19 @@ public class DailyRollupService {
             } catch (Exception ex) {
                 log.warn("Failed to cleanup old notifications: {}", ex.getMessage());
             }
+            // 6) Reset TODAY_WITHDRAWLS to true for the new day
+            try {
+                var p = propertiesRepository.findById("TODAY_WITHDRAWLS");
+                if (p.isPresent()) {
+                    p.get().setValue("true");
+                    propertiesRepository.save(p.get());
+                    log.info("Reset TODAY_WITHDRAWLS to true");
+                }
+            } catch (Exception ex) {
+                log.warn("Failed to reset TODAY_WITHDRAWLS property: {}", ex.getMessage());
+            }
+
+            log.info("Daily rollup job completed successfully");
         } catch (Exception ex) {
             log.error("Daily rollup job failed", ex);
             // let transaction roll back
