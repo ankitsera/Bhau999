@@ -4,6 +4,7 @@ import com.matka.backend.TransactionEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.time.LocalDate;
 
 public interface TransactionRepository extends JpaRepository<TransactionEntity, Long> {
     List<TransactionEntity> findByMobileNumber(String mobileNumber);
@@ -37,4 +38,11 @@ public interface TransactionRepository extends JpaRepository<TransactionEntity, 
     
         // find transactions by mobile, amount and initiator ordered by id desc so most recent is first
         List<TransactionEntity> findByMobileNumberAndAmountAndInitiatorOrderByIdDesc(String mobileNumber, Integer amount, String initiator);
+
+    long countByMobileNumberAndAmountLessThanAndInitiatorIgnoreCaseAndTxDate(
+        String mobileNumber,
+        Integer amount,
+        String initiator,
+        LocalDate txDate
+);
 }
