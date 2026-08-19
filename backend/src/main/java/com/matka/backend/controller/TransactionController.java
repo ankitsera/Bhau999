@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import com.matka.backend.repository.PropertiesRepository;
+import java.time.DayOfWeek;
 
 @RestController
 @RequestMapping("/api/transaction")
@@ -101,6 +102,41 @@ public class TransactionController {
 
     // withdrawals (amount < 0) initiated by user must meet min_withdrawl_amount
         if (tx.getAmount() != null && tx.getAmount() < 0 && INITIATOR_USER.equalsIgnoreCase(initiator)) {
+            // check whether withdrawals are allowed on the current day
+            try {
+                LocalDate today = tx.getTxDate();
+
+                boolean todayWithdrawals = true;
+                boolean dayWithdrawals = true;
+
+                // Check TODAY_WITHDRAWLS
+                var todayProp = propertiesRepository.findById("TODAY_WITHDRAWLS");
+                if (todayProp.isPresent() && todayProp.get().getValue() != null) {
+                    todayWithdrawals = Boolean.parseBoolean(todayProp.get().getValue().trim());
+                }
+
+                // Check day-specific property on Saturday/Sunday
+                if (today.getDayOfWeek() == DayOfWeek.SATURDAY) {
+                    var p = propertiesRepository.findById("SATURDAY_WITHDRAWLS");
+                    if (p.isPresent() && p.get().getValue() != null) {
+                        dayWithdrawals = Boolean.parseBoolean(p.get().getValue().trim());
+                    }
+                } else if (today.getDayOfWeek() == DayOfWeek.SUNDAY) {
+                    var p = propertiesRepository.findById("SUNDAY_WITHDRAWLS");
+                    if (p.isPresent() && p.get().getValue() != null) {
+                        dayWithdrawals = Boolean.parseBoolean(p.get().getValue().trim());
+                    }
+                }
+
+                if (!todayWithdrawals || !dayWithdrawals) {
+                    return ResponseEntity.status(400).body(java.util.Map.of(
+                            "message", "Withdrawals are not allowed today"
+                    ));
+                }
+
+            } catch (Exception ex) {
+                log.warn("Failed to check withdrawal day properties, allowing withdrawal by default: {}", ex.getMessage());
+            }
             // check maximum number of withdrawals allowed per day
             int maxWithdrawals = 5;
 
