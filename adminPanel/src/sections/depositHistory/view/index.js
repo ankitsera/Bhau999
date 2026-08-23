@@ -1,0 +1,1 @@
+export { default as DepositHistoryView } from "./deposit-history-view"
