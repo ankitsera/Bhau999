@@ -109,20 +109,20 @@ public class TransactionController {
                 boolean todayWithdrawals = true;
                 boolean dayWithdrawals = true;
 
-                // Check TODAY_WITHDRAWLS
-                var todayProp = propertiesRepository.findById("TODAY_WITHDRAWLS");
+                // Check today_withdrawls
+                var todayProp = propertiesRepository.findById("today_withdrawls");
                 if (todayProp.isPresent() && todayProp.get().getValue() != null) {
                     todayWithdrawals = Boolean.parseBoolean(todayProp.get().getValue().trim());
                 }
 
                 // Check day-specific property on Saturday/Sunday
                 if (today.getDayOfWeek() == DayOfWeek.SATURDAY) {
-                    var p = propertiesRepository.findById("SATURDAY_WITHDRAWLS");
+                    var p = propertiesRepository.findById("saturday_withdrawls");
                     if (p.isPresent() && p.get().getValue() != null) {
                         dayWithdrawals = Boolean.parseBoolean(p.get().getValue().trim());
                     }
                 } else if (today.getDayOfWeek() == DayOfWeek.SUNDAY) {
-                    var p = propertiesRepository.findById("SUNDAY_WITHDRAWLS");
+                    var p = propertiesRepository.findById("sunday_withdrawls");
                     if (p.isPresent() && p.get().getValue() != null) {
                         dayWithdrawals = Boolean.parseBoolean(p.get().getValue().trim());
                     }
@@ -141,7 +141,7 @@ public class TransactionController {
             int maxWithdrawals = 5;
 
             try {
-                var p = propertiesRepository.findById("MAX_WITHDRAWLS_IN_A_DAY");
+                var p = propertiesRepository.findById("max_withdrawls_in_a_day");
                 if (p.isPresent() && p.get().getValue() != null && !p.get().getValue().isBlank()) {
                     maxWithdrawals = Integer.parseInt(p.get().getValue());
                 }
@@ -157,7 +157,9 @@ public class TransactionController {
                             tx.getTxDate()
                     );
 
-            if (withdrawalCount > maxWithdrawals) {
+            // withdrawalCount excludes the request being processed, so block once the
+            // user already has maxWithdrawals for the day
+            if (withdrawalCount >= maxWithdrawals) {
                 return ResponseEntity.status(400).body(java.util.Map.of(
                         "message", "Maximum number of withdrawals allowed per day has been reached",
                         "max_withdrawals_in_a_day", maxWithdrawals

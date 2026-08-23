@@ -8,7 +8,7 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { Alert, TextField, CircularProgress, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
+import { Alert, TextField, CircularProgress, MenuItem, Select, FormControl, InputLabel, Switch, FormControlLabel } from '@mui/material';
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -16,6 +16,10 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { propertyService, rateService } from 'src/services';
 
 // ----------------------------------------------------------------------
+
+// Backend stores booleans as the strings "true"/"false" and parses them with
+// Boolean.parseBoolean(), so anything other than "true" means disabled.
+const isEnabled = (value) => String(value ?? '').trim().toLowerCase() === 'true';
 
 export default function SettingsView() {
   // State for properties mapped to backend keys
@@ -31,6 +35,11 @@ export default function SettingsView() {
     minimum_deposit_amount: '',
     min_bet_amount: '',
     max_bet_amount: '',
+    today_withdrawls: 'true',
+    saturday_withdrawls: 'true',
+    sunday_withdrawls: 'true',
+    // Matches the backend's fallback in TransactionController
+    max_withdrawls_in_a_day: '5',
     headline: '',
     wallet_message: '',
     add_point_message: '',
@@ -82,6 +91,12 @@ export default function SettingsView() {
       data.forEach((prop) => {
         propsObj[prop.key] = prop.value || '';
       });
+
+      // A blank stored value means "unset" for this key, so keep showing the
+      // default the backend would fall back to instead of an empty box.
+      if (!propsObj.max_withdrawls_in_a_day) {
+        delete propsObj.max_withdrawls_in_a_day;
+      }
 
       setProperties((prevProps) => ({
         ...prevProps,
@@ -498,6 +513,74 @@ export default function SettingsView() {
                 type="number"
                 placeholder="10000"
               />
+            </Grid>
+
+            {/* Max Withdrawals In A Day */}
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Maximum Withdrawals Per Day"
+                variant="outlined"
+                value={properties.max_withdrawls_in_a_day}
+                onChange={(e) => handlePropertyChange('max_withdrawls_in_a_day', e.target.value)}
+                type="number"
+                placeholder="5"
+                helperText="Number of withdrawal requests a user can make in one day"
+              />
+            </Grid>
+
+            {/* Withdrawal Day Controls */}
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                Withdrawal Availability
+              </Typography>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={isEnabled(properties.today_withdrawls)}
+                      onChange={(e) =>
+                        handlePropertyChange('today_withdrawls', e.target.checked ? 'true' : 'false')
+                      }
+                    />
+                  }
+                  label="Withdrawals Allowed Today"
+                />
+
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={isEnabled(properties.saturday_withdrawls)}
+                      onChange={(e) =>
+                        handlePropertyChange(
+                          'saturday_withdrawls',
+                          e.target.checked ? 'true' : 'false'
+                        )
+                      }
+                    />
+                  }
+                  label="Withdrawals Allowed On Saturday"
+                />
+
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={isEnabled(properties.sunday_withdrawls)}
+                      onChange={(e) =>
+                        handlePropertyChange(
+                          'sunday_withdrawls',
+                          e.target.checked ? 'true' : 'false'
+                        )
+                      }
+                    />
+                  }
+                  label="Withdrawals Allowed On Sunday"
+                />
+              </Stack>
+              <Typography variant="caption" color="text.secondary">
+                &quot;Today&quot; is a one-day override that automatically resets to ON at the start of
+                the next day.
+              </Typography>
             </Grid>
 
             {/* Payment Method Selection */}
