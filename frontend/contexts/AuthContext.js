@@ -1,4 +1,5 @@
-import React, { createContext, useEffect, useMemo, useReducer } from "react";
+import React, { createContext, useCallback, useEffect, useMemo, useReducer, useRef } from "react";
+import { AppState } from "react-native";
 import Snackbar from "react-native-snackbar";
 import i18n from '../i18n';
 
@@ -10,6 +11,7 @@ import {
   restoreUserState,
   saveAuthCreds,
   clearAuthCreds,
+  fetchBalance,
 } from "../utils/AuthService";
 
 export const AuthContext = createContext(null);
@@ -111,6 +113,18 @@ function getApprovalStatus(u) {
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const { user, isLoading, isBlocked } = state;
+
+  // Kept in refs so refreshBalance can stay referentially stable and be safely
+  // used inside focus/interval/push effects without restarting them.
+  const mobileNumberRef = useRef(null);
+  // Bumped on every local balance write (optimistic bet deduction, payments).
+  // A poll that started before the latest local write is discarded so it cannot
+  // resurrect a stale, pre-deduction balance.
+  const balanceEpochRef = useRef(0);
+
+  useEffect(() => {
+    mobileNumberRef.current = user?.mobileNumber || null;
+  }, [user?.mobileNumber]);
 
   // restore on app start: creds -> login -> Approval_status gate
   useEffect(() => {
@@ -290,7 +304,73 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const updateUser = (patch) => dispatch({ type: TYPES.UPDATE, patch });
+  const updateUser = (patch) => {
+    if (patch && Object.prototype.hasOwnProperty.call(patch, "balance")) {
+      balanceEpochRef.current += 1;
+    }
+    dispatch({ type: TYPES.UPDATE, patch });
+  };
+
+  /**
+   * Cheap balance-only sync. Unlike refreshUser it does not re-send credentials
+   * and does not churn the rest of the user object, so it is safe to call on
+   * screen focus, on app foreground and on a result push.
+   * Stays silent on failure - it runs in the background and must not spam the user.
+   */
+  const refreshBalance = useCallback(async () => {
+    const mobileNumber = mobileNumberRef.current;
+    if (!mobileNumber) return;
+
+    const epochAtStart = balanceEpochRef.current;
+
+    try {
+      const data = await fetchBalance(mobileNumber);
+
+      // A bet was placed (or a payment landed) while this request was in flight;
+      // that local value is newer than what the server told us. Drop this response.
+      if (balanceEpochRef.current !== epochAtStart) return;
+
+      if (data?.approvalStatus && !getApprovalStatus(data)) {
+        dispatch({ type: TYPES.SET_BLOCKED });
+        return;
+      }
+
+      if (data?.balance != null) {
+        dispatch({ type: TYPES.UPDATE, patch: { balance: data.balance } });
+      }
+    } catch {
+      // background sync - stay quiet and retry on the next trigger
+    }
+  }, []);
+
+  // Event-driven sync, no timer. The server pushes a data-only "balance_changed"
+  // message on every balance write, which covers the case where the user is already
+  // staring at the screen. This effect covers the other one: arriving at the app.
+  //
+  // A dropped push (Doze, OEM battery killers, FCM's best-effort delivery) is silent
+  // and permanent, so this foreground fetch is the safety net that makes a lost
+  // message self-correct the next time the user actually looks.
+  const appStateRef = useRef(AppState.currentState);
+
+  useEffect(() => {
+    const mobileNumber = user?.mobileNumber;
+    if (!mobileNumber || isBlocked) return;
+
+    refreshBalance();
+
+    const sub = AppState.addEventListener("change", (nextState) => {
+      const prev = String(appStateRef.current || "");
+      appStateRef.current = nextState;
+
+      if (prev.match(/inactive|background/) && nextState === "active") {
+        refreshBalance();
+      }
+    });
+
+    return () => {
+      sub?.remove?.();
+    };
+  }, [user?.mobileNumber, isBlocked, refreshBalance]);
 
   const value = useMemo(
     () => ({
@@ -303,9 +383,10 @@ export const AuthProvider = ({ children }) => {
       userCheck,
       updateUser,
       refreshUser,
+      refreshBalance,
       clearSession,
     }),
-    [user, isLoading, isBlocked]
+    [user, isLoading, isBlocked, refreshBalance]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -117,7 +117,7 @@ const Home = ({ navigation }) => {
   // Only WhatsApp support now
   const [whatsappPhone, setWhatsappPhone] = useState('');
 
-  const { refreshUser } = useContext(AuthContext);
+  const { refreshUser, refreshBalance } = useContext(AuthContext);
   const { loadActiveGames } = useContext(GameContext);
 
   const loadSupportConfig = useCallback(async (options = {}) => {
@@ -132,6 +132,14 @@ const Home = ({ navigation }) => {
   useEffect(() => {
     loadSupportConfig();
   }, [loadSupportConfig]);
+
+  // Pull the latest wallet every time Home comes back into focus, so a payout
+  // declared while the user was on another screen shows up immediately.
+  useFocusEffect(
+    useCallback(() => {
+      refreshBalance?.();
+    }, [refreshBalance]),
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

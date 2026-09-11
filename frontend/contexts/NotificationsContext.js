@@ -1,6 +1,6 @@
 import React, { createContext, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getMessaging, getToken, onTokenRefresh } from "@react-native-firebase/messaging";
+import { getMessaging, getToken, onMessage, onTokenRefresh } from "@react-native-firebase/messaging";
 
 import { registerPushToken, getAllNotifications } from "../utils/NotificationsService";
 import { AuthContext } from "./AuthContext";
@@ -8,6 +8,9 @@ import { AuthContext } from "./AuthContext";
 export const NotificationsContext = createContext(null);
 
 const LAST_FCM_TOKEN_KEY = "LAST_FCM_TOKEN";
+
+// Must match BalanceNotificationService.TYPE_BALANCE_CHANGED on the backend.
+const BALANCE_CHANGED = "balance_changed";
 
 async function syncTokenOnce({ mobileNumber, gameNotification = true }) {
   if (!mobileNumber) return;
@@ -24,7 +27,7 @@ async function syncTokenOnce({ mobileNumber, gameNotification = true }) {
 }
 
 export const NotificationsProvider = ({ children }) => {
-  const { user, isBlocked } = React.useContext(AuthContext);
+  const { user, isBlocked, refreshBalance } = React.useContext(AuthContext);
   const mobileNumber = user?.mobileNumber;
 
   const tokenRefreshUnsubRef = useRef(null);
@@ -93,6 +96,44 @@ export const NotificationsProvider = ({ children }) => {
       cancelled = true;
     };
   }, [mobileNumber, isBlocked]);
+
+  // Two kinds of push land here:
+  //   - a per-user data-only { type: "balance_changed" } sent on every balance write
+  //   - the game_notifications topic broadcast when a result is declared
+  // Both mean the wallet may have moved, so both trigger a fetch. The message never
+  // carries the balance itself: push delivery is unordered, so we re-read the
+  // authoritative value instead of trusting the payload.
+  useEffect(() => {
+    if (!mobileNumber || isBlocked) return;
+
+    const messagingInstance = getMessaging();
+    const unsubscribe = onMessage(messagingInstance, async (remoteMessage) => {
+      const type = remoteMessage?.data?.type;
+
+      if (type === BALANCE_CHANGED || !type) {
+        try {
+          await refreshBalance?.();
+        } catch {
+          // ignore; the foreground fetch will catch up
+        }
+      }
+
+      // Topic result broadcasts also add a row to the notifications list.
+      if (type !== BALANCE_CHANGED) {
+        try {
+          await fetchNotifications();
+        } catch {
+          // ignore
+        }
+      }
+    });
+
+    return () => {
+      try {
+        unsubscribe?.();
+      } catch {}
+    };
+  }, [mobileNumber, isBlocked, refreshBalance, fetchNotifications]);
 
   const value = useMemo(
     () => ({

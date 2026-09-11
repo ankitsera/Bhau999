@@ -85,6 +85,29 @@ export const login = async (mobileNumber, password) => {
   throw err;
 };
 
+// Lightweight balance read. Used to keep the wallet in sync after a result is
+// declared, without re-sending credentials through /auth/login.
+export const fetchBalance = async (mobileNumber) => {
+  const res = await fetch(
+    `${API_URL}/users/${encodeURIComponent(mobileNumber)}/balance`,
+    { method: "GET", headers: { Accept: "application/json" } }
+  );
+
+  let body = null;
+  try {
+    body = await res.json();
+  } catch {
+    body = null;
+  }
+
+  if (res.ok) return body ?? {};
+
+  const msg = body?.message || `Balance fetch failed (status ${res.status})`;
+  const err = new Error(msg);
+  err.status = res.status;
+  throw err;
+};
+
 export const userCheck = async (mobileNumber) => {
   try {
     const res = await fetch(`${API_URL}/auth/checkUser`, {
