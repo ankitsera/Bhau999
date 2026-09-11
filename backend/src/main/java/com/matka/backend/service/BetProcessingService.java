@@ -26,6 +26,7 @@ public class BetProcessingService {
     private final UserRepository userRepository;
     private final RateRepository rateRepository;
     private final ActiveGameRepository activeGameRepository;
+    private final BalanceService balanceService;
     private final Logger logger = LoggerFactory.getLogger(BetProcessingService.class);
 
     @Autowired
@@ -33,12 +34,14 @@ public class BetProcessingService {
                                 TransactionRepository transactionRepository,
                                 UserRepository userRepository,
                                 RateRepository rateRepository,
-                                ActiveGameRepository activeGameRepository) {
+                                ActiveGameRepository activeGameRepository,
+                                BalanceService balanceService) {
         this.betRepository = betRepository;
         this.transactionRepository = transactionRepository;
         this.userRepository = userRepository;
         this.rateRepository = rateRepository;
         this.activeGameRepository = activeGameRepository;
+        this.balanceService = balanceService;
     }
 
     /**
@@ -241,7 +244,7 @@ public class BetProcessingService {
                                         Integer bal = u.getBalance() == null ? 0 : u.getBalance();
                                         int newBal = bal - payout;
                                         u.setBalance(newBal);
-                                        userRepository.save(u);
+                                        balanceService.saveAndNotify(u, "Bet payout reverted");
                                         logger.info("Reverted payout for bet id {} mobile {}: deducted {}. Old balance: {}, New balance: {}",
                                                 b.getId(), b.getMobileNumber(), payout, bal, newBal);
                                         // clear winAmount on the bet and persist
@@ -317,7 +320,7 @@ public class BetProcessingService {
                 User u = uo.get();
                 Integer bal = u.getBalance() == null ? 0 : u.getBalance();
                 u.setBalance(bal + payout);
-                userRepository.save(u);
+                balanceService.saveAndNotify(u, "Bet won");
                 // record win amount on the bet and persist
                 try {
                     b.setWinAmount(payout);

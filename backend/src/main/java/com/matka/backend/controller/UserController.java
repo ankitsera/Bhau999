@@ -32,6 +32,9 @@ public class UserController {
     @Autowired
     private FcmService fcmService;
 
+    @Autowired
+    private com.matka.backend.service.BalanceService balanceService;
+
     // Note: password encryption removed per user request; passwords will be stored and compared as plain text.
 
     @PostMapping("/auth/signup")
@@ -102,6 +105,31 @@ public class UserController {
         return ResponseEntity.ok(list);
     }
 
+    /**
+     * Lightweight balance read used by the app to keep the wallet in sync without
+     * re-sending credentials to /auth/login. Returns approvalStatus too so the client
+     * can keep honouring the blocked-account gate.
+     */
+    @GetMapping("/users/{mobileNumber}/balance")
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> getBalance(@PathVariable("mobileNumber") String mobileNumber) {
+        if (mobileNumber == null || mobileNumber.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "mobileNumber is required"));
+        }
+
+        Optional<User> userOpt = userRepository.findByMobileNumber(mobileNumber.trim());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("message", "User not found: " + mobileNumber));
+        }
+
+        User u = userOpt.get();
+        java.util.Map<String, Object> body = new java.util.HashMap<>();
+        body.put("mobileNumber", u.getMobileNumber());
+        body.put("balance", u.getBalance() == null ? 0 : u.getBalance());
+        body.put("approvalStatus", u.getApprovalStatus());
+        return ResponseEntity.ok(body);
+    }
+
     // Credit a user's balance (moved from BalanceController)
     @PostMapping("/users/balance/add")
     @Transactional
@@ -119,7 +147,7 @@ public class UserController {
         Integer current = user.getBalance() == null ? 0 : user.getBalance();
         int newBalance = current + request.getAmount();
         user.setBalance(newBalance);
-        userRepository.save(user);
+        balanceService.saveAndNotify(user, "Admin credit");
 
         // record transaction (positive amount)
         TransactionEntity tx = new TransactionEntity();
@@ -339,6 +367,15 @@ public class UserController {
         }
 
         try {
+            // Persist the token so the server can push to THIS user specifically
+            // (balance changes are private, so they cannot go out over a topic).
+            User u = userOpt.get();
+            if (!token.equals(u.getFcmToken())) {
+                u.setFcmToken(token);
+                userRepository.save(u);
+                log.info("Stored FCM token for {}", mobile);
+            }
+
             // Subscribe to topics
             // always subscribe to all_users
             boolean okAll = fcmService.subscribeTokenToTopic(token, "all_users");

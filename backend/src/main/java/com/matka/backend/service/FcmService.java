@@ -78,6 +78,72 @@ public class FcmService {
         }
     }
 
+    /**
+     * Send a DATA-ONLY message to specific device tokens.
+     *
+     * Data-only (no setNotification) matters: a notification message is rendered by
+     * the FCM SDK itself and the app's JS never runs while backgrounded, so it cannot
+     * be used to trigger a refresh. High priority is set so the message is not held
+     * back by Android Doze.
+     *
+     * The payload deliberately carries only a signal ("something changed"), never the
+     * new value - push delivery is unordered, so a value could arrive stale.
+     *
+     * @return tokens FCM reported as permanently invalid; the caller should clear them.
+     */
+    public List<String> sendDataToTokens(List<String> tokens, java.util.Map<String, String> data) {
+        java.util.List<String> invalid = new java.util.ArrayList<>();
+        if (tokens == null || tokens.isEmpty()) return invalid;
+
+        // FCM accepts at most 500 tokens per multicast call.
+        final int chunkSize = 500;
+        for (int start = 0; start < tokens.size(); start += chunkSize) {
+            List<String> chunk = tokens.subList(start, Math.min(start + chunkSize, tokens.size()));
+            try {
+                com.google.firebase.messaging.MulticastMessage.Builder mb =
+                        com.google.firebase.messaging.MulticastMessage.builder()
+                                .addAllTokens(chunk)
+                                .setAndroidConfig(com.google.firebase.messaging.AndroidConfig.builder()
+                                        .setPriority(com.google.firebase.messaging.AndroidConfig.Priority.HIGH)
+                                        .build());
+
+                if (data != null && !data.isEmpty()) {
+                    mb.putAllData(data);
+                }
+
+                final com.google.firebase.messaging.MulticastMessage message = mb.build();
+                BatchResponse resp = withRetries(() -> FirebaseMessaging.getInstance().sendEachForMulticast(message));
+
+                if (resp == null) continue;
+
+                for (int i = 0; i < resp.getResponses().size(); i++) {
+                    com.google.firebase.messaging.SendResponse r = resp.getResponses().get(i);
+                    if (r.isSuccessful()) continue;
+
+                    FirebaseMessagingException ex = r.getException();
+                    com.google.firebase.messaging.MessagingErrorCode code =
+                            ex == null ? null : ex.getMessagingErrorCode();
+
+                    // UNREGISTERED = app uninstalled or token rotated.
+                    // INVALID_ARGUMENT = malformed token. Neither is worth retrying.
+                    if (code == com.google.firebase.messaging.MessagingErrorCode.UNREGISTERED
+                            || code == com.google.firebase.messaging.MessagingErrorCode.INVALID_ARGUMENT) {
+                        invalid.add(chunk.get(i));
+                    } else {
+                        log.warn("FCM send failed for a token: {}", ex == null ? "unknown" : ex.getMessage());
+                    }
+                }
+
+                log.info("Sent data message to {} tokens: success={} failure={}",
+                        chunk.size(), resp.getSuccessCount(), resp.getFailureCount());
+            } catch (Exception e) {
+                log.error("Error sending data message to tokens: {}", e.getMessage());
+            }
+        }
+
+        return invalid;
+    }
+
     private <T> T withRetries(Callable<T> work) throws Exception {
         final int maxAttempts = 3;
         long delayMs = 500L;

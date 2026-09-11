@@ -75,6 +75,9 @@ public class BetController {
     private UserRepository userRepository;
 
     @Autowired
+    private com.matka.backend.service.BalanceService balanceService;
+
+    @Autowired
     private GameRepository gameRepository;
 
     @Autowired
@@ -151,7 +154,7 @@ public class BetController {
             }
             int newBalance = current - bet.getAmount();
             user.setBalance(newBalance);
-            userRepository.save(user);
+            balanceService.saveAndNotify(user, "Bet placed");
 
             // set bet time to current datetime
             bet.setBetTime(LocalDateTime.now());

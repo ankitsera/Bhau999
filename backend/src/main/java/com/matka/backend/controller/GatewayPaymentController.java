@@ -43,6 +43,9 @@ public class GatewayPaymentController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private com.matka.backend.service.BalanceService balanceService;
+
     @Value("${payment.gateway.apikey:}")
     private String paymentGatewayApiKey;
 
@@ -355,7 +358,7 @@ public class GatewayPaymentController {
                                             var user = userOpt.get();
                                             Integer cur = user.getBalance() == null ? 0 : user.getBalance();
                                             user.setBalance(cur + gp2.getAmount());
-                                            userRepository.save(user);
+                                            balanceService.saveAndNotify(user, "Deposit credited");
                                         }
                                     }
                                 }
@@ -497,7 +500,7 @@ public class GatewayPaymentController {
                         var user = userOpt.get();
                         Integer cur = user.getBalance() == null ? 0 : user.getBalance();
                         user.setBalance(cur + gp.getAmount());
-                        userRepository.save(user);
+                        balanceService.saveAndNotify(user, "Deposit credited");
                     }
                 } else {
                     // If we didn't create a new transaction because one already exists, link that existing tx id to the gateway payment
@@ -928,7 +931,7 @@ public class GatewayPaymentController {
                     Integer cur = user.getBalance() == null ? 0 : user.getBalance();
                     int refund = -tx.getAmount();
                     user.setBalance(cur + refund);
-                    userRepository.save(user);
+                    balanceService.saveAndNotify(user, "Deposit rejected refund");
                     log.info("Refunded user {} amount={} for rejected tx {}", user.getMobileNumber(), refund, tx.getId());
 
                     // mark transaction remarks to indicate refund was applied

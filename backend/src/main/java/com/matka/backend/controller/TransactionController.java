@@ -55,6 +55,9 @@ public class TransactionController {
     private UserRepository userRepository;
 
     @Autowired
+    private com.matka.backend.service.BalanceService balanceService;
+
+    @Autowired
     private PropertiesRepository propertiesRepository;
 
     @Autowired
@@ -224,7 +227,7 @@ public class TransactionController {
 
         // apply balance change (allow negative balance when pending)
         user.setBalance(newBalance);
-        userRepository.save(user);
+        balanceService.saveAndNotify(user, "Transaction");
 
         TransactionEntity saved = transactionRepository.save(tx);
         log.info("Saved transaction id={} mobile={} amount={} newBalance={} status={}", saved.getId(), saved.getMobileNumber(), saved.getAmount(), newBalance, saved.getStatus());
@@ -316,7 +319,7 @@ public class TransactionController {
                     Integer currentBal = user.getBalance() == null ? 0 : user.getBalance();
                     int refund = -tx.getAmount(); // amount is negative
                     user.setBalance(currentBal + refund);
-                    userRepository.save(user);
+                    balanceService.saveAndNotify(user, "Withdrawal rejected refund");
                     log.info("Refunded user {} amount={} after tx {} rejected", user.getMobileNumber(), refund, tx.getId());
                     return ResponseEntity.ok(java.util.Map.of("message","Transaction rejected and refunded", "transaction", tx, "user", user));
                 }

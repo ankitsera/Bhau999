@@ -1,5 +1,6 @@
 package com.matka.backend;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -37,6 +38,13 @@ public class User {
     @Column(name = "Approval_status")
     private String approvalStatus;
 
+    // FCM device token, used to push per-user events (e.g. balance changed).
+    // Nullable: a user may not have registered a device yet, and the token is
+    // cleared when FCM reports it as no longer valid.
+    @JsonIgnore
+    @Column(name = "fcm_token", length = 512)
+    private String fcmToken;
+
     // Getters and setters
     public String getMobileNumber() { return mobileNumber; }
     public void setMobileNumber(String mobileNumber) { this.mobileNumber = mobileNumber; }
@@ -66,4 +74,7 @@ public class User {
 
     public String getApprovalStatus() { return approvalStatus; }
     public void setApprovalStatus(String approvalStatus) { this.approvalStatus = approvalStatus; }
+
+    public String getFcmToken() { return fcmToken; }
+    public void setFcmToken(String fcmToken) { this.fcmToken = fcmToken; }
 }
