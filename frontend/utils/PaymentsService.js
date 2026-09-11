@@ -212,6 +212,31 @@ export const submitTransaction = async (payload) => {
   };
 };
 
+/**
+ * GET /transaction/withdrawal-rules
+ * The withdrawal rules the server enforces right now, judged by the server clock:
+ * { minAmount, maxPerDay, timeStart: "HH:mm" | null, timeEnd: "HH:mm" | null,
+ *   allowedToday, withinTimeWindow }
+ */
+export const getWithdrawalRules = async () => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+  try {
+    const res = await fetch(`${API_URL}/transaction/withdrawal-rules`, {
+      method: "GET",
+      signal: controller.signal,
+    });
+
+    const body = await readBody(res);
+    if (!res.ok) fail(res, body, "Failed to load withdrawal rules");
+
+    return body;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
 export const createGatewayPayment = async ({ mobileNumber, amount }) => {
   const res = await fetch(`${API_URL}/gateway-payments`, {
     method: "POST",

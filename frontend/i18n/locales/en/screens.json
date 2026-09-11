@@ -106,6 +106,8 @@
   "withdrawFailed": "Withdraw Failed",
   "sendRequest": "Send Request",
   "cannotWithdrawNow": "Cannot withdraw at this time.",
+  "withdrawClosedToday": "Withdrawals are closed today.",
+  "withdrawRulesLoadFailed": "Could not load withdrawal settings. Check your internet connection and try again.",
   "termsAndConditions": "Terms & Conditions",
   "tncMinWithdraw": "Minimum Withdraw is {{amount}}/- Rs.",
   "tncMaxWithdraw": "Maximum Withdraw is 25,00,000/- per day.",

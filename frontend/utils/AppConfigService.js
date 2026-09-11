@@ -96,7 +96,7 @@ export const fetchConfigValue = async (key, options = {}) => {
     });
 
     clearTimeout(timeoutId);
-  } catch (err) {
+  } catch (networkErr) {
     // network/timeout error
     if (!critical && typeof defaultValue !== "undefined") {
       // cache default too (non-critical only) to avoid spamming calls
@@ -104,9 +104,9 @@ export const fetchConfigValue = async (key, options = {}) => {
       return defaultValue;
     }
     const e = new Error(
-      `Failed to load config for key "${normalizedKey}": ${err.message}`
+      `Failed to load config for key "${normalizedKey}": ${networkErr.message}`
     );
-    e.cause = err;
+    e.cause = networkErr;
     throw e;
   }
 
@@ -201,24 +201,6 @@ export const getBankingName = async (options = {}) =>
     })
   );
 
-export const getWithdrawalTimeStart = async (options = {}) =>
-  String(
-    await fetchConfigValue("withdrawal_time_start", {
-      defaultValue: "10:00",
-      ...options,
-      critical: false,
-    })
-  );
-
-export const getWithdrawalTimeEnd = async (options = {}) =>
-  String(
-    await fetchConfigValue("withdrawal_time_end", {
-      defaultValue: "23:59",
-      ...options,
-      critical: false,
-    })
-  );
-
 export const getBaseRate = async (options = {}) =>
   Number(
     await fetchConfigValue("base_rate", {
@@ -252,16 +234,6 @@ export const getMinimumDepositAmount = async (options = {}) =>
       defaultValue: "1",
       ...options,
       critical: false,
-    })
-  );
-
-export const getMinimumWithdrawalAmount = async (options = {}) =>
-  Number(
-    await fetchConfigValue("minimum_withdrawal_amount", {
-      defaultValue: "10",
-      ...options,
-      critical: true,
-      forceRefresh: true,
     })
   );
 

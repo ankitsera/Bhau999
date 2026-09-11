@@ -106,6 +106,8 @@
   "withdrawFailed": "निकासी विफल",
   "sendRequest": "अनुरोध भेजें",
   "cannotWithdrawNow": "इस समय निकासी नहीं की जा सकती।",
+  "withdrawClosedToday": "आज निकासी बंद है।",
+  "withdrawRulesLoadFailed": "निकासी सेटिंग्स लोड नहीं हो सकीं। अपना इंटरनेट कनेक्शन जांचें और फिर से प्रयास करें।",
   "termsAndConditions": "नियम और शर्तें",
   "tncMinWithdraw": "न्यूनतम निकासी {{amount}}/- रुपये है।",
   "tncMaxWithdraw": "अधिकतम निकासी प्रति दिन 25,00,000/- रुपये है।",

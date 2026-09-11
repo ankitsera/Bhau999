@@ -106,6 +106,8 @@
   "withdrawFailed": "ఉపసంహరణ విఫలమైంది",
   "sendRequest": "అభ్యర్థనను పంపండి",
   "cannotWithdrawNow": "ఈ సమయంలో ఉపసంహరించలేరు.",
+  "withdrawClosedToday": "ఈరోజు ఉపసంహరణలు మూసివేయబడ్డాయి.",
+  "withdrawRulesLoadFailed": "ఉపసంహరణ సెట్టింగ్‌లను లోడ్ చేయలేకపోయాము. మీ ఇంటర్నెట్ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.",
   "termsAndConditions": "నిబంధనలు మరియు షరతులు",
   "tncMinWithdraw": "కనీస ఉపసంహరణ {{amount}}/- రూ.",
   "tncMaxWithdraw": "గరిష్ట ఉపసంహరణ రోజుకు 25,00,000/- రూ.",

@@ -3,6 +3,7 @@ package com.matka.backend.controller;
 import com.matka.backend.TransactionEntity;
 import com.matka.backend.repository.TransactionRepository;
 import com.matka.backend.repository.UserRepository;
+import com.matka.backend.service.WithdrawalRulesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import com.matka.backend.repository.PropertiesRepository;
-import java.time.DayOfWeek;
 
 @RestController
 @RequestMapping("/api/transaction")
@@ -63,6 +63,16 @@ public class TransactionController {
     @Autowired
     private com.matka.backend.controller.GatewayPaymentController gatewayPaymentController;
 
+    @Autowired
+    private WithdrawalRulesService withdrawalRulesService;
+
+    // The withdrawal rules the server enforces right now, so the app can show them and
+    // pre-check a request with exactly the same values and clock.
+    @GetMapping("/withdrawal-rules")
+    public ResponseEntity<WithdrawalRulesService.Rules> withdrawalRules() {
+        return ResponseEntity.ok(withdrawalRulesService.currentRules());
+    }
+
     @PostMapping
     @Transactional
     public ResponseEntity<?> create(@RequestBody TransactionEntity tx) {
@@ -103,120 +113,11 @@ public class TransactionController {
         Integer current = user.getBalance() == null ? 0 : user.getBalance();
         Integer newBalance = current + tx.getAmount();
 
-    // withdrawals (amount < 0) initiated by user must meet min_withdrawl_amount
-        if (tx.getAmount() != null && tx.getAmount() < 0 && INITIATOR_USER.equalsIgnoreCase(initiator)) {
-            // check whether withdrawals are allowed on the current day
-            try {
-                LocalDate today = tx.getTxDate();
-
-                boolean todayWithdrawals = true;
-                boolean dayWithdrawals = true;
-
-                // Check today_withdrawls
-                var todayProp = propertiesRepository.findById("today_withdrawls");
-                if (todayProp.isPresent() && todayProp.get().getValue() != null) {
-                    todayWithdrawals = Boolean.parseBoolean(todayProp.get().getValue().trim());
-                }
-
-                // Check day-specific property on Saturday/Sunday
-                if (today.getDayOfWeek() == DayOfWeek.SATURDAY) {
-                    var p = propertiesRepository.findById("saturday_withdrawls");
-                    if (p.isPresent() && p.get().getValue() != null) {
-                        dayWithdrawals = Boolean.parseBoolean(p.get().getValue().trim());
-                    }
-                } else if (today.getDayOfWeek() == DayOfWeek.SUNDAY) {
-                    var p = propertiesRepository.findById("sunday_withdrawls");
-                    if (p.isPresent() && p.get().getValue() != null) {
-                        dayWithdrawals = Boolean.parseBoolean(p.get().getValue().trim());
-                    }
-                }
-
-                if (!todayWithdrawals || !dayWithdrawals) {
-                    return ResponseEntity.status(400).body(java.util.Map.of(
-                            "message", "Withdrawals are not allowed today"
-                    ));
-                }
-
-            } catch (Exception ex) {
-                log.warn("Failed to check withdrawal day properties, allowing withdrawal by default: {}", ex.getMessage());
-            }
-            // check maximum number of withdrawals allowed per day
-            int maxWithdrawals = 5;
-
-            try {
-                var p = propertiesRepository.findById("max_withdrawls_in_a_day");
-                if (p.isPresent() && p.get().getValue() != null && !p.get().getValue().isBlank()) {
-                    maxWithdrawals = Integer.parseInt(p.get().getValue());
-                }
-            } catch (Exception ex) {
-                // ignore and use default
-            }
-
-            long withdrawalCount = transactionRepository
-                    .countByMobileNumberAndAmountLessThanAndInitiatorIgnoreCaseAndTxDate(
-                            tx.getMobileNumber(),
-                            0,
-                            INITIATOR_USER,
-                            tx.getTxDate()
-                    );
-
-            // withdrawalCount excludes the request being processed, so block once the
-            // user already has maxWithdrawals for the day
-            if (withdrawalCount >= maxWithdrawals) {
-                return ResponseEntity.status(400).body(java.util.Map.of(
-                        "message", "Maximum number of withdrawals allowed per day has been reached",
-                        "max_withdrawals_in_a_day", maxWithdrawals
-                ));
-            }
-            // read min_withdrawl_amount from properties table (fallback to 1)
-            int minWithdraw = 1;
-            try {
-                var p = propertiesRepository.findById("minimim_withdrawl_amount");
-                if (p.isPresent() && p.get().getValue() != null && !p.get().getValue().isBlank()) {
-                    minWithdraw = Integer.parseInt(p.get().getValue());
-                }
-            } catch (Exception ex) {
-                // ignore and use default
-            }
-
-            if (Math.abs(tx.getAmount()) < minWithdraw) {
-                return ResponseEntity.status(400).body(java.util.Map.of("message", "Withdrawal amount must be >= min_withdrawl_amount", "min_withdrawl_amount", minWithdraw));
-            }
-
-            // check withdrawl_time_start and withdrawl_time_end (both stored in properties table)
-            try {
-                var startProp = propertiesRepository.findById("withdrawl_time_start");
-                var endProp = propertiesRepository.findById("withdrawl_time_end");
-                if (startProp.isPresent() && endProp.isPresent()
-                        && startProp.get().getValue() != null && !startProp.get().getValue().isBlank()
-                        && endProp.get().getValue() != null && !endProp.get().getValue().isBlank()) {
-
-                    LocalTime start = LocalTime.parse(startProp.get().getValue());
-                    LocalTime end = LocalTime.parse(endProp.get().getValue());
-                    LocalTime now = LocalTime.now();
-
-                    boolean allowed;
-                    if (start.equals(end)) {
-                        // same start and end => treat as allowed all day
-                        allowed = true;
-                    } else if (start.isBefore(end)) {
-                        // normal window within same day
-                        allowed = !now.isBefore(start) && !now.isAfter(end);
-                    } else {
-                        // window crosses midnight (e.g. 22:00 - 06:00)
-                        allowed = !now.isBefore(start) || !now.isAfter(end);
-                    }
-
-                    if (!allowed) {
-                        return ResponseEntity.status(400).body(java.util.Map.of(
-                                "message", "Withdrawals are allowed only between configured withdrawl_time_start and withdrawl_time_end",
-                                "withdrawl_time_start", start.toString(),
-                                "withdrawl_time_end", end.toString()
-                        ));
-                    }
-                }
-            } catch (Exception ex) {
-                log.warn("Failed to evaluate withdrawal time window, allowing by default: {}", ex.getMessage());
+        // withdrawals (amount < 0) initiated by user must satisfy the admin-configured rules
+        if (tx.getAmount() < 0 && INITIATOR_USER.equalsIgnoreCase(initiator)) {
+            var rejection = withdrawalRulesService.checkUserWithdrawal(tx.getMobileNumber(), -tx.getAmount());
+            if (rejection.isPresent()) {
+                return ResponseEntity.status(400).body(rejection.get());
             }
         }
 

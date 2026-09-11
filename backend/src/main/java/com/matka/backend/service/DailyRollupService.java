@@ -166,7 +166,7 @@ public class DailyRollupService {
             }
             // 6) Reset today_withdrawls to true for the new day
             try {
-                var p = propertiesRepository.findById("today_withdrawls");
+                var p = propertiesRepository.findById(WithdrawalRulesService.KEY_TODAY);
                 if (p.isPresent()) {
                     p.get().setValue("true");
                     propertiesRepository.save(p.get());

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useContext, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -20,13 +20,8 @@ import ButtonLoader from '../../components/ButtonLoader';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AuthContext } from '../../contexts/AuthContext';
 import { PaymentsContext } from '../../contexts/PaymentsContext';
-import {
-  getCallSupport,
-  getWhatsappSupport,
-  getWithdrawalTimeStart,
-  getWithdrawalTimeEnd,
-  getMinimumWithdrawalAmount,
-} from '../../utils/AppConfigService';
+import { getCallSupport, getWhatsappSupport } from '../../utils/AppConfigService';
+import { getWithdrawalRules } from '../../utils/PaymentsService';
 import { useTheme } from '../../contexts/ThemeContext';
 
 import { WITHDRAW_MONEY_CAROUSEL_DUMMY } from '../../data/withdrawMoneyCarouselDummy';
@@ -38,15 +33,18 @@ const maskMobile = (m) => {
   return `${s.slice(0, 2)}****${s.slice(-4)}`;
 };
 
+const CAROUSEL_GAP = 12;
+
+const CarouselSeparator = () => <View style={styles.carouselSeparator} />;
+
 const TopCarouselBar = ({ data, statusText }) => {
-  const { t } = useTranslation(['screens', 'funds', 'common']);
   const { colors } = useTheme();
   const listRef = useRef(null);
   const idxRef = useRef(0);
 
   const [wrapW, setWrapW] = useState(0);
 
-  const GAP = 12;
+  const GAP = CAROUSEL_GAP;
   const SIDE_PAD = 0;      // ScrollView already has padding: 16
   const PEEK = 0;         // how much next card peeks on right
 
@@ -63,7 +61,7 @@ const TopCarouselBar = ({ data, statusText }) => {
     if (!Array.isArray(data) || data.length === 0) return;
     if (!ITEM_W) return;
 
-    const t = setInterval(() => {
+    const timer = setInterval(() => {
       idxRef.current = (idxRef.current + 1) % data.length;
       try {
         listRef.current?.scrollToOffset?.({
@@ -73,7 +71,7 @@ const TopCarouselBar = ({ data, statusText }) => {
       } catch {}
     }, 5500);
 
-    return () => clearInterval(t);
+    return () => clearInterval(timer);
   }, [data, ITEM_W, INTERVAL]);
 
   const renderItem = ({ item }) => {
@@ -113,12 +111,7 @@ const TopCarouselBar = ({ data, statusText }) => {
           </View>
 
           {/* right pill */}
-          <View
-            style={[
-              styles.carouselStatusPill,
-              { backgroundColor: "#22c55e" },
-            ]}
-          >
+          <View style={styles.carouselStatusPill}>
             <Text
               style={[styles.carouselStatusText, { color: colors.text }]}
               numberOfLines={1}
@@ -150,7 +143,7 @@ const TopCarouselBar = ({ data, statusText }) => {
           showsHorizontalScrollIndicator={false}
           keyExtractor={(it, i) => `${it?.mobile || "m"}-${it?.amount || "a"}-${i}`}
           renderItem={renderItem}
-          ItemSeparatorComponent={() => <View style={{ width: GAP }} />}
+          ItemSeparatorComponent={CarouselSeparator}
           contentContainerStyle={{ paddingHorizontal: SIDE_PAD }}
           snapToInterval={INTERVAL}
           decelerationRate="fast"
@@ -173,24 +166,17 @@ const TopCarouselBar = ({ data, statusText }) => {
 };
 /* ------------------ end carousel ------------------ */
 
-function isWithinWithdrawalWindow(now = new Date(), open, close) {
-  const start = new Date(now);
-  start.setHours(open.hour, open.minute, 0, 0);
-  const end = new Date(now);
-  end.setHours(close.hour, close.minute, 0, 0);
-  // supports overnight windows too
-  if (end <= start) {
-    return now >= start || now <= end;
-  }
-  return now >= start && now <= end;
-}
-
-function formatTime({ hour, minute }) {
+// "HH:mm" (as sent by the server) -> "h:mm AM/PM"
+function formatTime(hhmm) {
+  const [hour, minute] = String(hhmm || '').split(':').map(Number);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return '--:--';
   const h12 = hour % 12 || 12;
   const mm = String(minute).padStart(2, '0');
   const ampm = hour >= 12 ? 'PM' : 'AM';
   return `${h12}:${mm} ${ampm}`;
 }
+
+const isWithdrawalOpen = (rules) => rules.allowedToday && rules.withinTimeWindow;
 
 const WithdrawMoney = ({ navigation }) => {
   const { t } = useTranslation(['screens', 'funds', 'common']);
@@ -209,33 +195,12 @@ const WithdrawMoney = ({ navigation }) => {
   // AppConfig-driven values (defaults handled in AppConfigService helpers)
   const [supportPhone, setSupportPhone] = useState('');
   const [whatsappPhone, setWhatsappPhone] = useState('');
-  const [withdrawOpenStr, setWithdrawOpenStr] = useState('');
-  const [withdrawCloseStr, setWithdrawCloseStr] = useState('');
-  const [minWithdraw, setMinWithdraw] = useState(0);
 
-  const parseHHMM = (s) => {
-    if (!s || typeof s !== 'string') return null;
-    const [hh, mm] = s.split(':');
-    const h = Number(hh);
-    const m = Number(mm);
-    if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
-    return { hour: h, minute: m };
-  };
-
-  const WITHDRAW_OPEN_CFG = useMemo(
-    () => parseHHMM(withdrawOpenStr),
-    [withdrawOpenStr],
-  );
-
-  const WITHDRAW_CLOSE_CFG = useMemo(
-    () => parseHHMM(withdrawCloseStr),
-    [withdrawCloseStr],
-  );
-
-  const MIN_WITHDRAW = useMemo(() => {
-    const v = Number(minWithdraw);
-    return Number.isFinite(v) && v > 0 ? v : 0;
-  }, [minWithdraw]);
+  // Withdrawal rules come from the server, so the app checks exactly what the server
+  // enforces, on the server's clock. Sending stays disabled until they have loaded.
+  const [rules, setRules] = useState(null);
+  const [rulesStatus, setRulesStatus] = useState('loading'); // 'loading' | 'ready' | 'error'
+  const [checkingRules, setCheckingRules] = useState(false);
 
   const openDialer = () => {
     if (!supportPhone) return;
@@ -247,70 +212,60 @@ const WithdrawMoney = ({ navigation }) => {
     Linking.openURL(`https://wa.me/91${whatsappPhone}`).catch(() => {});
   };
 
+  const loadRules = useCallback(async () => {
+    setRulesStatus('loading');
+    try {
+      const next = await getWithdrawalRules();
+      setRules(next);
+      setRulesStatus('ready');
+      if (isWithdrawalOpen(next)) setShowTncModal(true);
+      else setShowClosedModal(true);
+    } catch {
+      setRulesStatus('error');
+    }
+  }, []);
+
   useEffect(() => {
     let mounted = true;
 
-    const init = async () => {
-      const [
-        callSupport,
-        whatsappSupport,
-        wStart,
-        wEnd,
-        minW,
-      ] = await Promise.all([
-        getCallSupport(),
-        getWhatsappSupport(),
-        getWithdrawalTimeStart(),
-        getWithdrawalTimeEnd(),
-        getMinimumWithdrawalAmount(),
-      ]);
+    Promise.all([getCallSupport(), getWhatsappSupport()])
+      .then(([callSupport, whatsappSupport]) => {
+        if (!mounted) return;
+        setSupportPhone(String(callSupport || ''));
+        setWhatsappPhone(String(whatsappSupport || ''));
+      })
+      .catch(() => {});
 
-      if (!mounted) return;
+    loadRules();
 
-      const openObj = parseHHMM(String(wStart || ''));
-      const closeObj = parseHHMM(String(wEnd || ''));
-
-      setSupportPhone(String(callSupport || ''));
-      setWhatsappPhone(String(whatsappSupport || ''));
-      setWithdrawOpenStr(String(wStart || ''));
-      setWithdrawCloseStr(String(wEnd || ''));
-      setMinWithdraw(Number(minW) || 0);
-
-      // rely on AppConfigService defaults; if parse somehow fails, just don't block UI
-      if (openObj && closeObj) {
-        const within = isWithinWithdrawalWindow(new Date(), openObj, closeObj);
-        if (!within) setShowClosedModal(true);
-        else setShowTncModal(true); // always show T&C when within window
-      } else {
-        setShowTncModal(true);
-      }
-    };
-
-    init();
     return () => {
       mounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadRules]);
 
   const amtNum = useMemo(() => Number(String(amount).trim()), [amount]);
-  const isDisabled = !Number.isFinite(amtNum) || amtNum <= 0 || payLoading;
+  const isBusy = rulesStatus === 'loading' || checkingRules || payLoading;
+  const isDisabled = rulesStatus !== 'ready' || !Number.isFinite(amtNum) || amtNum <= 0 || isBusy;
 
   const handleWithdraw = async () => {
     try {
-      if (!WITHDRAW_OPEN_CFG || !WITHDRAW_CLOSE_CFG) {
-        // config not ready / parse fail -> don't hard-block
-        setShowTncModal(true);
-      } else {
-        const within = isWithinWithdrawalWindow(
-          new Date(),
-          WITHDRAW_OPEN_CFG,
-          WITHDRAW_CLOSE_CFG,
-        );
-        if (!within) {
-          setShowClosedModal(true);
-          return;
-        }
+      // Re-read the rules so a screen left open past closing time, or a setting the
+      // admin just changed, is still caught before the request goes out.
+      let latest;
+      setCheckingRules(true);
+      try {
+        latest = await getWithdrawalRules();
+        setRules(latest);
+      } catch {
+        Alert.alert(t('screens:withdrawFailed'), t('screens:withdrawRulesLoadFailed'));
+        return;
+      } finally {
+        setCheckingRules(false);
+      }
+
+      if (!isWithdrawalOpen(latest)) {
+        setShowClosedModal(true);
+        return;
       }
 
       if (!Number.isFinite(amtNum) || amtNum <= 0) {
@@ -318,10 +273,10 @@ const WithdrawMoney = ({ navigation }) => {
         return;
       }
 
-      if (MIN_WITHDRAW > 0 && amtNum < MIN_WITHDRAW) {
+      if (amtNum < latest.minAmount) {
         Alert.alert(
           t('screens:invalidAmount'),
-          t('screens:minimumWithdrawalAmount', { amount: MIN_WITHDRAW }),
+          t('screens:minimumWithdrawalAmount', { amount: latest.minAmount }),
         );
         return;
       }
@@ -379,7 +334,7 @@ const WithdrawMoney = ({ navigation }) => {
           <Pressable
             onPress={() => navigation.goBack()}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={{ paddingRight: 8, marginBottom: 15 }}
+            style={styles.backBtn}
           >
             <MaterialIcons name="arrow-back" size={26} color={colors.text} />
           </Pressable>
@@ -399,7 +354,7 @@ const WithdrawMoney = ({ navigation }) => {
 
       {/* CONTENT */}
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 160 }}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* TOP CAROUSEL */}
@@ -409,7 +364,7 @@ const WithdrawMoney = ({ navigation }) => {
           <View style={[styles.innerCard, { backgroundColor: colors.background, shadowColor: colors.text }]}>
             <Image source={require("../../assets/Images/logo.webp")} style={styles.walletImage} />
 
-            <View style={{ width: "70%", borderWidth: 1, borderColor: colors.divider }}></View>
+            <View style={[styles.logoDivider, { borderColor: colors.divider }]} />
             <View style={[styles.balanceStrip, { backgroundColor: colors.background }]}>
               <Text style={[styles.balanceLabel, { color: colors.text }]}>{t('screens:availableBalance')}</Text>
               <Text style={[styles.balanceValue, { color: colors.text }]}>₹ {user?.balance ? user.balance : '0.0'}</Text>
@@ -453,18 +408,36 @@ const WithdrawMoney = ({ navigation }) => {
               editable={!payLoading}
             />
           </View>
+
+          {rulesStatus === 'error' ? (
+            <View style={[styles.rulesError, { backgroundColor: colors.background }]}>
+              <View style={styles.rulesErrorRow}>
+                <MaterialIcons name="error-outline" size={22} color="#EF4444" />
+                <Text style={[styles.rulesErrorText, { color: colors.text }]}>
+                  {t('screens:withdrawRulesLoadFailed')}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={[styles.retryBtn, { backgroundColor: colors.primary }]}
+                onPress={loadRules}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.retryText}>{t('common:tryAgain')}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
         </View>
       </ScrollView>
 
       {/* BOTTOM CTA */}
       <View style={[styles.bottomWrap, { paddingBottom: insets.bottom, backgroundColor: colors.background }]}>
         <TouchableOpacity
-          style={[styles.bottomBtn, { backgroundColor: colors.primary, shadowColor: colors.text }, isDisabled && { opacity: 0.6 }]}
+          style={[styles.bottomBtn, { backgroundColor: colors.primary, shadowColor: colors.text }, isDisabled && styles.bottomBtnDisabled]}
           onPress={handleWithdraw}
           disabled={isDisabled}
           activeOpacity={0.85}
         >
-          {payLoading ? <ButtonLoader size={24} /> : <Text style={styles.bottomText}>{t('screens:sendRequest')}</Text>}
+          {isBusy ? <ButtonLoader size={24} /> : <Text style={styles.bottomText}>{t('screens:sendRequest')}</Text>}
         </TouchableOpacity>
       </View>
 
@@ -488,19 +461,27 @@ const WithdrawMoney = ({ navigation }) => {
             </Text>
             <View style={[styles.modalHr, { backgroundColor: colors.divider }]} />
 
-            <Text style={[styles.modalRow, { color: colors.text }]}>
-              <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>{t('games:openTime')} : </Text>
-              <Text style={[styles.modalValue, { color: colors.text }]}>
-                {WITHDRAW_OPEN_CFG ? formatTime(WITHDRAW_OPEN_CFG) : '--:--'}
+            {rules && !rules.allowedToday ? (
+              <Text style={[styles.modalRow, styles.modalRowLast, { color: colors.text }]}>
+                {t('screens:withdrawClosedToday')}
               </Text>
-            </Text>
+            ) : (
+              <>
+                <Text style={[styles.modalRow, { color: colors.text }]}>
+                  <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>{t('games:openTime')} : </Text>
+                  <Text style={[styles.modalValue, { color: colors.text }]}>
+                    {formatTime(rules?.timeStart)}
+                  </Text>
+                </Text>
 
-            <Text style={[styles.modalRow, { marginBottom: 16, color: colors.text }]}>
-              <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>{t('games:closeTime')} : </Text>
-              <Text style={[styles.modalValue, { color: colors.text }]}>
-                {WITHDRAW_CLOSE_CFG ? formatTime(WITHDRAW_CLOSE_CFG) : '--:--'}
-              </Text>
-            </Text>
+                <Text style={[styles.modalRow, styles.modalRowLast, { color: colors.text }]}>
+                  <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>{t('games:closeTime')} : </Text>
+                  <Text style={[styles.modalValue, { color: colors.text }]}>
+                    {formatTime(rules?.timeEnd)}
+                  </Text>
+                </Text>
+              </>
+            )}
 
             <TouchableOpacity
               style={[styles.modalPrimaryBtn, { backgroundColor: colors.primary }]}
@@ -526,27 +507,29 @@ const WithdrawMoney = ({ navigation }) => {
           <View style={[styles.tncCard, { backgroundColor: colors.background, shadowColor: colors.text }]}>
             <Text style={[styles.tncTitle, { backgroundColor: colors.primary }]}>{t('screens:termsAndConditions')}</Text>
             <ScrollView
-              style={{ maxHeight: 360 }}
-              contentContainerStyle={{
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-              }}
+              style={styles.tncScroll}
+              contentContainerStyle={styles.tncScrollContent}
               showsVerticalScrollIndicator={false}
             >
-              {MIN_WITHDRAW > 0 ? (
-                <TncItem text={t('screens:tncMinWithdraw', { amount: MIN_WITHDRAW })} />
+              {rules ? (
+                <TncItem text={t('screens:tncMinWithdraw', { amount: rules.minAmount })} />
               ) : null}
               <TncItem text={t('screens:tncMaxWithdraw')} />
               <TncItem text={t('screens:tncAbove5Lakh')} />
               <TncItem text={t('screens:tncProcessTime')} />
-              <TncItem
-                text={t('screens:tncWithdrawTiming', { openTime: withdrawOpenStr, closeTime: withdrawCloseStr })}
-              />
+              {rules?.timeStart && rules?.timeEnd ? (
+                <TncItem
+                  text={t('screens:tncWithdrawTiming', {
+                    openTime: formatTime(rules.timeStart),
+                    closeTime: formatTime(rules.timeEnd),
+                  })}
+                />
+              ) : null}
               <TncItem text={t('screens:tncAvailableAllDays')} />
               <TncItem text={t('screens:tncConfirmBankDetails')} />
             </ScrollView>
             <TouchableOpacity
-              style={[styles.modalPrimaryBtn, { margin: 16, backgroundColor: colors.primary }]}
+              style={[styles.modalPrimaryBtn, styles.tncAcceptBtn, { backgroundColor: colors.primary }]}
               onPress={() => setShowTncModal(false)}
             >
               <Text style={styles.modalPrimaryText}>{t('common:accept')}</Text>
@@ -616,7 +599,11 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     flexShrink: 0,
   },
+  carouselSeparator: {
+    width: CAROUSEL_GAP,
+  },
   carouselStatusPill: {
+    backgroundColor: '#22c55e',
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 6,
@@ -651,6 +638,14 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     marginBottom: 15,
   },
+  backBtn: {
+    paddingRight: 8,
+    marginBottom: 15,
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 160,
+  },
   walletRight: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -683,6 +678,10 @@ const styles = StyleSheet.create({
     width: 120,
     height: 64,
     marginBottom: 10,
+  },
+  logoDivider: {
+    width: '70%',
+    borderWidth: 1,
   },
   name: {
     fontSize: 18,
@@ -760,6 +759,36 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
   },
+  rulesError: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#EF4444',
+    borderRadius: 12,
+    padding: 12,
+  },
+  rulesErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  rulesErrorText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '600',
+  },
+  retryBtn: {
+    alignSelf: 'flex-end',
+    marginTop: 10,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+  },
+  retryText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
   bottomWrap: {
     position: 'absolute',
     left: 0,
@@ -778,6 +807,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
+  },
+  bottomBtnDisabled: {
+    opacity: 0.6,
   },
   bottomText: {
     color: '#fff',
@@ -811,6 +843,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 4,
+  },
+  modalRowLast: {
+    marginBottom: 16,
   },
   modalLabel: {
     fontSize: 16,
@@ -862,6 +897,16 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     fontSize: 18,
     paddingVertical: 12,
+  },
+  tncScroll: {
+    maxHeight: 360,
+  },
+  tncScrollContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  tncAcceptBtn: {
+    margin: 16,
   },
   tncRow: {
     flexDirection: 'row',

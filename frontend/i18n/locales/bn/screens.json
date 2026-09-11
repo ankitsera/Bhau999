@@ -105,6 +105,8 @@
   "withdrawFailed": "উত্তোলন ব্যর্থ",
   "sendRequest": "অনুরোধ পাঠান",
   "cannotWithdrawNow": "এই সময়ে উত্তোলন করা যাবে না।",
+  "withdrawClosedToday": "আজ উত্তোলন বন্ধ আছে।",
+  "withdrawRulesLoadFailed": "উত্তোলনের সেটিংস লোড করা যায়নি। আপনার ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।",
   "termsAndConditions": "শর্তাবলী",
   "tncMinWithdraw": "ন্যূনতম উত্তোলন {{amount}}/- টাকা।",
   "tncMaxWithdraw": "সর্বোচ্চ উত্তোলন প্রতিদিন 25,00,000/- টাকা।",

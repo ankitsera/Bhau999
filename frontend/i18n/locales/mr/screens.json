@@ -106,6 +106,8 @@
   "withdrawFailed": "पैसे काढणे अयशस्वी",
   "sendRequest": "विनंती पाठवा",
   "cannotWithdrawNow": "या वेळी पैसे काढू शकत नाही.",
+  "withdrawClosedToday": "आज पैसे काढणे बंद आहे.",
+  "withdrawRulesLoadFailed": "पैसे काढण्याची सेटिंग्ज लोड होऊ शकली नाहीत. तुमचे इंटरनेट कनेक्शन तपासा आणि पुन्हा प्रयत्न करा.",
   "termsAndConditions": "अटी व शर्ती",
   "tncMinWithdraw": "किमान पैसे काढणे {{amount}}/- रु. आहे.",
   "tncMaxWithdraw": "कमाल पैसे काढणे दररोज 25,00,000/- रु. आहे.",

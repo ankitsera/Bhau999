@@ -105,6 +105,8 @@
   "withdrawFailed": "ઉપાડ નિષ્ફળ",
   "sendRequest": "વિનંતી મોકલો",
   "cannotWithdrawNow": "આ સમયે ઉપાડ કરી શકાતો નથી.",
+  "withdrawClosedToday": "આજે ઉપાડ બંધ છે.",
+  "withdrawRulesLoadFailed": "ઉપાડ સેટિંગ્સ લોડ થઈ શકી નથી. તમારું ઇન્ટરનેટ કનેક્શન તપાસો અને ફરી પ્રયાસ કરો.",
   "termsAndConditions": "નિયમો અને શરતો",
   "tncMinWithdraw": "લઘુત્તમ ઉપાડ {{amount}}/- રૂ. છે.",
   "tncMaxWithdraw": "મહત્તમ ઉપાડ દરરોજ 25,00,000/- રૂ. છે.",
