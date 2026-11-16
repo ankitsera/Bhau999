@@ -19,18 +19,20 @@ import {
   getWhatsappSupport,
 } from "../utils/AppConfigService";
 import { useTheme } from "../contexts/ThemeContext";
+import { useFeature, FEATURES } from "../utils/Features";
 
 // kept as fallback initial values (helpers already have same defaults)
 const CONTACT_NUMBER = "7757033237";
 const WHATSAPP_NUMBER = "7757033237";
 const MARQUEE_TEXT =
-  "Play Daily - Win Big! ₹1Cr+ Winnings Everyday 💸 SARA777 : Safe ✅ Fast⚡Real Results हर दिन ₹1Cr+ जीतनेका मौका – सिर्फ SARA777 पर!";
+  "Play Daily - Win Big! ₹1Cr+ Winnings Everyday 💸 BHAU999 : Safe ✅ Fast⚡Real Results हर दिन ₹1Cr+ जीतनेका मौका – सिर्फ BHAU999 पर!";
 
 const normalizeDigits = (v) => String(v || "").replace(/\D/g, "");
 
 const TopStrip = ({ navigation }) => {
   const { t } = useTranslation(['common']);
   const { colors } = useTheme();
+  const canPay = useFeature(FEATURES.PAYMENTS);
 
   // ✅ config-driven values
   const [headlineText, setHeadlineText] = useState(MARQUEE_TEXT);
@@ -129,82 +131,73 @@ const TopStrip = ({ navigation }) => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* marquee text */}
-      <View style={styles.marqueeWrap}>
-        <Animated.View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            transform: [{ translateX: animX }],
-            width: textW > 0 ? (textW + gap) * 2 + 20 : 1000,
-          }}
-        >
-          {/* Initial Spacer to prevent clipping on start */}
-          <View style={{ width: 10 }} />
-
-          <Text
-            numberOfLines={1}
-            style={[styles.marqueeText, { color: colors.error }]}
-            onLayout={(e) => setTextW(e.nativeEvent.layout.width)}
+    <View style={styles.container}>
+      {/* marquee pill */}
+      <View style={[styles.marqueePill, { backgroundColor: colors.surface }]}>
+        <MaterialCommunityIcons name="bullhorn" size={22} color={colors.text} style={styles.marqueeIcon} />
+        <View style={styles.marqueeWrap}>
+          <Animated.View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              transform: [{ translateX: animX }],
+              width: textW > 0 ? (textW + gap) * 2 + 20 : 1000,
+            }}
           >
-            {headlineText}
-          </Text>
+            {/* Initial Spacer to prevent clipping on start */}
+            <View style={{ width: 10 }} />
 
-          <View style={{ width: gap }} />
+            <Text
+              numberOfLines={1}
+              style={[styles.marqueeText, { color: colors.primaryDark }]}
+              onLayout={(e) => setTextW(e.nativeEvent.layout.width)}
+            >
+              {headlineText}
+            </Text>
 
-          <Text numberOfLines={1} style={[styles.marqueeText, { color: colors.error }]}>
-            {headlineText}
-          </Text>
-        </Animated.View>
+            <View style={{ width: gap }} />
+
+            <Text numberOfLines={1} style={[styles.marqueeText, { color: colors.primaryDark }]}>
+              {headlineText}
+            </Text>
+          </Animated.View>
+        </View>
       </View>
 
-      {/* pill buttons */}
-      <View style={styles.pillsRow}>
-        <TouchableOpacity
-          activeOpacity={0.9}
-          style={[styles.pill, { backgroundColor: colors.primary }]}
-          onPress={handleLuckyStarline}
-        >
-          <View style={[styles.pillIcon, { backgroundColor: colors.primary }]}>
-            <Image source={require("../assets/Images/Wallet.webp")} style={{ width: 22, height: 22}} />
-          </View>
-          <Text style={[styles.pillText, { color: colors.text }]}>{t('common:addFund')}</Text>
-        </TouchableOpacity>
+      {/* Add / Withdraw card */}
+      {canPay && (
+        <View style={[styles.pillsCard, { backgroundColor: colors.surface }]}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={[styles.pill, { borderColor: colors.primary, backgroundColor: colors.surface }]}
+            onPress={handleLuckyStarline}
+          >
+            <Image source={require("../assets/Images/AddFund.webp")} style={styles.pillIcon} resizeMode="contain" />
+            <Text style={[styles.pillText, { color: colors.primary }]} numberOfLines={1}>{t('common:addFund')}</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          activeOpacity={0.9}
-          style={[styles.pill, { backgroundColor: colors.primary }]}
-          onPress={handleLuckyJackpot}
-        >
-          <View style={[styles.pillIcon, { backgroundColor: colors.primary }]}>
-            <Image source={require("../assets/Images/Funds.webp")} style={{ width: 22, height: 22}} />
-          </View>
-          <Text style={[styles.pillText, { color: colors.text }]}>{t('common:withdrawFund')}</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={[styles.pill, { borderColor: colors.primary, backgroundColor: colors.surface }]}
+            onPress={handleLuckyJackpot}
+          >
+            <Image source={require("../assets/Images/WithdrawFund.webp")} style={styles.pillIcon} resizeMode="contain" />
+            <Text style={[styles.pillText, { color: colors.primary }]} numberOfLines={1}>{t('common:withdrawFund')}</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* contact rows */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          marginHorizontal: 20,
-        }}
-      >
-        <View style={styles.contactRow}>
-          <MaterialCommunityIcons name="cellphone" size={22} color={colors.text} />
-          <TouchableOpacity onPress={openDialer} activeOpacity={0.7}>
-            <Text style={[styles.contactText, { color: colors.text }]}>{normalizeDigits(callNumber)}</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.contactsRow}>
+        <TouchableOpacity style={styles.contactRow} onPress={openDialer} activeOpacity={0.7}>
+          <MaterialCommunityIcons name="cellphone" size={20} color={colors.onPrimary} />
+          <Text style={[styles.contactText, { color: colors.onPrimary }]}>{normalizeDigits(callNumber)}</Text>
+        </TouchableOpacity>
 
-        <View style={styles.contactRow}>
-          <MaterialCommunityIcons name="whatsapp" size={22} color='#1fa851ff' />
-          <TouchableOpacity onPress={openWhatsApp} activeOpacity={0.7}>
-            <Text style={[styles.contactText, { color: colors.text }]}>{normalizeDigits(waNumber)}</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity style={styles.contactRow} onPress={openWhatsApp} activeOpacity={0.7}>
+          <MaterialCommunityIcons name="whatsapp" size={20} color={colors.onPrimary} />
+          <Text style={[styles.contactText, { color: colors.onPrimary }]}>{normalizeDigits(waNumber)}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -215,56 +208,71 @@ export default TopStrip;
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    paddingTop: 6,
-    paddingBottom: 10,
+    paddingTop: 4,
+    paddingBottom: 14,
+  },
+  marqueePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 46,
+    borderRadius: 23,
+    paddingLeft: 14,
+    paddingRight: 8,
+    marginBottom: 10,
+  },
+  marqueeIcon: {
+    marginRight: 4,
   },
   marqueeWrap: {
+    flex: 1,
     overflow: "hidden",
     height: 24,
-    marginBottom: 8,
+    justifyContent: "center",
   },
   marqueeText: {
     fontSize: 16,
     fontWeight: "700",
   },
-  pillsRow: {
+  pillsCard: {
     flexDirection: "row",
     justifyContent: "space-between",
     gap: 12,
+    padding: 12,
+    borderRadius: 20,
     marginBottom: 10,
   },
   pill: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     borderRadius: 26,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
+    borderWidth: 1.5,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
   },
   pillIcon: {
-    width: 26,
-    height: 26,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
+    width: 24,
+    height: 24,
+    marginRight: 8,
   },
   pillText: {
-    fontWeight: "900",
-    fontSize: 14,
+    fontWeight: "700",
+    fontSize: 16,
+    flexShrink: 1,
+  },
+  contactsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginHorizontal: 8,
   },
   contactRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 6,
-    gap: 8,
+    gap: 6,
   },
   contactText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
   },
 });

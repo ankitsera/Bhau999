@@ -415,7 +415,7 @@ const SinglePana = ({ route }) => {
                     activeOpacity={0.85}
                   >
                     <Text
-                      style={[styles.specialSubmitText, { color: colors.text }]}
+                      style={[styles.specialSubmitText, { color: colors.onPrimary }]}
                     >
                       Submit
                     </Text>
@@ -532,7 +532,7 @@ const SinglePanaEasyForm = ({
         onPress={onPressAdd}
         activeOpacity={0.85}
       >
-        <Text style={[formStyles.addText, { color: colors.text }]}>{t('common:add')}</Text>
+        <Text style={[formStyles.addText, { color: colors.onPrimary }]}>{t('common:add')}</Text>
       </TouchableOpacity>
     </View>
   );

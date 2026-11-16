@@ -9,6 +9,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from 'react-i18next';
 import { useTheme } from "../contexts/ThemeContext";
+import { useFeature, FEATURES } from "../utils/Features";
 
 const Footer = ({ navigation, active = "Home", onSupportPress }) => {
   const { t } = useTranslation(['common']);
@@ -16,38 +17,55 @@ const Footer = ({ navigation, active = "Home", onSupportPress }) => {
   const { colors } = useTheme();
   const isActive = (tab) => tab === active;
   const GAP = 2;
+  const canBet = useFeature(FEATURES.BETTING);
+  const canPay = useFeature(FEATURES.PAYMENTS);
 
   return (
-    <View style={[styles.footerWrap, { paddingBottom: insets.bottom, backgroundColor: colors.background, shadowColor: colors.text }]}>
+    <View style={[styles.footerWrap, { paddingBottom: insets.bottom, backgroundColor: colors.surface, shadowColor: colors.text }]}>
       {/* Footer bar background */}
-      <View style={[styles.footerBar, { marginBottom: insets.bottom ? GAP : 0, backgroundColor: colors.background, shadowColor: colors.text }]}>
+      <View style={[styles.footerBar, { marginBottom: insets.bottom ? GAP : 0, backgroundColor: colors.surface, shadowColor: colors.text }]}>
         {/* Left section */}
         <View style={styles.sideTabs}>
-          <TabItem
-            label={t('common:myBids')}
-            icon={<Image source={require("../assets/Images/MyBids.webp")} style={{ width: 32, height: 32}} />}
-            onPress={() => navigation.navigate("My Bids")}
-            colors={colors}
-          />
-          <TabItem
-            label={t('common:passbook')}
-            icon={<Image source={require("../assets/Images/Passbook.webp")} style={{ width: 32, height: 32, resizeMode: "contain"}} />}
-            onPress={() => navigation.navigate("Passbook")}
-            colors={colors}
-          />
+          {canBet && (
+            <TabItem
+              label={t('common:myBids')}
+              icon={<Image source={require("../assets/Images/MyBids.webp")} style={[styles.tabIcon, { tintColor: colors.textTertiary }]} resizeMode="contain" />}
+              onPress={() => navigation.navigate("My Bids")}
+              colors={colors}
+            />
+          )}
+          {canPay && (
+            <TabItem
+              label={t('common:passbook')}
+              icon={<Image source={require("../assets/Images/Passbook.webp")} style={[styles.tabIcon, { tintColor: colors.textTertiary }]} resizeMode="contain" />}
+              onPress={() => navigation.navigate("Passbook")}
+              colors={colors}
+            />
+          )}
+          {/* Keeps the left side from sitting empty when bets and payments are both hidden */}
+          {!canBet && !canPay && (
+            <TabItem
+              label={t('common:charts')}
+              icon={<Image source={require("../assets/Images/Charts.webp")} style={[styles.tabIcon, { tintColor: colors.textTertiary }]} resizeMode="contain" />}
+              onPress={() => navigation.navigate("Charts")}
+              colors={colors}
+            />
+          )}
         </View>
 
         {/* Right section */}
         <View style={styles.sideTabs}>
-          <TabItem
-            label={t('common:funds')}
-            icon={<Image source={require("../assets/Images/Funds.webp")} style={{ width: 32, height: 32}} />}
-            onPress={() => navigation.navigate("Funds")}
-            colors={colors}
-          />
+          {canPay && (
+            <TabItem
+              label={t('common:funds')}
+              icon={<Image source={require("../assets/Images/Funds.webp")} style={[styles.tabIcon, { tintColor: colors.textTertiary }]} resizeMode="contain" />}
+              onPress={() => navigation.navigate("Funds")}
+              colors={colors}
+            />
+          )}
           <TabItem
             label={t('common:support')}
-            icon={<Image source={require("../assets/Images/Support.webp")} style={{ width: 32, height: 32}} />}
+            icon={<Image source={require("../assets/Images/Support.webp")} style={[styles.tabIcon, { tintColor: colors.textTertiary }]} resizeMode="contain" />}
             onPress={onSupportPress ? onSupportPress : (() => navigation.navigate("Support"))}
             colors={colors}
           />
@@ -55,13 +73,15 @@ const Footer = ({ navigation, active = "Home", onSupportPress }) => {
       </View>
 
       {/* Floating Home button */}
-      <TouchableOpacity
-        style={[styles.fab, { backgroundColor: colors.primary, shadowColor: colors.text }]}
-        onPress={() => navigation.navigate("Home")}
-        activeOpacity={0.85}
-      >
-        <Image source={require("../assets/Images/home.webp")} style={{ width: 32, height: 32}} />
-      </TouchableOpacity>
+      <View style={[styles.fabRing, { backgroundColor: colors.primaryIconBg }]}>
+        <TouchableOpacity
+          style={[styles.fab, { backgroundColor: colors.primary, borderColor: colors.surface, shadowColor: colors.text }]}
+          onPress={() => navigation.navigate("Home")}
+          activeOpacity={0.85}
+        >
+          <Image source={require("../assets/Images/home.webp")} style={[styles.fabIcon, { tintColor: colors.onPrimary }]} resizeMode="contain" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -69,7 +89,7 @@ const Footer = ({ navigation, active = "Home", onSupportPress }) => {
 const TabItem = ({ icon, label, onPress, colors }) => (
   <TouchableOpacity style={styles.tabItem} onPress={onPress} activeOpacity={0.8}>
     {icon}
-    <Text style={[styles.tabLabel, { color: colors.textSecondary }]}>{label}</Text>
+    <Text style={[styles.tabLabel, { color: colors.textTertiary }]}>{label}</Text>
   </TouchableOpacity>
 );
 
@@ -89,9 +109,9 @@ const styles = StyleSheet.create({
   },
   footerBar: {
     width: "100%",
-    borderTopLeftRadius: 14,
-    borderTopRightRadius: 14,
-    paddingTop: 10,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    paddingTop: 12,
     paddingHorizontal: 18,
     paddingBottom: 12,
     elevation: 10,
@@ -109,16 +129,34 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  tabIcon: {
+    width: 30,
+    height: 30,
+  },
   tabLabel: {
     fontSize: 13,
+    fontWeight: "500",
+    marginTop: 4,
+  },
+  fabRing: {
+    position: "absolute",
+    bottom: 22,
+    alignSelf: "center",
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  fabIcon: {
+    width: 30,
+    height: 30,
   },
   fab: {
-    position: "absolute",
-    bottom: 25,
-    alignSelf: "center",
-    width: 68,
-    height: 68,
-    borderRadius: 32,
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    borderWidth: 4,
     alignItems: "center",
     justifyContent: "center",
     elevation: 8,

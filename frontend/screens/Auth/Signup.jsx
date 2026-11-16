@@ -8,6 +8,7 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -17,7 +18,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 
 const Signup = ({ navigation, route }) => {
   const { t } = useTranslation(['auth', 'validation', 'common']);
-  const { colors } = useTheme();
+  const { colors, isDarkMode } = useTheme();
 
   const { signup } = useContext(AuthContext);
 
@@ -86,6 +87,7 @@ const Signup = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -94,7 +96,7 @@ const Signup = ({ navigation, route }) => {
         {/* Title */}
         <View style={styles.titleRow}>
           <View style={[styles.titleBar, { backgroundColor: colors.primary }]} />
-          <Text style={[styles.titleText, { color: colors.textSecondary }]}>
+          <Text style={[styles.titleText, { color: colors.heading }]}>
             {t('auth:createAccount').toUpperCase()}
           </Text>
         </View>
@@ -105,12 +107,12 @@ const Signup = ({ navigation, route }) => {
           <View
             style={[
               styles.pill,
-              { backgroundColor: colors.surface, borderColor: colors.surface },
+              { backgroundColor: colors.surface, borderColor: colors.cardBorder },
               uFocused && { borderColor: colors.primary },
             ]}
           >
             <View style={[styles.leftCircle, { backgroundColor: colors.primary }]}>
-              <MaterialCommunityIcons name="account" size={22} color="#000" />
+              <MaterialCommunityIcons name="account" size={22} color={colors.onPrimary} />
             </View>
 
             <TextInput
@@ -131,9 +133,9 @@ const Signup = ({ navigation, route }) => {
           {!!usernameError && <Text style={styles.errorText}>{usernameError}</Text>}
 
           {/* Mobile */}
-          <View style={[styles.pill, { backgroundColor: colors.surface, borderColor: colors.surface }]}>
+          <View style={[styles.pill, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
             <View style={[styles.leftCircle, { backgroundColor: colors.primary }]}>
-              <MaterialCommunityIcons name="cellphone" size={22} color="#000" />
+              <MaterialCommunityIcons name="cellphone" size={22} color={colors.onPrimary} />
             </View>
 
             <TextInput
@@ -150,12 +152,12 @@ const Signup = ({ navigation, route }) => {
           <View
             style={[
               styles.pill,
-              { backgroundColor: colors.surface, borderColor: colors.surface },
+              { backgroundColor: colors.surface, borderColor: colors.cardBorder },
               pFocused && { borderColor: colors.primary },
             ]}
           >
             <View style={[styles.leftCircle, { backgroundColor: colors.primary }]}>
-              <MaterialCommunityIcons name="lock" size={22} color="#000" />
+              <MaterialCommunityIcons name="lock" size={22} color={colors.onPrimary} />
             </View>
 
             <TextInput
@@ -186,11 +188,11 @@ const Signup = ({ navigation, route }) => {
 
           {/* Button */}
           <TouchableOpacity
-            style={[styles.signupBtn, { backgroundColor: colors.primary }]}
+            style={[styles.signupBtn, { backgroundColor: colors.dark }]}
             onPress={handleRegister}
             activeOpacity={0.85}
           >
-            <Text style={styles.signupText}>{t('auth:registerAndLogin').toUpperCase()}</Text>
+            <Text style={[styles.signupText, { color: colors.onDark }]}>{t('auth:registerAndLogin').toUpperCase()}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -235,17 +237,17 @@ const styles = StyleSheet.create({
   pill: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 40,
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderWidth: 2,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
     marginBottom: 12,
   },
 
   leftCircle: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 14,
@@ -267,7 +269,7 @@ const styles = StyleSheet.create({
 
   signupBtn: {
     marginTop: 18,
-    borderRadius: 10,
+    borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
     elevation: 6,
@@ -278,8 +280,8 @@ const styles = StyleSheet.create({
   },
 
   signupText: {
-    color: '#000',
-    fontSize: 22,
+    color: '#fff',
+    fontSize: 20,
     fontWeight: '900',
     letterSpacing: 1,
   },

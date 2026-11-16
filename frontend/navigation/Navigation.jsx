@@ -6,6 +6,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { AuthContext } from '../contexts/AuthContext';
 import { lightTheme, darkTheme } from '../contexts/Themes';
 import { getSelectedLanguage } from '../utils/LanguagePreference';
+import { canUseFeature, FEATURES } from '../utils/Features';
 import LoadingView from '../components/LoadingView';
 import Home from "../screens/Home";
 import UserCheck from "../screens/Auth/UserCheck";
@@ -92,6 +93,10 @@ const Navigation = ({ navigationRef }) => {
   const { isDarkMode, colors } = useTheme();
   const { user, isLoading } = useContext(AuthContext);
   const theme = isDarkMode ? darkTheme : lightTheme;
+  // Screens a limited-view user cannot use are not registered at all, so nothing
+  // (a stray button, a deep link) can open them.
+  const canPay = canUseFeature(user, FEATURES.PAYMENTS);
+  const canBet = canUseFeature(user, FEATURES.BETTING);
   
   const [languageReady, setLanguageReady] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(null);
@@ -144,12 +149,7 @@ const Navigation = ({ navigationRef }) => {
         <Stack.Screen name="UserCheck" component={UserCheck} options={{ headerShown: false }} /> 
         <Stack.Screen name="Signup" component={Signup} options={{ headerShown: false }} /> 
         <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} /> 
-        <Stack.Screen name="Add Money" component={AddMoney} options={{ headerShown: false }} /> 
-        <Stack.Screen name="Withdraw Money" component={WithdrawMoney} options={{ headerShown: false }} /> 
-        <Stack.Screen name="My Bids" component={MyBids} options={{ headerShown: false }} /> 
-        <Stack.Screen name="Funds" component={Funds} options={{ headerShown: false }} /> 
         <Stack.Screen name="Notifications" component={Notifications} options={{ headerShown: false }} /> 
-        <Stack.Screen name="Bank Details" component={BankDetails} options={{ headerShown: false }} />
         <Stack.Screen name="Charts" component={Charts} options={{ headerShown: false }} />
         <Stack.Screen name="Matka Chart" component={MatkaChart} options={{ headerShown: false }} />
         <Stack.Screen name="GameChartPanel" component={GameChartPanel} options={{ headerShown: false }} />
@@ -158,51 +158,68 @@ const Navigation = ({ navigationRef }) => {
         <Stack.Screen name="Notice board / Rules" component={NoticeBoard} options={{ headerShown: false }} />
         <Stack.Screen name="Settings" component={Settings} options={{ headerShown: false }} />
         <Stack.Screen name="How to Play" component={HowToPlay} options={{ headerShown: false }} />
-        <Stack.Screen name="Games Sub Types" component={GamesSubTypes} options={{ headerShown: false }} />
         <Stack.Screen name="Language Select" component={LanguageSelect} options={{ headerShown: false }} />
         <Stack.Screen name="Language" component={LanguageSwitcher} options={{ headerShown: false }} />
-        
-        {/* Fund History Screens */}
-        <Stack.Screen name="Passbook" component={Passbook} options={{ headerShown: false }} />
-        <Stack.Screen name="Add Fund History" component={AddFundHistory} options={{ headerShown: false }} /> 
-        <Stack.Screen name="Withdraw Fund History" component={WithdrawFundHistory} options={{ headerShown: false }} /> 
-
-        {/* Bid History Screen */}
-        <Stack.Screen name="Bid History" component={BidHistory} options={{ headerShown: false }} />
 
         {/* Result Screen */}
         <Stack.Screen name="Game Results" component={GameResults} options={{ headerShown: false }} />
-        
-        {/* Sub-Games */}
-        <Stack.Screen name="SingleDigit" component={SingleDigit} options={{ headerShown: false }} />
-        <Stack.Screen name="SingleDigitBulk" component={SingleDigitBulk} options={{ headerShown: false }} />
-        <Stack.Screen name="Jodi" component={Jodi} options={{ headerShown: false }} />
-        <Stack.Screen name="JodiBulk" component={JodiBulk} options={{ headerShown: false }} />
-        <Stack.Screen name="SinglePana" component={SinglePana} options={{ headerShown: false }} />
-        <Stack.Screen name="SinglePanaBulk" component={SinglePanaBulk} options={{ headerShown: false }} />
-        <Stack.Screen name="DoublePana" component={DoublePana} options={{ headerShown: false }} />
-        <Stack.Screen name="DoublePanaBulk" component={DoublePanaBulk} options={{ headerShown: false }} />
-        <Stack.Screen name="TriplePana" component={TriplePana} options={{ headerShown: false }} />
-        <Stack.Screen name="FullSangam" component={FullSangam} options={{ headerShown: false }} />
-        <Stack.Screen name="HalfSangamA" component={HalfSangamA} options={{ headerShown: false }} />
-        <Stack.Screen name="HalfSangamB" component={HalfSangamB} options={{ headerShown: false }} />
-        <Stack.Screen name="SpDpTp" component={SpDpTp} options={{ headerShown: false }} />
-        <Stack.Screen name="TwoDigitPana" component={TwoDigitPana} options={{ headerShown: false }} />
-        <Stack.Screen name="RedJodi" component={RedJodi} options={{ headerShown: false }} />
-        <Stack.Screen name="OddEven" component={OddEven} options={{ headerShown: false }} />
-        <Stack.Screen name="SpMotor" component={SpMotor} options={{ headerShown: false }} />
-        <Stack.Screen name="DpMotor" component={DpMotor} options={{ headerShown: false }} />
-        <Stack.Screen name="SpCommon" component={SpCommon} options={{ headerShown: false }} />
-        <Stack.Screen name="DpCommon" component={DpCommon} options={{ headerShown: false }} />
-        <Stack.Screen name="DigitBasedJodi" component={DigitBasedJodi} options={{ headerShown: false }} />
 
-        { /* Lucky Starline and Lucky Jackpot*/}
-        <Stack.Screen name="LuckyStarline" component={LuckyStarline} options={{ headerShown: false }} />
-        <Stack.Screen name="LuckyJackpot" component={LuckyJackpot} options={{ headerShown: false }} />
-        <Stack.Screen name="LuckyStarline Bid History" component={LuckyStarlineBidHistory} options={{ headerShown: false }} />
-        <Stack.Screen name="LuckyJackpot Bid History" component={LuckyJackpotBidHistory} options={{ headerShown: false }} />
-        <Stack.Screen name="LuckyStarline Result History" component={LuckyStarlineResultHistory} options={{ headerShown: false }} />
-        <Stack.Screen name="LuckyJackpot Result History" component={LuckyJackpotResultHistory} options={{ headerShown: false }} />
+        {/* Payment Screens */}
+        {canPay && (
+          <Stack.Group>
+            <Stack.Screen name="Add Money" component={AddMoney} options={{ headerShown: false }} />
+            <Stack.Screen name="Withdraw Money" component={WithdrawMoney} options={{ headerShown: false }} />
+            <Stack.Screen name="Funds" component={Funds} options={{ headerShown: false }} />
+            <Stack.Screen name="Bank Details" component={BankDetails} options={{ headerShown: false }} />
+
+            {/* Fund History Screens */}
+            <Stack.Screen name="Passbook" component={Passbook} options={{ headerShown: false }} />
+            <Stack.Screen name="Add Fund History" component={AddFundHistory} options={{ headerShown: false }} />
+            <Stack.Screen name="Withdraw Fund History" component={WithdrawFundHistory} options={{ headerShown: false }} />
+          </Stack.Group>
+        )}
+
+        {/* Betting Screens */}
+        {canBet && (
+          <Stack.Group>
+            <Stack.Screen name="My Bids" component={MyBids} options={{ headerShown: false }} />
+            <Stack.Screen name="Games Sub Types" component={GamesSubTypes} options={{ headerShown: false }} />
+
+            {/* Bid History Screen */}
+            <Stack.Screen name="Bid History" component={BidHistory} options={{ headerShown: false }} />
+
+            {/* Sub-Games */}
+            <Stack.Screen name="SingleDigit" component={SingleDigit} options={{ headerShown: false }} />
+            <Stack.Screen name="SingleDigitBulk" component={SingleDigitBulk} options={{ headerShown: false }} />
+            <Stack.Screen name="Jodi" component={Jodi} options={{ headerShown: false }} />
+            <Stack.Screen name="JodiBulk" component={JodiBulk} options={{ headerShown: false }} />
+            <Stack.Screen name="SinglePana" component={SinglePana} options={{ headerShown: false }} />
+            <Stack.Screen name="SinglePanaBulk" component={SinglePanaBulk} options={{ headerShown: false }} />
+            <Stack.Screen name="DoublePana" component={DoublePana} options={{ headerShown: false }} />
+            <Stack.Screen name="DoublePanaBulk" component={DoublePanaBulk} options={{ headerShown: false }} />
+            <Stack.Screen name="TriplePana" component={TriplePana} options={{ headerShown: false }} />
+            <Stack.Screen name="FullSangam" component={FullSangam} options={{ headerShown: false }} />
+            <Stack.Screen name="HalfSangamA" component={HalfSangamA} options={{ headerShown: false }} />
+            <Stack.Screen name="HalfSangamB" component={HalfSangamB} options={{ headerShown: false }} />
+            <Stack.Screen name="SpDpTp" component={SpDpTp} options={{ headerShown: false }} />
+            <Stack.Screen name="TwoDigitPana" component={TwoDigitPana} options={{ headerShown: false }} />
+            <Stack.Screen name="RedJodi" component={RedJodi} options={{ headerShown: false }} />
+            <Stack.Screen name="OddEven" component={OddEven} options={{ headerShown: false }} />
+            <Stack.Screen name="SpMotor" component={SpMotor} options={{ headerShown: false }} />
+            <Stack.Screen name="DpMotor" component={DpMotor} options={{ headerShown: false }} />
+            <Stack.Screen name="SpCommon" component={SpCommon} options={{ headerShown: false }} />
+            <Stack.Screen name="DpCommon" component={DpCommon} options={{ headerShown: false }} />
+            <Stack.Screen name="DigitBasedJodi" component={DigitBasedJodi} options={{ headerShown: false }} />
+
+            { /* Lucky Starline and Lucky Jackpot*/}
+            <Stack.Screen name="LuckyStarline" component={LuckyStarline} options={{ headerShown: false }} />
+            <Stack.Screen name="LuckyJackpot" component={LuckyJackpot} options={{ headerShown: false }} />
+            <Stack.Screen name="LuckyStarline Bid History" component={LuckyStarlineBidHistory} options={{ headerShown: false }} />
+            <Stack.Screen name="LuckyJackpot Bid History" component={LuckyJackpotBidHistory} options={{ headerShown: false }} />
+            <Stack.Screen name="LuckyStarline Result History" component={LuckyStarlineResultHistory} options={{ headerShown: false }} />
+            <Stack.Screen name="LuckyJackpot Result History" component={LuckyJackpotResultHistory} options={{ headerShown: false }} />
+          </Stack.Group>
+        )}
         </Stack.Navigator>
       </HeaderButtonsProvider>
     </NavigationContainer>

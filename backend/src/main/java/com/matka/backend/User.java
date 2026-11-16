@@ -45,6 +45,11 @@ public class User {
     @Column(name = "fcm_token", length = 512)
     private String fcmToken;
 
+    // Nullable: rows created before view modes existed are read as FULL.
+    @Enumerated(EnumType.STRING)
+    @Column(name = "view_mode", length = 16)
+    private UserViewMode viewMode;
+
     // Getters and setters
     public String getMobileNumber() { return mobileNumber; }
     public void setMobileNumber(String mobileNumber) { this.mobileNumber = mobileNumber; }
@@ -77,4 +82,10 @@ public class User {
 
     public String getFcmToken() { return fcmToken; }
     public void setFcmToken(String fcmToken) { this.fcmToken = fcmToken; }
+
+    public UserViewMode getViewMode() { return viewMode == null ? UserViewMode.FULL : viewMode; }
+    public void setViewMode(UserViewMode viewMode) { this.viewMode = viewMode; }
+
+    @JsonIgnore
+    public boolean isLimitedView() { return getViewMode() == UserViewMode.LIMITED; }
 }

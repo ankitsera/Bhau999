@@ -177,6 +177,14 @@ export const AuthProvider = ({ children }) => {
       // save creds for future restore
       await saveAuthCreds(mobileNumber, password);
 
+      // Read the account back so the first Home paint already has the server's
+      // view mode, instead of flashing the full UI at a limited user.
+      const createdUser = await loginAPI(mobileNumber, password);
+      dispatch({
+        type: TYPES.SIGNUP_SUCCESS,
+        user: { ...createdUser, password },
+      });
+
       // go Home (as you asked)
       navigation.navigate("Home");
 
@@ -184,13 +192,6 @@ export const AuthProvider = ({ children }) => {
         text: result?.message || i18n.t('auth:accountCreatedSuccessfully'),
         duration: Snackbar.LENGTH_SHORT,
         backgroundColor: "#388e3c",
-      });
-
-      // optional: set a minimal user state (so UI doesn't break)
-      const dateSignup = new Date().toISOString();
-      dispatch({
-        type: TYPES.SIGNUP_SUCCESS,
-        user: { mobileNumber, username, dateSignup, password, approvalStatus: 'APPROVED' },
       });
     } catch (error) {
       dispatch({ type: TYPES.SIGNUP_FAILURE, error });
@@ -273,7 +274,7 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: TYPES.LOGOUT});
   };
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     const mobileNumber = user?.mobileNumber;
     const password = user?.password;
 
@@ -302,7 +303,7 @@ export const AuthProvider = ({ children }) => {
         backgroundColor: "#d32f2f",
       });
     }
-  };
+  }, [user?.mobileNumber, user?.password]);
 
   const updateUser = (patch) => {
     if (patch && Object.prototype.hasOwnProperty.call(patch, "balance")) {
@@ -335,8 +336,13 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      if (data?.balance != null) {
-        dispatch({ type: TYPES.UPDATE, patch: { balance: data.balance } });
+      // The admin can switch a user's view at any time; the server pushes the same
+      // signal as a balance change, so pick the new view up here too.
+      const patch = {};
+      if (data?.balance != null) patch.balance = data.balance;
+      if (data?.viewMode) patch.viewMode = data.viewMode;
+      if (Object.keys(patch).length > 0) {
+        dispatch({ type: TYPES.UPDATE, patch });
       }
     } catch {
       // background sync - stay quiet and retry on the next trigger
@@ -386,7 +392,7 @@ export const AuthProvider = ({ children }) => {
       refreshBalance,
       clearSession,
     }),
-    [user, isLoading, isBlocked, refreshBalance]
+    [user, isLoading, isBlocked, refreshUser, refreshBalance]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

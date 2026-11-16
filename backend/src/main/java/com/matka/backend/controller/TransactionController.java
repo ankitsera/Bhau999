@@ -93,6 +93,11 @@ public class TransactionController {
         String initiator = tx.getInitiator();
         if (initiator == null) initiator = INITIATOR_USER; // default to user if not supplied
 
+        // LIMITED users cannot deposit or withdraw themselves; the admin still can.
+        if (userOpt.get().isLimitedView() && !INITIATOR_ADMIN.equalsIgnoreCase(initiator)) {
+            return ResponseEntity.status(403).body(java.util.Map.of("message", "Payments are not available for this account"));
+        }
+
         // If this is a deposit (amount > 0) and the gateway is up (IS_GATEWAY_UP == "1"),
         // require using the payment gateway instead of creating direct deposits here.
         // Skip this check when initiator is admin (admin can create deposits directly).

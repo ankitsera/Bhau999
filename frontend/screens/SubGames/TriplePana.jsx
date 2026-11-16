@@ -177,7 +177,7 @@ const TriplePana = ({ route }) => {
               onPress={handleSubmit}
               activeOpacity={0.85}
             >
-              <Text style={[styles.submitText, { color: colors.text }]}>{t('common:submit')}</Text>
+              <Text style={[styles.submitText, { color: colors.onPrimary }]}>{t('common:submit')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

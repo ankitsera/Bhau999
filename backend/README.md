@@ -17,7 +17,7 @@ Project package: `com.matka.backend`
 The project reads datasource configuration from `src/main/resources/application.properties`. By default it is configured to:
 
 ```
-spring.datasource.url=jdbc:mysql://localhost:3306/sara_db
+spring.datasource.url=jdbc:mysql://localhost:3306/bhau_db
 spring.datasource.username=papa
 spring.datasource.password=papi@chuchiNo1
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
@@ -34,10 +34,10 @@ Change these values if your MySQL credentials or database name differ.
 Open a MySQL client (or MySQL Workbench) and run:
 
 ```sql
-CREATE DATABASE IF NOT EXISTS sara_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS bhau_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 -- If the user doesn't exist, create it (example):
 CREATE USER IF NOT EXISTS 'papa'@'localhost' IDENTIFIED BY 'papi@chuchiNo1';
-GRANT ALL PRIVILEGES ON sara_db.* TO 'papa'@'localhost';
+GRANT ALL PRIVILEGES ON bhau_db.* TO 'papa'@'localhost';
 FLUSH PRIVILEGES;
 ```
 

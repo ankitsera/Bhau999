@@ -1,32 +1,35 @@
 import React from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable, StatusBar } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useNavigation } from "@react-navigation/native";
 import { useTheme } from "../contexts/ThemeContext";
 
-const ThemeHeader = ({ title = "" }) => {
+// Green status-bar strip + white rounded sheet with a boxed back button and title
+const ThemeHeader = ({ title = "", right = null }) => {
   const { top } = useSafeAreaInsets();
   const navigation = useNavigation();
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.root, { paddingTop: top }]}>
-      <View style={[styles.bg, { backgroundColor: colors.primary }]} />
-      <View style={styles.row}>
-        <Pressable
-          onPress={() => navigation?.goBack?.()}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          style={{ paddingRight: 8, marginBottom: 15, }}
-        >
-          <MaterialIcons name="arrow-back" size={26} color={colors.text} />
-        </Pressable>
+    <View style={[styles.root, { paddingTop: top + 8, backgroundColor: colors.primary }]}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+      <View style={[styles.sheet, { backgroundColor: colors.background }]}>
+        <View style={styles.row}>
+          <Pressable
+            onPress={() => navigation?.goBack?.()}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
+          >
+            <MaterialIcons name="chevron-left" size={28} color={colors.text} />
+          </Pressable>
 
-        <Text numberOfLines={1} style={[styles.title, { color: colors.text }]}>
-          {title}
-        </Text>
+          <Text numberOfLines={1} style={[styles.title, { color: colors.heading }]}>
+            {title}
+          </Text>
 
-        <View style={{ width: 26 }} />
+          {right}
+        </View>
       </View>
     </View>
   );
@@ -35,27 +38,33 @@ const ThemeHeader = ({ title = "" }) => {
 export default ThemeHeader;
 
 const styles = StyleSheet.create({
-  root: { 
+  root: {
     width: "100%",
   },
-  bg: {
-    position: "absolute",
-    top: 0, left: 0, right: 0,
-    height: 90,
-    borderBottomLeftRadius: 36,
-    borderBottomRightRadius: 36,
+  sheet: {
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    paddingTop: 18,
+    paddingBottom: 8,
   },
   row: {
-    height: 60,
+    minHeight: 56,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
   },
-  title: { 
-    flex: 1, 
-    fontSize: 22, 
-    fontWeight: "500", 
-    marginLeft: 6,
-    marginBottom: 15,
+  backBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  title: {
+    flex: 1,
+    fontSize: 22,
+    fontWeight: "600",
+    marginLeft: 16,
   },
 });

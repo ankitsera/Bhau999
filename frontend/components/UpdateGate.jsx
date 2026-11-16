@@ -281,7 +281,7 @@ export default function UpdateGate({
                 ]}
                 onPress={start}
               >
-                <Text style={[styles.btnText, { color: colors.text || '#fff' }]}>
+                <Text style={[styles.btnText, { color: colors.onPrimary || '#fff' }]}>
                   {updateBtnLabel}
                 </Text>
               </Pressable>
@@ -316,7 +316,7 @@ export default function UpdateGate({
               ]}
               onPress={start}
             >
-              <Text style={[styles.btnText, { color: colors.text || '#fff' }]}>
+              <Text style={[styles.btnText, { color: colors.onPrimary || '#fff' }]}>
                 {updateBtnLabel}
               </Text>
             </Pressable>

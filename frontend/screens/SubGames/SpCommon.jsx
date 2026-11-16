@@ -240,7 +240,7 @@ const DigitBtn = ({ digit, onPress, colors }) => (
     activeOpacity={0.85}
     onPress={onPress}
   >
-    <Text style={[styles.digitText, { color: colors.text }]}>{digit}</Text>
+    <Text style={[styles.digitText, { color: colors.onPrimary }]}>{digit}</Text>
   </TouchableOpacity>
 );
 

@@ -282,9 +282,9 @@ const FullSangam = ({ route }) => {
 
             {/* TABLE HEADER */}
             <View style={[styles.tableHeader, { backgroundColor: colors.primary }]}>
-              <Text style={[styles.th, { flex: 1.1, color: colors.text }]}>{t('games:sangam')}</Text>
-              <Text style={[styles.th, { flex: 1, color: colors.text }]}>{t('funds:amount')}</Text>
-              <Text style={[styles.th, { width: 70, textAlign: "center", color: colors.text }]}>
+              <Text style={[styles.th, { flex: 1.1, color: colors.onPrimary }]}>{t('games:sangam')}</Text>
+              <Text style={[styles.th, { flex: 1, color: colors.onPrimary }]}>{t('funds:amount')}</Text>
+              <Text style={[styles.th, { width: 70, textAlign: "center", color: colors.onPrimary }]}>
                 {t('common:delete')}
               </Text>
             </View>

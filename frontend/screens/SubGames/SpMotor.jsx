@@ -325,7 +325,7 @@ const SpMotor = ({ route }) => {
               activeOpacity={0.85}
               disabled={!canAdd}
             >
-              <Text style={[styles.addText, { color: colors.text }]}>Add</Text>
+              <Text style={[styles.addText, { color: colors.onPrimary }]}>Add</Text>
             </TouchableOpacity>
           </View>
 

@@ -186,7 +186,7 @@ const BidHistoryCard = ({ item, t }) => {
   return (
     <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
       <View style={[styles.cardTop, { backgroundColor: colors.primary }]}>
-        <Text style={[styles.cardTopTitle, { color: colors.text }]}>{buildTitle(item)}</Text>
+        <Text style={[styles.cardTopTitle, { color: colors.onPrimary }]}>{buildTitle(item)}</Text>
       </View>
 
       <View style={styles.cardBody}>
@@ -475,7 +475,7 @@ const BidHistory = () => {
         <View style={styles.filterBar}>
           <Pressable style={[styles.filterBtn, { backgroundColor: colors.primary }]} onPress={openFilter}>
             <View style={styles.filterBtnContent}>
-              <MaterialCommunityIcons name="filter" size={30} color={colors.text} />
+              <MaterialCommunityIcons name="filter" size={30} color={colors.onPrimary} />
               {activeFilterCount ? (
                 <View style={[styles.filterBadge, { backgroundColor: colors.background }]}>
                   <Text style={[styles.filterBadgeText, { color: colors.primary }]}>{activeFilterCount}</Text>

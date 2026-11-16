@@ -15,6 +15,7 @@ import EmptyState from "../../components/EmptyState";
 import { GameContext } from "../../contexts/GameContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useLoader } from "../../contexts/LoaderContext";
+import { useFeature, FEATURES } from "../../utils/Features";
 
 const RED = "#EF4B3E";
 
@@ -152,7 +153,7 @@ const ClosedPopup = ({ visible, onClose, game }) => {
               { backgroundColor: colors.primary }, // keep theme
             ]}
           >
-            <Text style={[styles.modalOkText2, { color: colors.text }]}>{t('common:ok')}</Text>
+            <Text style={[styles.modalOkText2, { color: colors.onPrimary }]}>{t('common:ok')}</Text>
           </Pressable>
         </View>
       </View>
@@ -165,8 +166,17 @@ const ClosedPopup = ({ visible, onClose, game }) => {
 const GameCard = ({ item, navigation, onPressClosed }) => {
   const { t } = useTranslation(['games']);
   const { colors } = useTheme();
+  const canBet = useFeature(FEATURES.BETTING);
 
   const handlePress = () => {
+    // Users who cannot bet get the game's chart instead of the betting screens
+    if (!canBet) {
+      navigation.navigate("GameChartPanel", {
+        gameName: String(item.gameName || "").toUpperCase(),
+      });
+      return;
+    }
+
     if (item.isClosed) {
       onPressClosed?.(item);
       return;
@@ -176,50 +186,53 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
 
   return (
     <TouchableOpacity
-      style={[styles.card, { backgroundColor: colors.surface }]}
+      style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
       onPress={handlePress}
       activeOpacity={0.85}
     >
       <View style={styles.cardTop}>
-        <Text style={[styles.title, { color: colors.text }]}>{item.gameName}</Text>
-        <Text style={[styles.statusText, { color: item.statusColor }]}>
-          {item.statusText}
-        </Text>
+        <View style={{ flex: 1, paddingRight: 10 }}>
+          <Text style={[styles.title, { color: colors.primary }]} numberOfLines={1}>
+            {String(item.gameName || "").toUpperCase()}
+          </Text>
+          <Text style={[styles.result, { color: colors.text }]}>{item.resultText}</Text>
+        </View>
+
+        {canBet ? (
+          <View
+            style={[
+              styles.playBtn,
+              { backgroundColor: item.isClosed ? "#9E9E9E" : colors.primary },
+            ]}
+          >
+            <MaterialCommunityIcons name="play-outline" size={24} color="#FFFFFF" />
+            <Text style={styles.playText}>{t('games:playGame')}</Text>
+          </View>
+        ) : (
+          <View style={[styles.playBtn, { backgroundColor: colors.primary }]}>
+            <MaterialCommunityIcons name="chart-bar" size={22} color="#FFFFFF" />
+            <Text style={styles.playText}>{t('common:charts')}</Text>
+          </View>
+        )}
       </View>
 
-      <View style={styles.cardBody}>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.result, { color: colors.primary }]}>{item.resultText}</Text>
+      <View style={[styles.divider, { backgroundColor: colors.cardBorder }]} />
 
-          <View style={styles.timeRow}>
-            <View>
-              <Text style={[styles.timeLabel, { color: colors.textSecondary }]}>
-                {t('games:openBids')}
-              </Text>
-              <Text style={[styles.timeValue, { color: colors.textSecondary }]}>
-                {item.openTimeText}
-              </Text>
-            </View>
-
-            <View style={{ marginLeft: 18 }}>
-              <Text style={[styles.timeLabel, { color: colors.textSecondary }]}>
-                {t('games:closeBids')}
-              </Text>
-              <Text style={[styles.timeValue, { color: colors.textSecondary }]}>
-                {item.closeTimeText}
-              </Text>
-            </View>
-          </View>
-        </View>
-
+      <View style={styles.cardBottom}>
         <View>
-          <Image
-            source={require("../../assets/Images/play.webp")}
-            style={styles.playIcon}
-            resizeMode="contain"
-          />
-          <Text style={[styles.playText, { color: colors.text }]}>{t('games:playGame')}</Text>
+          <Text style={[styles.timeLabel, { color: colors.textTertiary }]}>
+            {t('games:openBids')}:{" "}
+            <Text style={[styles.timeValue, { color: colors.textSecondary }]}>{item.openTimeText}</Text>
+          </Text>
+          <Text style={[styles.timeLabel, { color: colors.textTertiary, marginTop: 2 }]}>
+            {t('games:closeBids')}:{" "}
+            <Text style={[styles.timeValue, { color: colors.textSecondary }]}>{item.closeTimeText}</Text>
+          </Text>
         </View>
+
+        <Text style={[styles.statusText, { color: item.statusColor }]} numberOfLines={2}>
+          {item.statusText}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -296,8 +309,8 @@ export default GamesList;
 const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 16,
-    paddingBottom: 110,
-    paddingTop: 8,
+    paddingBottom: 120,
+    paddingTop: 12,
   },
   center: {
     flex: 1,
@@ -306,58 +319,69 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 10,
-    elevation: 2,
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 12,
+    elevation: 1,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
   },
   cardTop: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
   },
   title: {
-    fontSize: 16,
-    fontWeight: "900",
-    flex: 1,
-    paddingRight: 10,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  cardBody: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 10,
+    fontSize: 20,
+    fontWeight: "700",
+    letterSpacing: 0.3,
   },
   result: {
-    fontSize: 18,
-    fontWeight: "900",
+    fontSize: 26,
+    fontWeight: "800",
+    marginTop: 2,
+    letterSpacing: 0.5,
   },
-  timeRow: {
+  playBtn: {
     flexDirection: "row",
-    marginTop: 8,
-  },
-  timeLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  timeValue: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  playIcon: {
-    width: 72,
-    height: 46,
+    alignItems: "center",
+    gap: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 26,
   },
   playText: {
-    fontSize: 12,
-    textAlign: "center",
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  divider: {
+    height: 1,
+    marginTop: 12,
+    marginBottom: 10,
+  },
+  cardBottom: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  timeLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  timeValue: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  statusText: {
+    fontSize: 15,
+    fontWeight: "600",
+    textAlign: "right",
+    flexShrink: 1,
+    marginLeft: 10,
   },
 
   // ===== Modal styles =====

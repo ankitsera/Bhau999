@@ -392,7 +392,7 @@ const Passbook = () => {
           onPress={openFilter}
         >
           <View style={styles.filterBtnContent}>
-            <MaterialCommunityIcons name="filter" size={30} color={colors.text} />
+            <MaterialCommunityIcons name="filter" size={30} color={colors.onPrimary} />
             {activeFilterCount ? (
               <View style={[styles.filterBadge, { backgroundColor: colors.background }]}>
                 <Text style={[styles.filterBadgeText, { color: colors.primary }]}>

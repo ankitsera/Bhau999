@@ -46,6 +46,8 @@ export default function SettingsView() {
     withdraw_message: '',
     base_rate: '',
     // IS_GATEWAY_UP: '1',
+    // Matches the backend's fallback in UserViewMode
+    default_user_view: 'FULL',
   });
 
   // Track initial values to detect changes
@@ -599,6 +601,26 @@ export default function SettingsView() {
                 </Select>
               </FormControl>
             </Grid> */}
+
+            {/* View given to new sign-ups */}
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <InputLabel id="default-user-view-label">Default View For New Users</InputLabel>
+                <Select
+                  labelId="default-user-view-label"
+                  id="default-user-view-select"
+                  value={properties.default_user_view || 'FULL'}
+                  label="Default View For New Users"
+                  onChange={(e) => handlePropertyChange('default_user_view', e.target.value)}
+                >
+                  <MenuItem value="FULL">Full</MenuItem>
+                  <MenuItem value="LIMITED">Limited (no payments or bets)</MenuItem>
+                </Select>
+              </FormControl>
+              <Typography variant="caption" color="text.secondary">
+                Applies to users who sign up after saving. Existing users keep their view.
+              </Typography>
+            </Grid>
           </Grid>
 
           <Button

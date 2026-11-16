@@ -284,7 +284,7 @@ const AddFundHistory = () => {
           onPress={openFilter}
         >
           <View style={styles.filterBtnContent}>
-            <MaterialCommunityIcons name="filter" size={30} color={colors.text} />
+            <MaterialCommunityIcons name="filter" size={30} color={colors.onPrimary} />
             {activeFilterCount ? (
               <View
                 style={[

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -18,7 +19,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 const UserCheck = ({ navigation }) => {
   const { t } = useTranslation(['auth', 'validation', 'common']);
   const { userCheck } = useContext(AuthContext);
-  const { colors } = useTheme();
+  const { colors, isDarkMode } = useTheme();
 
   const [mobileNumber, setMobileNumber] = useState("");
 
@@ -52,6 +53,7 @@ const UserCheck = ({ navigation }) => {
       style={[styles.safe, { backgroundColor: colors.background }]}
       edges={["bottom", "top"]}
     >
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       <ScrollView
         contentContainerStyle={styles.scrollGrow}
         showsVerticalScrollIndicator={false}
@@ -62,8 +64,8 @@ const UserCheck = ({ navigation }) => {
             <View
               style={[styles.primaryBar, { backgroundColor: colors.primary }]}
             />
-            <Text style={[styles.title, { color: colors.text }]}>
-              {t('auth:enterMobileNumber').toUpperCase()}
+            <Text style={[styles.title, { color: colors.heading }]}>
+              {t('auth:enterMobileNumber')}
             </Text>
           </View>
 
@@ -80,7 +82,7 @@ const UserCheck = ({ navigation }) => {
               styles.inputPill,
               {
                 backgroundColor: colors.surface,
-                shadowColor: colors.text,
+                borderColor: colors.cardBorder,
               },
             ]}
           >
@@ -89,10 +91,12 @@ const UserCheck = ({ navigation }) => {
             >
               <MaterialCommunityIcons
                 name="cellphone"
-                size={28}
+                size={24}
                 color={colors.onPrimary || "#fff"}
               />
             </View>
+
+            <Text style={[styles.prefix, { color: colors.text }]}>+91</Text>
 
             <TextInput
               style={[styles.input, { color: colors.text }]}
@@ -121,12 +125,12 @@ const UserCheck = ({ navigation }) => {
 
           {/* Next button */}
           <TouchableOpacity
-            style={[styles.nextBtn, { backgroundColor: colors.primary }]}
+            style={[styles.nextBtn, { backgroundColor: colors.dark }]}
             onPress={handleNext}
             activeOpacity={0.85}
           >
-            <Text style={[styles.nextText, { color: colors.onPrimary || "#fff" }]}>
-              {t('common:next').toUpperCase()}
+            <Text style={[styles.nextText, { color: colors.onDark || "#fff" }]}>
+              {t('common:next')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -165,9 +169,10 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   title: {
+    flex: 1,
     fontSize: 28,
-    fontWeight: "900",
-    letterSpacing: 0.5,
+    fontWeight: "800",
+    letterSpacing: 0.3,
   },
 
   image: {
@@ -178,28 +183,30 @@ const styles = StyleSheet.create({
   },
 
   inputPill: {
-    width: "98%",
-    borderRadius: 999,
+    width: "100%",
+    borderRadius: 14,
+    borderWidth: 1,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 10,
     paddingRight: 18,
     marginTop: 12,
+  },
 
-    elevation: 8,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 10,
+  prefix: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginRight: 10,
   },
 
   iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 46,
+    height: 46,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginLeft: 10,
-    marginRight: 14,
+    marginLeft: 8,
+    marginRight: 12,
   },
 
   input: {
@@ -209,17 +216,17 @@ const styles = StyleSheet.create({
   },
 
   nextBtn: {
-    width: "92%",
+    width: "100%",
     marginTop: 26,
     paddingVertical: 16,
-    borderRadius: 2,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
   },
 
   nextText: {
     fontSize: 20,
-    fontWeight: "900",
-    letterSpacing: 1,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
 });

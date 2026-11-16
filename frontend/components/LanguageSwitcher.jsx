@@ -41,7 +41,7 @@ const LanguageCard = ({ language, isSelected, onPress }) => {
       ) : null}
 
       <View style={[styles.circle, { backgroundColor: colors.primary }]}>
-        <Text style={[styles.circleText, { color: colors.text }]}>{language.icon}</Text>
+        <Text style={[styles.circleText, { color: colors.onPrimary }]}>{language.icon}</Text>
       </View>
 
       <Text style={[styles.langText, { color: colors.text }]} numberOfLines={1}>

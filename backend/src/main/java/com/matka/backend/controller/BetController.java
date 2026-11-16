@@ -113,6 +113,9 @@ public class BetController {
             if (userOpt.isEmpty()) {
                 return ResponseEntity.status(404).body(java.util.Map.of("message", "User not found for mobile: " + bet.getMobileNumber()));
             }
+            if (userOpt.get().isLimitedView()) {
+                return ResponseEntity.status(403).body(java.util.Map.of("message", "Betting is not available for this account"));
+            }
 
             // validate game
             Optional<Game> gameOpt = gameRepository.findById(normalizedGame);

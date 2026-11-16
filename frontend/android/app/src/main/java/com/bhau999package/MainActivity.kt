@@ -1,4 +1,4 @@
-package com.saaraa777package
+package com.bhau999package
 
 import android.os.Bundle
 import com.facebook.react.ReactActivity
@@ -14,7 +14,7 @@ class MainActivity : ReactActivity() {
     super.onCreate(savedInstanceState)
   }
 
-  override fun getMainComponentName(): String = "sara777"
+  override fun getMainComponentName(): String = "bhau999"
 
   override fun createReactActivityDelegate(): ReactActivityDelegate =
     DefaultReactActivityDelegate(this, mainComponentName, fabricEnabled)

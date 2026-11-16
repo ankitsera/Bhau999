@@ -314,7 +314,7 @@ const SpDpTp = ({ route }) => {
               onPress={handleGenerate}
               activeOpacity={0.85}
             >
-              <Text style={[styles.generateText, { color: colors.text }]}>Generate</Text>
+              <Text style={[styles.generateText, { color: colors.onPrimary }]}>Generate</Text>
             </TouchableOpacity>
           </View>
 
@@ -360,7 +360,7 @@ const CheckItem = ({ label, checked, onToggle, colors }) => {
         onPress={onToggle}
         activeOpacity={0.85}
       >
-        {checked ? <MaterialIcons name="check" size={18} color={colors.text} /> : null}
+        {checked ? <MaterialIcons name="check" size={18} color={colors.onPrimary} /> : null}
       </TouchableOpacity>
     </View>
   );

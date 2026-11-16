@@ -270,9 +270,9 @@ const HalfSangamA = ({ route }) => {
 
             {/* Table */}
             <View style={[styles.tableHeader, { backgroundColor: colors.primary }]}>
-              <Text style={[styles.headerCell, { flex: 1.1, color: colors.text }]}>{t('games:sangam')}</Text>
-              <Text style={[styles.headerCell, { flex: 0.9, color: colors.text }]}>{t('funds:amount')}</Text>
-              <Text style={[styles.headerCell, { flex: 0.7, color: colors.text }]}>{t('common:delete')}</Text>
+              <Text style={[styles.headerCell, { flex: 1.1, color: colors.onPrimary }]}>{t('games:sangam')}</Text>
+              <Text style={[styles.headerCell, { flex: 0.9, color: colors.onPrimary }]}>{t('funds:amount')}</Text>
+              <Text style={[styles.headerCell, { flex: 0.7, color: colors.onPrimary }]}>{t('common:delete')}</Text>
             </View>
 
             {bets.map(b => (

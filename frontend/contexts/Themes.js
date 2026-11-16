@@ -1,18 +1,26 @@
 import { StyleSheet } from 'react-native';
 
 // Global Theme Colors
-export const ThemeColor = '#FFAC2E';
-export const ThemeColorTile = '#FFB84D';
-export const ThemeIconBg = '#FFF4E0';
+export const ThemeColor = '#23B26D';
+export const ThemeColorTile = '#D4EDE0';
+export const ThemeIconBg = '#E3F5EC';
 
 // Light Mode Colors Palette
 export const lightColors = {
-  primary: '#FFAC2E',
-  primaryTile: '#FFB84D',
-  primaryIconBg: '#FFF4E0',
-  background: '#f1f1f1',
-  surface: '#f5f4f4',
-  text: '#000000',
+  primary: '#23B26D',
+  primaryDark: '#1A8F56',
+  primaryTile: '#D4EDE0',
+  primaryIconBg: '#E3F5EC',
+  onPrimary: '#FFFFFF',
+  dark: '#333333',
+  onDark: '#FFFFFF',
+  heading: '#2A1B3D',
+  card: '#FFFFFF',
+  cardBorder: '#E2E2E2',
+  closed: '#D32F2F',
+  background: '#F7F7F7',
+  surface: '#FFFFFF',
+  text: '#111111',
   textSecondary: '#333333',
   textTertiary: '#666666',
   border: '#e0e0e0',
@@ -27,9 +35,17 @@ export const lightColors = {
 
 // Dark Mode Colors Palette
 export const darkColors = {
-  primary: '#FFAC2E',
-  primaryTile: '#FFB84D',
-  primaryIconBg: '#2D1F0A',
+  primary: '#23B26D',
+  primaryDark: '#1A8F56',
+  primaryTile: '#17382A',
+  primaryIconBg: '#0F2A1D',
+  onPrimary: '#FFFFFF',
+  dark: '#2E2E2E',
+  onDark: '#FFFFFF',
+  heading: '#FFFFFF',
+  card: '#1A1A1A',
+  cardBorder: '#333333',
+  closed: '#EF5350',
   background: '#0a0a0a',
   surface: '#1a1a1a',
   text: '#ffffff',
@@ -57,7 +73,7 @@ export const lightTheme = StyleSheet.create({
     color: '#000000',
   },
   button: {
-    backgroundColor: '#FFAC2E',
+    backgroundColor: '#23B26D',
     color: '#ffffff',
     padding: 10,
     borderRadius: 5,
@@ -82,13 +98,13 @@ export const darkTheme = StyleSheet.create({
     color: '#ffffff',
   },
   button: {
-    backgroundColor: '#FFAC2E',
-    color: '#000000',
+    backgroundColor: '#23B26D',
+    color: '#ffffff',
     padding: 10,
     borderRadius: 5,
   },
   buttonText: {
-    color: '#000000',
+    color: '#ffffff',
   },
   bg:{
     backgroundColor:'#000000',

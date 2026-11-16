@@ -55,6 +55,16 @@ export const userService = {
   },
 
   /**
+   * Switch a user between the full and limited app view
+   * @param {string} mobileNumber - User's mobile number
+   * @param {'FULL'|'LIMITED'} viewMode - View to give the user
+   * @returns {Promise<object>} Result message and the saved view mode
+   */
+  setViewMode: async (mobileNumber, viewMode) => {
+    return apiClient.post(`users/${mobileNumber}/view-mode`, { viewMode });
+  },
+
+  /**
    * Update user password
    * @param {string} mobileNumber - User's mobile number
    * @param {string} password - New password

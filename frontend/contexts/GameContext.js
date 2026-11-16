@@ -19,8 +19,8 @@ import {
 } from "../utils/GameService";
 import { ThemeColor } from "./Themes";
 
-const RED = "#EF4B3E";
-const GREEN = "#4CAF50";
+const RED = "#D32F2F";
+const GREEN = "#23B26D";
 
 const initialState = {
   // rates

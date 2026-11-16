@@ -1,4 +1,4 @@
-export const API_URL = 'https://sarahakskgfafnsjdfkjdsbfkjs.eu.cc/api/';
+export const API_URL = 'https://testbahu.eu.cc/api/';
 export const Game_sub_type =  {
     "SD": "Single Digit",
     "JD": "Jodi Digit",
@@ -18,5 +18,5 @@ export const Game_bid_type =  {
     "FS": "full_sangam"
 }
 // export const ROOT_URL="" || "http://localhost:8000/"
-export const ROOT_URL = 'https://sarahakskgfafnsjdfkjdsbfkjs.eu.cc/';
+export const ROOT_URL = 'https://testbahu.eu.cc/';
 export const IMAGE_URL="https://www.adminroyalofficial.shop/" || "http://localhost:8000/"

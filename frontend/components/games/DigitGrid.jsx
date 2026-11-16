@@ -16,7 +16,7 @@ const DigitGrid = ({ digits, pointsByDigit, onPressDigit }) => {
         >
           <Text style={styles.digitText}>{d}</Text>
           {pointsByDigit[d] ? (
-            <Text style={[styles.pointsText, { color: colors.text }]}>{pointsByDigit[d]}</Text>
+            <Text style={[styles.pointsText, { color: colors.onPrimary }]}>{pointsByDigit[d]}</Text>
           ) : null}
         </TouchableOpacity>
       ))}

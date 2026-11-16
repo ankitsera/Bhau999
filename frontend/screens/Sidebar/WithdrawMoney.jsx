@@ -25,6 +25,7 @@ import { getWithdrawalRules } from '../../utils/PaymentsService';
 import { useTheme } from '../../contexts/ThemeContext';
 
 import { WITHDRAW_MONEY_CAROUSEL_DUMMY } from '../../data/withdrawMoneyCarouselDummy';
+import ThemeHeader from '../../components/ThemeHeader';
 
 /* ------------------ Carousel helpers ------------------ */
 const maskMobile = (m) => {
@@ -328,29 +329,17 @@ const WithdrawMoney = ({ navigation }) => {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* ThemeColor HEADER (inline) */}
-      <View style={[styles.headerRoot, { paddingTop: insets.top }]}>
-        <View style={[styles.headerBg, { backgroundColor: colors.primary }]} />
-        <View style={styles.headerRow}>
-          <Pressable
-            onPress={() => navigation.goBack()}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            style={styles.backBtn}
-          >
-            <MaterialIcons name="arrow-back" size={26} color={colors.text} />
-          </Pressable>
-          <Text style={[styles.headerTitle, { color: colors.text }]}>{t('funds:withdrawFund')}</Text>
-          <View style={styles.walletRight}>
-            <MaterialCommunityIcons
-              name="wallet-outline"
-              size={22}
-              color={colors.text}
-            />
-            <Text style={[styles.walletAmt, { color: colors.text }]}>
-              {user?.balance ? user.balance : '0.0'}
+      <ThemeHeader
+        title={t('funds:withdrawFund')}
+        right={
+          <View style={[styles.walletPill, { backgroundColor: colors.dark }]}>
+            <MaterialCommunityIcons name="wallet" size={20} color={colors.onDark} />
+            <Text style={[styles.walletPillText, { color: colors.onDark }]}>
+              ₹{user?.balance ? user.balance : '0.0'}
             </Text>
           </View>
-        </View>
-      </View>
+        }
+      />
 
       {/* CONTENT */}
       <ScrollView
@@ -615,6 +604,18 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
 
+  walletPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 24,
+  },
+  walletPillText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
   headerRoot: { width: '100%' },
   headerBg: {
     position: 'absolute',

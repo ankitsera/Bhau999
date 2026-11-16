@@ -14,18 +14,18 @@ const EasyModeTable = ({ bets, onDelete, digitHeaderLabel = "Ank" }) => {
     <View style={styles.container}>
       <View style={[styles.headerRow, { backgroundColor: colors.primary }]}>
         <View style={styles.headerCell}>
-          <Text style={[styles.headerText, { color: colors.text }]}>{digitHeaderLabel}</Text>
+          <Text style={[styles.headerText, { color: colors.onPrimary }]}>{digitHeaderLabel}</Text>
         </View>
         <View style={styles.headerCell}>
-          <Text style={[styles.headerText, { color: colors.text }]}>{t('games:point')}</Text>
+          <Text style={[styles.headerText, { color: colors.onPrimary }]}>{t('games:point')}</Text>
         </View>
         <View style={styles.headerCell}>
-          <Text style={[styles.headerText, { color: colors.text }]}>{t('common:type')}</Text>
+          <Text style={[styles.headerText, { color: colors.onPrimary }]}>{t('common:type')}</Text>
         </View>
 
         {/* Fixed-width delete header cell (matches rows) */}
         <View style={styles.deleteCol}>
-          <Text style={[styles.headerText, { color: colors.text }]}>{t('common:delete')}</Text>
+          <Text style={[styles.headerText, { color: colors.onPrimary }]}>{t('common:delete')}</Text>
         </View>
       </View>
 

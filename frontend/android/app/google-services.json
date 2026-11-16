@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "514737449078",
-    "project_id": "sara777new-cb47f",
-    "storage_bucket": "sara777new-cb47f.firebasestorage.app"
+    "project_number": "1063949927935",
+    "project_id": "games-d04c1",
+    "storage_bucket": "games-d04c1.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:514737449078:android:3c2ca4e924f05b53fe9757",
+        "mobilesdk_app_id": "1:1063949927935:android:cebfccd8cedfda5857d3ca",
         "android_client_info": {
-          "package_name": "com.saaraa777package"
+          "package_name": "com.games.bhau999"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyB5FjbRoXlBb6CrbkScqP7NdKFYhuRicmI"
+          "current_key": "AIzaSyA2GnaB_asjlvz2CouPmHOw4ysO4oSCaLw"
         }
       ],
       "services": {

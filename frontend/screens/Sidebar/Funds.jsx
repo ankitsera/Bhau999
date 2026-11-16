@@ -54,10 +54,10 @@ const LeftIcon = ({ image }) => {
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.leftIconWrap]}>
+    <View style={[styles.leftIconWrap, { backgroundColor: colors.primary }]}>
       <Image
         source={image}
-        style={styles.iconImage}
+        style={[styles.iconImage, { tintColor: colors.onPrimary }]}
         resizeMode="contain"
       />
     </View>
@@ -139,17 +139,17 @@ const styles = StyleSheet.create({
   },
 
   leftIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 22,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
   },
 
   iconImage: {
-    width: 40,
-    height: 40,
+    width: 28,
+    height: 28,
   },
 
   title: {

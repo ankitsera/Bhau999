@@ -46,7 +46,7 @@ const EmptyState = ({
           { backgroundColor: colors.primary },
         ]}
       >
-        <Text style={[styles.buttonText, { color: colors.text }]}>
+        <Text style={[styles.buttonText, { color: colors.onPrimary }]}>
           {t('common:goBack')}
         </Text>
       </Pressable>

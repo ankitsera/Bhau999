@@ -78,9 +78,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.saaraa777package"
+    namespace "com.bhau999package"
     defaultConfig {
-        applicationId "com.saaraa777package"
+        applicationId "com.bhau999package"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

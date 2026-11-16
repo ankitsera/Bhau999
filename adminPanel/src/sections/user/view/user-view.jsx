@@ -570,6 +570,9 @@ export default function UserPage() {
                       <TableCell style={{ width: 160 }} align="right">
                         Change Approval
                       </TableCell>
+                      <TableCell style={{ width: 120 }} align="right">
+                        View
+                      </TableCell>
                        <TableCell style={{ width: 160 }} align="right">
                         Whatsapp
                       </TableCell>
@@ -616,6 +619,13 @@ export default function UserPage() {
                         Approve
                       </Button>
                     )}
+                        </TableCell>
+                        <TableCell style={{ width: 120 }} align="right">
+                          {row.viewMode === 'LIMITED' ? (
+                            <p style={{ color: '#FFAB00' }}>Limited</p>
+                          ) : (
+                            <p style={{ color: '#00A76F' }}>Full</p>
+                          )}
                         </TableCell>
                         <TableCell style={{ width: 160 }} align="right">
                         <Button variant="text">

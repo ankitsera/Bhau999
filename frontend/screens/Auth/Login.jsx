@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
@@ -24,7 +25,7 @@ const TileIcon = ({ name }) => {
 
 const Login = ({ navigation, route }) => {
   const { t } = useTranslation(['auth', 'common']);
-  const { colors } = useTheme();
+  const { colors, isDarkMode } = useTheme();
 
   const { login } = useContext(AuthContext);
   const mobileNumber = route?.params?.mobileNumber || '1234567890';
@@ -41,13 +42,11 @@ const Login = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Theme header */}
-      <View style={[styles.headerBg, { backgroundColor: colors.primary }]} />
-
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
       {/* White rounded sheet */}
-      <View style={[styles.card, { backgroundColor: colors.background, shadowColor: colors.text }]}>
+      <View style={[styles.card, { backgroundColor: colors.background }]}>
         <View style={styles.textHeader}>
-          <Text style={[styles.title, { color: colors.text }]}>{t('auth:loginNow')}</Text>
+          <Text style={[styles.title, { color: colors.heading }]}>{t('auth:loginNow')}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t('auth:signInAccount')}</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary, marginTop: 4 }]}>
             {t('auth:enterPassword')}
@@ -113,7 +112,7 @@ const Login = ({ navigation, route }) => {
 
         {/* Login button */}
         <TouchableOpacity
-          style={[styles.loginBtn, { backgroundColor: colors.primary, shadowColor: colors.text }]}
+          style={[styles.loginBtn, { backgroundColor: colors.dark, shadowColor: colors.text }]}
           onPress={onLogin}
           activeOpacity={0.85}
         >
@@ -149,28 +148,21 @@ const styles = StyleSheet.create({
 
   card: {
     flex: 1,
-    marginTop: 60,
+    marginTop: 24,
     backgroundColor: '#fff',
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
     paddingTop: 24,
     paddingBottom: 32,
     paddingHorizontal: 20,
     zIndex: 1,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.15,
-    shadowRadius: 14,
   },
 
   textHeader: {
     marginLeft: 10,
   },
   title: {
-    fontSize: 36,
-    fontWeight: '600',
-    color: '#121212',
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#2A1B3D',
     marginBottom: 8,
   },
   subtitle: {
@@ -183,25 +175,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E2E2E2',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     marginTop: 22,
-
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
   },
   inputFocused: {
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
 
   tile: {
-    width: 56,
-    height: 56,
-    borderRadius: 14,
+    width: 46,
+    height: 46,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -216,12 +204,13 @@ const styles = StyleSheet.create({
 
   loginBtn: {
     marginTop: 28,
-    alignSelf: 'center',
+    alignSelf: 'stretch',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    justifyContent: 'center',
+    paddingVertical: 16,
     paddingHorizontal: 28,
-    borderRadius: 36,
+    borderRadius: 14,
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },

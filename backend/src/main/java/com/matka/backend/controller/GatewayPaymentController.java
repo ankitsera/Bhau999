@@ -49,7 +49,7 @@ public class GatewayPaymentController {
     @Value("${payment.gateway.apikey:}")
     private String paymentGatewayApiKey;
 
-    @Value("${payment.gateway.authEmail:sara1234@gmail.com}")
+    @Value("${payment.gateway.authEmail:bhau1234@gmail.com}")
     private String paymentGatewayAuthEmail;
 
     @Value("${payment.gateway.mobileNumber:6377382678}")
@@ -112,7 +112,7 @@ public class GatewayPaymentController {
     private java.util.Map<String,Object> callCheckPayinStatus(String custRef) {
         String resolvedApiKey = paymentGatewayApiKey;
         if (resolvedApiKey == null || resolvedApiKey.isBlank()) {
-            resolvedApiKey = System.getenv("PRIMEXPAY_API_KEY_SARA1234");
+            resolvedApiKey = System.getenv("PRIMEXPAY_API_KEY_BHAU1234");
         }
         if (resolvedApiKey == null || resolvedApiKey.isBlank()) {
             log.warn("Payment gateway API key not configured for check-payin-status");
@@ -142,7 +142,7 @@ public class GatewayPaymentController {
     private java.util.Map<String,Object> callCheckPayoutStatus(String custRefOrTxnId) {
         String resolvedApiKey = paymentGatewayApiKey;
         if (resolvedApiKey == null || resolvedApiKey.isBlank()) {
-            resolvedApiKey = System.getenv("PRIMEXPAY_API_KEY_SARA1234");
+            resolvedApiKey = System.getenv("PRIMEXPAY_API_KEY_BHAU1234");
         }
         if (resolvedApiKey == null || resolvedApiKey.isBlank()) {
             log.warn("Payment gateway API key not configured for check-payout-status");
@@ -183,6 +183,10 @@ public class GatewayPaymentController {
             return ResponseEntity.badRequest().body(Map.of("message","mobileNumber and amount are required"));
         }
 
+        if (userRepository.findByMobileNumber(mobile.trim()).map(com.matka.backend.User::isLimitedView).orElse(false)) {
+            return ResponseEntity.status(403).body(Map.of("message", "Payments are not available for this account"));
+        }
+
         int minDeposit = readMinimumDepositAmount();
         if (amount < minDeposit) {
             return ResponseEntity.badRequest().body(Map.of("message","Amount must be >= minimum_deposit_amount","minimum_deposit_amount",minDeposit));
@@ -216,12 +220,12 @@ public class GatewayPaymentController {
 
         String resolvedApiKey = paymentGatewayApiKey;
         if (resolvedApiKey == null || resolvedApiKey.isBlank()) {
-            resolvedApiKey = System.getenv("PRIMEXPAY_API_KEY_SARA1234");
+            resolvedApiKey = System.getenv("PRIMEXPAY_API_KEY_BHAU1234");
         }
         if (resolvedApiKey == null || resolvedApiKey.isBlank()) {
             gp.setStatus("Fail");
             gatewayPaymentRepository.save(gp);
-            log.error("Payment gateway API key not configured (env PRIMEXPAY_API_KEY_SARA1234)");
+            log.error("Payment gateway API key not configured (env PRIMEXPAY_API_KEY_BHAU1234)");
             return ResponseEntity.status(500).body(Map.of("message","Payment gateway not configured"));
         }
 
@@ -688,7 +692,7 @@ public class GatewayPaymentController {
 
             // prepare payload for primexpay (send positive amount)
             String resolvedApiKey = paymentGatewayApiKey;
-            if (resolvedApiKey == null || resolvedApiKey.isBlank()) resolvedApiKey = System.getenv("PRIMEXPAY_API_KEY_SARA1234");
+            if (resolvedApiKey == null || resolvedApiKey.isBlank()) resolvedApiKey = System.getenv("PRIMEXPAY_API_KEY_BHAU1234");
             if (resolvedApiKey == null || resolvedApiKey.isBlank()) {
                 gp.setStatus("Fail"); gatewayPaymentRepository.save(gp);
                 tx.setStatus("Rejected"); transactionRepository.save(tx);

@@ -591,6 +591,18 @@ export default function UserEditPage() {
     }
   };
 
+  const changeViewMode = async (viewMode) => {
+    try {
+      await userService.setViewMode(singleUserInfo.mobileNumber, viewMode);
+      alert(viewMode === 'LIMITED' ? 'User switched to limited view' : 'User switched to full view');
+      setSingleUserInfo(prev => ({ ...prev, viewMode }));
+      refetch();
+    } catch (error) {
+      console.error('Error changing view mode:', error);
+      alert(`Error changing view mode: ${error.message}`);
+    }
+  };
+
   const handleSaveUserDetails = async () => {
     try {
       const payload = {
@@ -768,6 +780,20 @@ export default function UserEditPage() {
                 ) : (
                   <Button variant="contained" color="success" onClick={verifyUser} fullWidth>
                     Approve User
+                  </Button>
+                )}
+              </Stack>
+              <Stack direction="row" spacing={2} alignItems="center">
+                <Typography variant="body2" sx={{ flexShrink: 0 }}>
+                  App view: <strong>{singleUserInfo.viewMode === 'LIMITED' ? 'Limited' : 'Full'}</strong>
+                </Typography>
+                {singleUserInfo.viewMode === 'LIMITED' ? (
+                  <Button variant="contained" color="success" onClick={() => changeViewMode('FULL')} fullWidth>
+                    Switch To Full View
+                  </Button>
+                ) : (
+                  <Button variant="outlined" color="warning" onClick={() => changeViewMode('LIMITED')} fullWidth>
+                    Switch To Limited View
                   </Button>
                 )}
               </Stack>

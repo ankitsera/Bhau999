@@ -1,6 +1,8 @@
 package com.matka.backend.controller;
 
 import com.matka.backend.User;
+import com.matka.backend.UserViewMode;
+import com.matka.backend.repository.PropertiesRepository;
 import com.matka.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import com.matka.backend.service.FcmService;
+import com.matka.backend.service.BalanceNotificationService;
 
 @RestController
 @RequestMapping("/api")
@@ -34,6 +37,12 @@ public class UserController {
 
     @Autowired
     private com.matka.backend.service.BalanceService balanceService;
+
+    @Autowired
+    private PropertiesRepository propertiesRepository;
+
+    @Autowired
+    private BalanceNotificationService balanceNotificationService;
 
     // Note: password encryption removed per user request; passwords will be stored and compared as plain text.
 
@@ -58,6 +67,8 @@ public class UserController {
     user.setDateSignup(LocalDateTime.now());
     // mark approval as Approved by default
     user.setApprovalStatus("Approved");
+    // new users get whatever view the admin has chosen for sign-ups right now
+    user.setViewMode(defaultViewModeForNewUsers());
         userRepository.save(user);
         log.info("Signup successful for mobile='{}'", user.getMobileNumber());
         return ResponseEntity.ok(Map.of("message", "Signup successful"));
@@ -82,7 +93,8 @@ public class UserController {
                     u.getAccountNumber(),
                     u.getIfscCode(),
                     u.getUpiId(),
-                    u.getApprovalStatus()
+                    u.getApprovalStatus(),
+                    u.getViewMode().name()
                 );
                 return ResponseEntity.ok(resp);
                 } else {
@@ -107,8 +119,8 @@ public class UserController {
 
     /**
      * Lightweight balance read used by the app to keep the wallet in sync without
-     * re-sending credentials to /auth/login. Returns approvalStatus too so the client
-     * can keep honouring the blocked-account gate.
+     * re-sending credentials to /auth/login. Returns approvalStatus and viewMode too so
+     * the client can keep honouring the blocked-account gate and pick up view changes.
      */
     @GetMapping("/users/{mobileNumber}/balance")
     @Transactional(readOnly = true)
@@ -127,7 +139,46 @@ public class UserController {
         body.put("mobileNumber", u.getMobileNumber());
         body.put("balance", u.getBalance() == null ? 0 : u.getBalance());
         body.put("approvalStatus", u.getApprovalStatus());
+        body.put("viewMode", u.getViewMode().name());
         return ResponseEntity.ok(body);
+    }
+
+    /**
+     * Admin API: switch one user between the FULL and LIMITED view.
+     * POST /api/users/{mobileNumber}/view-mode  body: { "viewMode": "LIMITED" }
+     */
+    @PostMapping("/users/{mobileNumber}/view-mode")
+    @Transactional
+    public ResponseEntity<?> setViewMode(@PathVariable("mobileNumber") String mobileNumber,
+                                         @RequestBody Map<String, String> body) {
+        String raw = body == null ? null : body.get("viewMode");
+        UserViewMode mode;
+        try {
+            mode = UserViewMode.valueOf(String.valueOf(raw).trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("message", "viewMode must be FULL or LIMITED"));
+        }
+
+        Optional<User> userOpt = userRepository.findByMobileNumber(mobileNumber.trim());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("message", "User not found: " + mobileNumber));
+        }
+
+        User u = userOpt.get();
+        u.setViewMode(mode);
+        userRepository.save(u);
+        log.info("View mode for {} set to {}", u.getMobileNumber(), mode);
+
+        // The app re-reads /users/{mobile}/balance on this signal, which now carries
+        // viewMode, so an open app switches views without a restart.
+        balanceNotificationService.pushBalanceChanged(java.util.List.of(u.getMobileNumber()));
+        return ResponseEntity.ok(Map.of("message", "View mode updated", "viewMode", mode.name()));
+    }
+
+    private UserViewMode defaultViewModeForNewUsers() {
+        return propertiesRepository.findById(UserViewMode.DEFAULT_PROPERTY_KEY)
+            .map(p -> UserViewMode.parse(p.getValue()))
+            .orElse(UserViewMode.FULL);
     }
 
     // Credit a user's balance (moved from BalanceController)
@@ -251,8 +302,9 @@ public class UserController {
         private String ifscCode;
         private String upiId;
         private String approvalStatus;
+        private String viewMode;
 
-        public UserResponse(String mobileNumber, String username, LocalDateTime dateSignup, Integer balance, String accountHolderName, String accountNumber, String ifscCode, String upiId, String approvalStatus) {
+        public UserResponse(String mobileNumber, String username, LocalDateTime dateSignup, Integer balance, String accountHolderName, String accountNumber, String ifscCode, String upiId, String approvalStatus, String viewMode) {
             this.mobileNumber = mobileNumber;
             this.username = username;
             this.dateSignup = dateSignup;
@@ -262,6 +314,7 @@ public class UserController {
             this.ifscCode = ifscCode;
             this.upiId = upiId;
             this.approvalStatus = approvalStatus;
+            this.viewMode = viewMode;
         }
 
         public String getMobileNumber() { return mobileNumber; }
@@ -273,6 +326,7 @@ public class UserController {
         public String getIfscCode() { return ifscCode; }
         public String getUpiId() { return upiId; }
         public String getApprovalStatus() { return approvalStatus; }
+        public String getViewMode() { return viewMode; }
     }
 
     // API to update bank details (partial update: only non-null fields are updated)
@@ -286,6 +340,9 @@ public class UserController {
             return ResponseEntity.status(404).body(Map.of("message", "User not found: " + req.getMobileNumber()));
         }
         var user = userOpt.get();
+        if (user.isLimitedView()) {
+            return ResponseEntity.status(403).body(Map.of("message", "Bank details are not available for this account"));
+        }
         boolean changed = false;
         if (req.getAccountHolderName() != null) { user.setAccountHolderName(req.getAccountHolderName()); changed = true; }
         if (req.getAccountNumber() != null) { user.setAccountNumber(req.getAccountNumber()); changed = true; }

@@ -26,6 +26,7 @@ export const UserProvider = ({ children }) => {
         ifscCode: user.ifscCode,
         upiId: user.upiId,
         approvalStatus: user.approvalStatus,
+        viewMode: user.viewMode || 'FULL',
         is_subscriber: user.approvalStatus?.toUpperCase() === 'APPROVED'
       }));
 

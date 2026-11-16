@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, Pressable, Animated, Easing } from "react-native";
+import { View, Text, StyleSheet, Pressable, Animated, Easing, StatusBar } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
@@ -39,49 +39,50 @@ const DynamicHeader = ({ title = "", speed = 60, gap = 80 }) => {
   }, [textW, gap, speed, animX]);
 
   return (
-    <View style={[styles.root, { paddingTop: top }]}>
-      <View style={[styles.bg, { backgroundColor: colors.primary }]} />
-
-      <View style={styles.row}>
-        <Pressable
-          onPress={() => navigation.goBack()}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          style={styles.left}
-        >
-          <MaterialIcons name="arrow-back" size={26} color={colors.text} />
-        </Pressable>
-
-        <View style={styles.center}>
-          <Animated.View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              transform: [{ translateX: animX }],
-              width: textW ? (textW + gap) * 2 + 20 : '1000%',
-            }}
+    <View style={[styles.root, { paddingTop: top + 8, backgroundColor: colors.primary }]}>
+      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
+      <View style={[styles.sheet, { backgroundColor: colors.background }]}>
+        <View style={styles.row}>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
           >
-            {/* Initial Spacer to prevent clipping on start */}
-            <View style={{ width: 10 }} />
+            <MaterialIcons name="chevron-left" size={28} color={colors.text} />
+          </Pressable>
 
-            <Text
-              numberOfLines={1}
-              style={[styles.title, { color: colors.text }]}
-              onLayout={(e) => setTextW(e.nativeEvent.layout.width)}
+          <View style={styles.center}>
+            <Animated.View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                transform: [{ translateX: animX }],
+                width: textW ? (textW + gap) * 2 + 20 : '1000%',
+              }}
             >
-              {title}
-            </Text>
+              {/* Initial Spacer to prevent clipping on start */}
+              <View style={{ width: 10 }} />
 
-            <View style={{ width: gap }} />
+              <Text
+                numberOfLines={1}
+                style={[styles.title, { color: colors.heading }]}
+                onLayout={(e) => setTextW(e.nativeEvent.layout.width)}
+              >
+                {title}
+              </Text>
 
-            <Text numberOfLines={1} style={[styles.title, { color: colors.text }]}>
-              {title}
-            </Text>
-          </Animated.View>
-        </View>
+              <View style={{ width: gap }} />
 
-        <View style={styles.wallet}>
-          <MaterialCommunityIcons name="wallet-outline" size={22} color={colors.text} />
-          <Text style={[styles.walletText, { color: colors.text }]}>{balance.toFixed(1)}</Text>
+              <Text numberOfLines={1} style={[styles.title, { color: colors.heading }]}>
+                {title}
+              </Text>
+            </Animated.View>
+          </View>
+
+          <View style={[styles.wallet, { backgroundColor: colors.dark }]}>
+            <MaterialCommunityIcons name="wallet" size={20} color={colors.onDark} />
+            <Text style={[styles.walletText, { color: colors.onDark }]}>₹{balance.toFixed(2)}</Text>
+          </View>
         </View>
       </View>
     </View>
@@ -94,47 +95,50 @@ const styles = StyleSheet.create({
   root: {
     width: "100%",
   },
-  bg: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 90,
-    borderBottomLeftRadius: 36,
-    borderBottomRightRadius: 36,
+  sheet: {
+    borderTopLeftRadius: 36,
+    borderTopRightRadius: 36,
+    paddingTop: 18,
+    paddingBottom: 8,
   },
   row: {
-    height: 60,
+    minHeight: 56,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
   },
-  left: { 
-    paddingRight: 8, 
+  backBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
     zIndex: 10,
-    marginBottom: 15,
   },
   center: {
     flex: 1,
     overflow: "hidden",
     justifyContent: "center",
+    marginLeft: 8,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "600",
     flexWrap: 'nowrap',
-    marginBottom: 15,
   },
   wallet: {
     flexDirection: "row",
     alignItems: "center",
     marginLeft: 10,
     zIndex: 10,
-    marginBottom: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 24,
   },
   walletText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
-    marginLeft: 6,
+    marginLeft: 8,
   },
 });

@@ -211,7 +211,7 @@ const SinglePanaBulk = ({ route }) => {
                 activeOpacity={0.85}
                 onPress={() => handleDigitPress(d)}
               >
-                <Text style={[styles.digitText, { color: colors.text }]}>{d}</Text>
+                <Text style={[styles.digitText, { color: colors.onPrimary }]}>{d}</Text>
               </TouchableOpacity>
             ))}
           </View>

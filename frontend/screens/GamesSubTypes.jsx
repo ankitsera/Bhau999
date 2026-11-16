@@ -118,7 +118,7 @@ const GamesSubTypes = () => {
   if (isLoadingActiveGames && !game) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background, justifyContent: "center", alignItems: "center" }]}>
-        <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={colors.primary} />
+        <StatusBar translucent barStyle="light-content" backgroundColor="transparent" />
         <ThemeHeader title={title} />
         <Text style={{ marginTop: 16, color: colors.textSecondary, fontWeight: "700" }}>{t('common:loading')}</Text>
       </View>
@@ -127,7 +127,7 @@ const GamesSubTypes = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} backgroundColor={colors.primary} />
+      <StatusBar translucent barStyle="light-content" backgroundColor="transparent" />
       <ThemeHeader title={title} />
 
       <ClosedPopup

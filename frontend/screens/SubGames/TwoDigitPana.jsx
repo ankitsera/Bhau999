@@ -317,7 +317,7 @@ const TwoDigitPana = ({ route }) => {
             onPress={handleAdd}
             activeOpacity={0.85}
           >
-            <Text style={[styles.addText, { color: colors.text }]}>Add</Text>
+            <Text style={[styles.addText, { color: colors.onPrimary }]}>Add</Text>
           </TouchableOpacity>
 
           {/* Table area (scrolls internally) */}

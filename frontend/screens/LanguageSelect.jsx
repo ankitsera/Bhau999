@@ -56,7 +56,7 @@ const LanguageCard = ({ item, selectedCode, onPress }) => {
           { backgroundColor: isSelected ? colors.primary : colors.primaryTile },
         ]}
       >
-        <Text style={[styles.iconText, { color: colors.text }]}>{item.icon}</Text>
+        <Text style={[styles.iconText, { color: isSelected ? colors.onPrimary : colors.text }]}>{item.icon}</Text>
       </View>
 
       <Text style={[styles.nativeName, { color: colors.text }]} numberOfLines={1}>

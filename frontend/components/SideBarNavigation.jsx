@@ -16,6 +16,7 @@ import { Share, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { getShareUrl, getTelegramChannel } from '../utils/AppConfigService';
 import { useTheme } from '../contexts/ThemeContext';
+import { canUseFeature, FEATURES } from '../utils/Features';
 
 const menuImages = {
   home: require('../assets/Images/home.webp'),
@@ -40,9 +41,9 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
 
   const menuItems = [
     { name: 'Home', translationKey: 'home', imageKey: 'home' },
-    { name: 'My Bids', translationKey: 'myBids', imageKey: 'myBids' },
-    { name: 'Passbook', translationKey: 'passbook', imageKey: 'passbook' },
-    { name: 'Funds', translationKey: 'funds', imageKey: 'funds'},
+    { name: 'My Bids', translationKey: 'myBids', imageKey: 'myBids', feature: FEATURES.BETTING },
+    { name: 'Passbook', translationKey: 'passbook', imageKey: 'passbook', feature: FEATURES.PAYMENTS },
+    { name: 'Funds', translationKey: 'funds', imageKey: 'funds', feature: FEATURES.PAYMENTS },
     { name: 'Telegram', translationKey: 'telegram', imageKey: 'telegram' },
     { name: 'Notifications', translationKey: 'notifications', imageKey: 'notifications' },
     { name: 'Charts', translationKey: 'charts', imageKey: 'charts' },
@@ -52,7 +53,7 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
     { name: 'Settings', translationKey: 'settings', imageKey: 'settings' },
     { name: 'Share App', translationKey: 'shareApp', imageKey: 'shareApp' },
     { name: 'Logout', translationKey: 'logout', imageKey: 'logout' },
-  ];
+  ].filter(item => !item.feature || canUseFeature(user, item.feature));
 
   const shareApp = async () => {
     try {
@@ -67,7 +68,7 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
       }
 
       const message =
-        `Download the latest SARA777 app from here:\n${link}\n\n` +
+        `Download the latest BHAU999 app from here:\n${link}\n\n` +
         `Then tap Download and install.\nIf it asks, allow "Install unknown apps".`;
 
       await Share.share({ message });
@@ -151,9 +152,9 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
         {/* USER INFO */}
         <View style={styles.userSection}>
           <View
-            style={[styles.userCircle]}
+            style={[styles.userCircle, { backgroundColor: colors.primary, borderColor: colors.primaryIconBg }]}
           >
-            <MaterialIcons name="person-outline" size={50} color="#000" />
+            <MaterialIcons name="person-outline" size={36} color={colors.onPrimary} />
           </View>
 
           <View style={styles.userInfo}>
@@ -205,9 +206,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   userCircle: {
-    width: 50,
-    height: 50,
+    width: 60,
+    height: 60,
     borderRadius: 30,
+    borderWidth: 3,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
