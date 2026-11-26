@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next';
 import { getShareUrl, getTelegramChannel } from '../utils/AppConfigService';
 import { useTheme } from '../contexts/ThemeContext';
 import { canUseFeature, FEATURES } from '../utils/Features';
+import { FONT } from '../contexts/Themes';
 
 const menuImages = {
   home: require('../assets/Images/home.webp'),
@@ -40,17 +41,19 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
   const { colors } = useTheme();
 
   const menuItems = [
-    { name: 'Home', translationKey: 'home', imageKey: 'home' },
+    canUseFeature(user, FEATURES.GAMES)
+      ? { name: 'Home', translationKey: 'home', imageKey: 'home' }
+      : { name: 'Home', labelKey: 'library:title', imageKey: 'home' },
     { name: 'My Bids', translationKey: 'myBids', imageKey: 'myBids', feature: FEATURES.BETTING },
     { name: 'Passbook', translationKey: 'passbook', imageKey: 'passbook', feature: FEATURES.PAYMENTS },
     { name: 'Funds', translationKey: 'funds', imageKey: 'funds', feature: FEATURES.PAYMENTS },
-    { name: 'Telegram', translationKey: 'telegram', imageKey: 'telegram' },
-    { name: 'Notifications', translationKey: 'notifications', imageKey: 'notifications' },
-    { name: 'Charts', translationKey: 'charts', imageKey: 'charts' },
-    { name: 'Game Rate', translationKey: 'gameRate', imageKey: 'gameRate' },
+    { name: 'Telegram', translationKey: 'telegram', imageKey: 'telegram', feature: FEATURES.GAMES },
+    { name: 'Notifications', translationKey: 'notifications', imageKey: 'notifications', feature: FEATURES.GAMES },
+    { name: 'Charts', translationKey: 'charts', imageKey: 'charts', feature: FEATURES.GAMES },
+    { name: 'Game Rate', translationKey: 'gameRate', imageKey: 'gameRate', feature: FEATURES.GAMES },
     { name: 'Language', translationKey: 'language', imageKey: 'language' },
-    { name: 'Notice board / Rules', translationKey: 'noticeBoardRules', imageKey: 'noticeBoard' },
-    { name: 'Settings', translationKey: 'settings', imageKey: 'settings' },
+    { name: 'Notice board / Rules', translationKey: 'noticeBoardRules', imageKey: 'noticeBoard', feature: FEATURES.GAMES },
+    { name: 'Settings', translationKey: 'settings', imageKey: 'settings', feature: FEATURES.GAMES },
     { name: 'Share App', translationKey: 'shareApp', imageKey: 'shareApp' },
     { name: 'Logout', translationKey: 'logout', imageKey: 'logout' },
   ].filter(item => !item.feature || canUseFeature(user, item.feature));
@@ -132,7 +135,9 @@ const SideBarNavigation = ({ navigation, closeSidebar }) => {
             style={[styles.menuText, { color: colors.text }]}
             numberOfLines={1}
           >
-            {item.translationKey ? t(`common:${item.translationKey}`) : item.name}
+            {item.labelKey
+              ? t(item.labelKey)
+              : item.translationKey ? t(`common:${item.translationKey}`) : item.name}
           </Text>
         </View>
       </TouchableOpacity>
@@ -218,15 +223,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   username: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '700',
   },
   mobile: {
-    fontSize: 14,
+    fontSize: FONT.label,
     marginTop: 1,
   },
   since: {
-    fontSize: 13,
+    fontSize: FONT.caption,
     marginTop: 2,
   },
   closeBtn: {
@@ -251,7 +256,7 @@ const styles = StyleSheet.create({
     marginRight: 14,
   },
   menuText: {
-    fontSize: 15.5,
+    fontSize: FONT.body,
     fontWeight: '400',
   },
 

@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useTranslation } from 'react-i18next';
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const BottomBetBar = ({
   bids,
@@ -67,10 +68,10 @@ const styles = StyleSheet.create({
     marginRight: 28,
   },
   label: {
-    fontSize: 13,
+    fontSize: FONT.caption,
   },
   value: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "700",
   },
   button: {
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#FFF",
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "700",
   },
 });

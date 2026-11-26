@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useTranslation } from 'react-i18next';
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const GameTypePicker = ({
   label = "Select Game Type:",
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
   },
   label: {
     flex: 1,
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "500",
     marginRight: 8,
   },
@@ -174,12 +175,12 @@ const styles = StyleSheet.create({
   },
   valueText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: FONT.label,
     fontWeight: "500",
     textAlign: "center",
   },
   chevron: {
-    fontSize: 18,
+    fontSize: FONT.title,
     marginLeft: 8,
   },
 
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   menuTitle: {
-    fontSize: 14,
+    fontSize: FONT.label,
     fontWeight: "800",
     marginBottom: 8,
   },
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   optionText: {
-    fontSize: 14,
+    fontSize: FONT.label,
     fontWeight: "700",
     textAlign: "center",
   },

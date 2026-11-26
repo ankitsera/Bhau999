@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Switch } from "react-native";
 import { useTranslation } from 'react-i18next';
 import ThemeHeader from "../../components/ThemeHeader";
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const Row = ({ label, value, onChange }) => {
   const { colors } = useTheme();
@@ -79,7 +80,7 @@ const styles = StyleSheet.create({
   },
   bannerText: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: "800",
   },
   row: {
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   rowLabel: {
-    fontSize: 16,
+    fontSize: FONT.body,
   },
   sep: {
     height: 1,

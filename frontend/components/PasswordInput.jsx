@@ -3,6 +3,7 @@ import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useTranslation } from 'react-i18next';
 import { useTheme } from "../contexts/ThemeContext";
+import { FONT } from '../contexts/Themes';
 
 const PasswordInput = forwardRef(
   (
@@ -104,7 +105,7 @@ const styles = StyleSheet.create({
   leftIcon: { marginRight: 8 },
   input: {
     flex: 1,
-    fontSize: 15,
+    fontSize: FONT.label,
     paddingRight: 8,
   },
 });

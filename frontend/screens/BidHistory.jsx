@@ -17,9 +17,9 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useTranslation } from 'react-i18next';
 import ThemeHeader from '../components/ThemeHeader';
+import FilterButton from '../components/FilterButton';
 import PaginationBar from '../components/PaginationBar';
 import LoadingView from '../components/LoadingView';
 
@@ -28,6 +28,7 @@ import { GameContext } from '../contexts/GameContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 import DateFilterRow, { matchesSingleDateFilter } from '../components/DateFilterRow';
+import { FONT } from '../contexts/Themes';
 
 const PAGE_SIZE = 8;
 
@@ -132,9 +133,6 @@ const makeSig = x => {
 };
 
 const ResultPill = ({ result }) => {
-  const { t } = useTranslation(['games', 'screens', 'common']);
-  const { colors } = useTheme();
-
   const r = String(result || '')
     .trim()
     .toUpperCase();
@@ -469,33 +467,19 @@ const BidHistory = () => {
   return (
     <LoadingView loading={loading}>
       <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]} edges={['bottom']}>
-        <ThemeHeader title={t('games:bidHistory')} />
-
-        {/* Filter button kept inside screen (later can move into ThemeHeader) */}
-        <View style={styles.filterBar}>
-          <Pressable style={[styles.filterBtn, { backgroundColor: colors.primary }]} onPress={openFilter}>
-            <View style={styles.filterBtnContent}>
-              <MaterialCommunityIcons name="filter" size={30} color={colors.onPrimary} />
-              {activeFilterCount ? (
-                <View style={[styles.filterBadge, { backgroundColor: colors.background }]}>
-                  <Text style={[styles.filterBadgeText, { color: colors.primary }]}>{activeFilterCount}</Text>
-                </View>
-              ) : null}
-            </View>
-        </Pressable>
-
-        {activeFilterCount ? (
-          <Pressable
-            style={[styles.clearBtn, { backgroundColor: colors.surface }]}
-            onPress={() => {
-              setFilters({ openClose: new Set(), result: new Set(), games: new Set(), date: null });
-              setPage(1);
-            }}
-          >
-            <Text style={[styles.clearBtnText, { color: colors.text }]}>{t('screens:clear')}</Text>
-          </Pressable>
-        ) : null}
-      </View>
+        <ThemeHeader
+          title={t('games:bidHistory')}
+          right={
+            <FilterButton
+              count={activeFilterCount}
+              onPress={openFilter}
+              onClear={() => {
+                  setFilters({ openClose: new Set(), result: new Set(), games: new Set(), date: null });
+                  setPage(1);
+                }}
+            />
+          }
+        />
 
       <View style={styles.body}>
         <FlatList
@@ -649,46 +633,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // ✅ filter bar (kept below header for now)
-  filterBar: {
-    position: 'absolute',
-    top: 35,
-    right: 25,
-    zIndex: 10,
-    flexDirection: 'row',
-    paddingTop: 2 ,
-    paddingBottom: 2,
-  },
-  filterBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderRadius: 10,
-  },
-  filterBtnContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  filterBadge: {
-    borderRadius: 10,
-    minWidth: 20,
-    minHeight: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterBadgeText: {
-    fontWeight: '900',
-    fontSize: 12,
-  },
-  clearBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 999,
-  },
-  clearBtnText: {
-    fontWeight: '900',
-  },
 
   listContent: {
     paddingHorizontal: 12,
@@ -727,7 +671,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardTopTitle: {
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: '900',
     letterSpacing: 0.4,
   },
@@ -778,12 +722,12 @@ const styles = StyleSheet.create({
   },
 
   infoLabel: {
-    fontSize: 13,
+    fontSize: FONT.caption,
     fontWeight: '700',
     marginBottom: 4,
   },
   infoValue: {
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: '900',
   },
 
@@ -826,7 +770,7 @@ const styles = StyleSheet.create({
   modalHeaderText: {
     color: '#fff',
     fontWeight: '900',
-    fontSize: 18,
+    fontSize: FONT.title,
     letterSpacing: 0.3,
   },
   modalBody: {
@@ -836,7 +780,7 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '900',
     marginBottom: 10,
   },

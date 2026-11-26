@@ -15,7 +15,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import DynamicHeader from '../../components/DynamicHeader';
 import LuckyGamesCard from '../../components/games/LuckyGamesCard';
 
-import { ThemeColor } from '../../contexts/Themes';
+import { ThemeColor, FONT } from '../../contexts/Themes';
 
 const GREEN = ThemeColor;
 const BG = '#F3F3F3';
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   topRowText: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '600',
     color: '#222',
   },

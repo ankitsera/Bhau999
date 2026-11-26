@@ -8,7 +8,7 @@ export default function UserEdit() {
   return (
     <>
       <Helmet>
-        <title> User Edit </title>
+        <title> User Edit | Bhau999 Admin </title>
       </Helmet>
 
       <UserEditPage />

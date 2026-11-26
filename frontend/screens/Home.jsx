@@ -9,8 +9,6 @@ import {
   StatusBar,
   BackHandler,
   Linking,
-  TouchableOpacity,
-  Image,
   Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -23,6 +21,7 @@ import SideBarNavigation from '../components/SideBarNavigation';
 import Footer from '../components/Footer';
 import TopStrip from '../components/TopStrip';
 import GamesList from '../components/games/GamesList';
+import BrandLogo from '../components/BrandLogo';
 
 // ✅ AppConfig helpers (defaults live inside these)
 import { getWhatsappSupport } from '../utils/AppConfigService';
@@ -73,12 +72,8 @@ const Header = ({ navigation }) => {
           onPress={() => setIsSideBarVisible(true)}
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
-          <MaterialIcons name="menu" size={26} color={colors.onPrimary} />
-          <Image
-            source={require('../assets/Images/logo.webp')}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
+          <MaterialIcons name="menu" size={22} color={colors.onPrimary} />
+          <BrandLogo size={22} tone="onPrimary" />
         </Pressable>
 
         <View style={styles.headerRight}>
@@ -89,7 +84,7 @@ const Header = ({ navigation }) => {
               onPress={() => navigation.navigate('Add Money')}
             >
               <View style={[styles.walletIconCircle, { backgroundColor: colors.dark }]}>
-                <MaterialCommunityIcons name="wallet" size={18} color={colors.onDark} />
+                <MaterialCommunityIcons name="wallet" size={15} color={colors.onDark} />
               </View>
               <Text style={[styles.walletAmt, { color: colors.text }]} numberOfLines={1}>
                 ₹ {user?.balance ? user.balance : '0.0'}
@@ -98,7 +93,7 @@ const Header = ({ navigation }) => {
                 onPress={() => refreshBalance?.()}
                 hitSlop={{ top: 10, bottom: 10, left: 6, right: 10 }}
               >
-                <MaterialCommunityIcons name="refresh" size={20} color={colors.primary} />
+                <MaterialCommunityIcons name="refresh" size={17} color={colors.primary} />
               </Pressable>
             </Pressable>
           )}
@@ -108,7 +103,7 @@ const Header = ({ navigation }) => {
             style={[styles.bellCircle, { backgroundColor: colors.surface }]}
             onPress={() => navigation.navigate('Notifications')}
           >
-            <MaterialCommunityIcons name="bell" size={26} color={colors.text} />
+            <MaterialCommunityIcons name="bell" size={20} color={colors.text} />
           </Pressable>
         </View>
       </View>
@@ -231,7 +226,7 @@ const styles = StyleSheet.create({
   /* Header */
   headerRoot: { width: '100%' },
   header: {
-    height: 76,
+    height: 58,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -240,48 +235,44 @@ const styles = StyleSheet.create({
   logoPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    height: 52,
-    paddingHorizontal: 14,
-    borderRadius: 26,
-    borderWidth: 1.5,
+    gap: 6,
+    height: 40,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1.2,
     borderColor: 'rgba(255,255,255,0.75)',
-  },
-  logoImage: {
-    width: 92,
-    height: 36,
   },
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   walletPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    height: 52,
-    paddingLeft: 6,
-    paddingRight: 12,
-    borderRadius: 26,
-    maxWidth: 180,
+    gap: 6,
+    height: 40,
+    paddingLeft: 5,
+    paddingRight: 10,
+    borderRadius: 20,
+    maxWidth: 160,
   },
   walletIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
   },
   walletAmt: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     flexShrink: 1,
   },
   bellCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -292,10 +283,10 @@ const styles = StyleSheet.create({
   /* Games */
   gamesListContainer: {
     flex: 1,
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
     overflow: 'hidden',
-    paddingTop: 12,
+    paddingTop: 4,
   },
 
   /* Sidebar modal + overlay */

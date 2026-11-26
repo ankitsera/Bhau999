@@ -15,6 +15,7 @@ import LoadingView from '../../components/LoadingView';
 import { useTranslation } from 'react-i18next';
 import { NotificationsContext } from '../../contexts/NotificationsContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { FONT } from '../../contexts/Themes';
 
 const Notifications = ({ navigation }) => {
   const { t } = useTranslation('common');
@@ -172,14 +173,14 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '700',
     marginBottom: 6,
   },
 
   message: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: FONT.label,
+    lineHeight: 19,
     marginBottom: 8,
   },
 

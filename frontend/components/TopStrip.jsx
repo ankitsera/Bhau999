@@ -134,7 +134,7 @@ const TopStrip = ({ navigation }) => {
     <View style={styles.container}>
       {/* marquee pill */}
       <View style={[styles.marqueePill, { backgroundColor: colors.surface }]}>
-        <MaterialCommunityIcons name="bullhorn" size={22} color={colors.text} style={styles.marqueeIcon} />
+        <MaterialCommunityIcons name="bullhorn" size={17} color={colors.text} style={styles.marqueeIcon} />
         <View style={styles.marqueeWrap}>
           <Animated.View
             style={{
@@ -190,12 +190,12 @@ const TopStrip = ({ navigation }) => {
       {/* contact rows */}
       <View style={styles.contactsRow}>
         <TouchableOpacity style={styles.contactRow} onPress={openDialer} activeOpacity={0.7}>
-          <MaterialCommunityIcons name="cellphone" size={20} color={colors.onPrimary} />
+          <MaterialCommunityIcons name="cellphone" size={15} color={colors.onPrimary} />
           <Text style={[styles.contactText, { color: colors.onPrimary }]}>{normalizeDigits(callNumber)}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.contactRow} onPress={openWhatsApp} activeOpacity={0.7}>
-          <MaterialCommunityIcons name="whatsapp" size={20} color={colors.onPrimary} />
+          <MaterialCommunityIcons name="whatsapp" size={15} color={colors.onPrimary} />
           <Text style={[styles.contactText, { color: colors.onPrimary }]}>{normalizeDigits(waNumber)}</Text>
         </TouchableOpacity>
       </View>
@@ -207,18 +207,18 @@ export default TopStrip;
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 14,
+    paddingHorizontal: 14,
+    paddingTop: 0,
+    paddingBottom: 8,
   },
   marqueePill: {
     flexDirection: "row",
     alignItems: "center",
-    height: 46,
-    borderRadius: 23,
-    paddingLeft: 14,
+    height: 34,
+    borderRadius: 17,
+    paddingLeft: 12,
     paddingRight: 8,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   marqueeIcon: {
     marginRight: 4,
@@ -226,53 +226,53 @@ const styles = StyleSheet.create({
   marqueeWrap: {
     flex: 1,
     overflow: "hidden",
-    height: 24,
+    height: 20,
     justifyContent: "center",
   },
   marqueeText: {
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 13,
+    fontWeight: "600",
   },
   pillsCard: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 12,
-    padding: 12,
-    borderRadius: 20,
-    marginBottom: 10,
+    gap: 8,
+    padding: 8,
+    borderRadius: 16,
+    marginBottom: 8,
   },
   pill: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 26,
-    borderWidth: 1.5,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
+    borderRadius: 20,
+    borderWidth: 1.2,
+    height: 40,
+    paddingHorizontal: 8,
   },
   pillIcon: {
-    width: 24,
-    height: 24,
-    marginRight: 8,
+    width: 18,
+    height: 18,
+    marginRight: 6,
   },
   pillText: {
     fontWeight: "700",
-    fontSize: 16,
+    fontSize: 14,
     flexShrink: 1,
   },
   contactsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginHorizontal: 8,
+    marginHorizontal: 6,
   },
   contactRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: 4,
   },
   contactText: {
-    fontSize: 15,
+    fontSize: 12.5,
     fontWeight: "600",
   },
 });

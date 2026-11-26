@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import ThemeHeader from '../../components/ThemeHeader';
+import FilterButton from '../../components/FilterButton';
 import PaginationBar from '../../components/PaginationBar';
 import EmptyState from '../../components/EmptyState';
 import LoadingView from '../../components/LoadingView';
@@ -32,6 +33,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import DateFilterRow, {
   matchesSingleDateFilter,
 } from '../../components/DateFilterRow';
+import { FONT } from '../../contexts/Themes';
 
 const PAGE_SIZE = 10;
 
@@ -233,8 +235,6 @@ const Passbook = () => {
   const { GREEN, transactions, isLoadingTransactions, loadTransactions } =
     useContext(PaymentsContext);
 
-  const primary = colors.primary;
-
   const [page, setPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -383,35 +383,16 @@ const Passbook = () => {
   return (
     <LoadingView loading={loading}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title={t('funds:passbook')} />
-
-      {/* filter bar */}
-      <View style={styles.filterBar}>
-        <Pressable
-          style={[styles.filterBtn, { backgroundColor: colors.primary }]}
-          onPress={openFilter}
-        >
-          <View style={styles.filterBtnContent}>
-            <MaterialCommunityIcons name="filter" size={30} color={colors.onPrimary} />
-            {activeFilterCount ? (
-              <View style={[styles.filterBadge, { backgroundColor: colors.background }]}>
-                <Text style={[styles.filterBadgeText, { color: colors.primary }]}>
-                  {activeFilterCount}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-        </Pressable>
-
-        {activeFilterCount ? (
-          <Pressable
-            style={[styles.clearBtn, { backgroundColor: colors.surface }]}
-            onPress={clearAll}
-          >
-            <Text style={[styles.clearBtnText, { color: colors.text }]}>{t('screens:clear')}</Text>
-          </Pressable>
-        ) : null}
-      </View>
+      <ThemeHeader
+          title={t('funds:passbook')}
+          right={
+            <FilterButton
+              count={activeFilterCount}
+              onPress={openFilter}
+              onClear={clearAll}
+            />
+          }
+        />
 
       {/* fixed top content (summary + chips) */}
       <View style={styles.topWrap}>
@@ -542,46 +523,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // filter bar (same pattern)
-  filterBar: {
-    position: 'absolute',
-    top: 35,
-    right: 25,
-    zIndex: 10,
-    flexDirection: 'row',
-    paddingTop: 2,
-    paddingBottom: 2,
-  },
-  filterBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderRadius: 10,
-  },
-  filterBtnContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  filterBadge: {
-    borderRadius: 10,
-    minWidth: 20,
-    minHeight: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterBadgeText: {
-    fontWeight: '900',
-    fontSize: 12,
-  },
-  clearBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 999,
-  },
-  clearBtnText: {
-    fontWeight: '900',
-  },
 
   // top block (summary + chips)
   topWrap: {
@@ -620,7 +561,7 @@ const styles = StyleSheet.create({
   },
   summaryValue: {
     fontWeight: '900',
-    fontSize: 18,
+    fontSize: FONT.title,
   },
   summaryLabel: {
     fontWeight: '800',
@@ -685,16 +626,16 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   title: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '800',
   },
   sub: {
     marginTop: 6,
-    fontSize: 14,
+    fontSize: FONT.label,
     fontWeight: '700',
   },
   amount: {
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: '900',
   },
 
@@ -718,7 +659,7 @@ const styles = StyleSheet.create({
   modalHeaderText: {
     color: '#fff',
     fontWeight: '900',
-    fontSize: 18,
+    fontSize: FONT.title,
     letterSpacing: 0.3,
   },
   modalBody: {

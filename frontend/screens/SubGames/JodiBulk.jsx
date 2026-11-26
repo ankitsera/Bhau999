@@ -21,6 +21,7 @@ import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const JodiBulk = ({ route }) => {
   const { t } = useTranslation(['games', 'validation', 'common']);
@@ -244,7 +245,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   label: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "500",
   },
   input: {
@@ -252,7 +253,7 @@ const styles = StyleSheet.create({
     width: 150,
     borderRadius: 22,
     borderWidth: 1,
-    fontSize: 16,
+    fontSize: FONT.body,
     marginBottom: 4,
     textAlign: "center",
     writingDirection: "ltr",
@@ -276,7 +277,7 @@ const styles = StyleSheet.create({
   },
   addText: {
     color: "#FFF",
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "700",
   },
   tableArea: {

@@ -1,6 +1,7 @@
 package com.matka.backend.controller;
 
 import com.matka.backend.TransactionEntity;
+import com.matka.backend.ApiRoutes;
 import com.matka.backend.repository.TransactionRepository;
 import com.matka.backend.repository.UserRepository;
 import com.matka.backend.service.WithdrawalRulesService;
@@ -16,7 +17,7 @@ import java.time.LocalTime;
 import com.matka.backend.repository.PropertiesRepository;
 
 @RestController
-@RequestMapping("/api/transaction")
+@RequestMapping(ApiRoutes.BASE + "/transaction")
 public class TransactionController {
     private static final Logger log = LoggerFactory.getLogger(TransactionController.class);
 

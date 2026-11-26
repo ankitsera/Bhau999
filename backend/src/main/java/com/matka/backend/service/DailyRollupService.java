@@ -85,9 +85,8 @@ public class DailyRollupService {
             activeGameRepository.deleteAll();
             List<Game> games = gameRepository.findAll();
             List<ActiveGame> newActive = new ArrayList<>();
-            java.time.DayOfWeek todayDow = java.time.LocalDate.now().getDayOfWeek();
-            boolean isSat = todayDow == java.time.DayOfWeek.SATURDAY;
-            boolean isSun = todayDow == java.time.DayOfWeek.SUNDAY;
+            java.time.LocalDate gameDay = GameSchedule.gameDate(java.time.LocalDateTime.now());
+            java.time.DayOfWeek todayDow = gameDay.getDayOfWeek();
             for (Game g : games) {
                 // Skip games that are explicitly disabled
                 if (Boolean.FALSE.equals(g.getEnabled())) {
@@ -100,13 +99,7 @@ public class DailyRollupService {
                 ag.setOpenPana(null);
                 ag.setClosePana(null);
                 // determine runningToday: if weekend and game not enabled for that day, set false
-                if (isSat) {
-                    ag.setRunningToday(Boolean.TRUE.equals(g.getSaturday()));
-                } else if (isSun) {
-                    ag.setRunningToday(Boolean.TRUE.equals(g.getSunday()));
-                } else {
-                    ag.setRunningToday(true);
-                }
+                ag.setRunningToday(GameSchedule.runsOn(g, gameDay));
                 newActive.add(ag);
             }
             if (!newActive.isEmpty()) {

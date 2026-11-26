@@ -8,7 +8,7 @@ export default function NoticeBoardPage() {
   return (
     <>
       <Helmet>
-        <title> NoticeBoard | Matka Admin </title>
+        <title> NoticeBoard | Bhau999 Admin </title>
       </Helmet>
 
       <NoticeBoardView />

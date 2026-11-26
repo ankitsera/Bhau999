@@ -29,6 +29,7 @@ import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 function buildDigitCount(str) {
   const c = {};
@@ -390,7 +391,7 @@ const styles = StyleSheet.create({
   },
   checkItem: { alignItems: "center", width: 80 },
   checkLabel: {
-    fontSize: 14,
+    fontSize: FONT.label,
     marginBottom: 6,
     fontWeight: "600",
   },
@@ -411,7 +412,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   label: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "500",
     marginBottom: 4,
   },
@@ -420,7 +421,7 @@ const styles = StyleSheet.create({
     width: 150,
     borderRadius: 22,
     borderWidth: 1,
-    fontSize: 16,
+    fontSize: FONT.body,
     marginBottom: 12,
     textAlign: "center", // This centers the text and cursor
     paddingHorizontal: 0, // Removes internal padding that might push the cursor
@@ -439,7 +440,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   generateText: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "700",
   },
 

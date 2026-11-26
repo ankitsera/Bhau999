@@ -12,6 +12,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { FONT } from '../../contexts/Themes';
 
 const TileIcon = ({ name }) => {
   const { colors } = useTheme();
@@ -160,13 +161,13 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   title: {
-    fontSize: 34,
+    fontSize: FONT.display,
     fontWeight: '700',
     color: '#2A1B3D',
     marginBottom: 8,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: FONT.title,
     color: '#303030',
     opacity: 0.8,
   },
@@ -197,7 +198,7 @@ const styles = StyleSheet.create({
 
   input: {
     flex: 1,
-    fontSize: 18,
+    fontSize: FONT.title,
     color: '#000',
     paddingRight: 8, // breathing room before eye icon
   },
@@ -219,7 +220,7 @@ const styles = StyleSheet.create({
   },
   loginText: {
     color: '#fff',
-    fontSize: 20,
+    fontSize: FONT.title,
     fontWeight: '700',
   },
 });

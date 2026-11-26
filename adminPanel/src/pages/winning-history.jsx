@@ -8,7 +8,7 @@ export default function WinningHistoryPage() {
   return (
     <>
       <Helmet>
-        <title> Winning History </title>
+        <title> Winning History | Bhau999 Admin </title>
       </Helmet>
 
       <WinningHistoryView />

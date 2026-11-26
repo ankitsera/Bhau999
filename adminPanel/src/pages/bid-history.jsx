@@ -8,7 +8,7 @@ export default function BidHistoryPage() {
   return (
     <>
       <Helmet>
-        <title> Bid History </title>
+        <title> Bid History | Bhau999 Admin </title>
       </Helmet>
 
       <BidHistoryView />

@@ -17,10 +17,10 @@ import {
   ScrollView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 
 import ThemeHeader from '../components/ThemeHeader';
+import FilterButton from '../components/FilterButton';
 import PaginationBar from '../components/PaginationBar';
 import EmptyState from '../components/EmptyState';
 import LoadingView from '../components/LoadingView';
@@ -32,6 +32,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import DateFilterRow, {
   matchesSingleDateFilter,
 } from '../components/DateFilterRow';
+import { FONT } from '../contexts/Themes';
 
 const PAGE_SIZE = 10;
 
@@ -275,44 +276,16 @@ const AddFundHistory = () => {
   return (
     <LoadingView loading={loading}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemeHeader title={t('funds:addFundHistory')} />
-
-      {/* Filter button */}
-      <View style={styles.filterBar}>
-        <Pressable
-          style={[styles.filterBtn, { backgroundColor: colors.primary }]}
-          onPress={openFilter}
-        >
-          <View style={styles.filterBtnContent}>
-            <MaterialCommunityIcons name="filter" size={30} color={colors.onPrimary} />
-            {activeFilterCount ? (
-              <View
-                style={[
-                  styles.filterBadge,
-                  { backgroundColor: colors.background },
-                ]}
-              >
-                <Text
-                  style={[styles.filterBadgeText, { color: colors.primary }]}
-                >
-                  {activeFilterCount}
-                </Text>
-              </View>
-            ) : null}
-          </View>
-        </Pressable>
-
-        {activeFilterCount ? (
-          <Pressable
-            style={[styles.clearBtn, { backgroundColor: colors.surface }]}
-            onPress={clearAll}
-          >
-            <Text style={[styles.clearBtnText, { color: colors.text }]}>
-              {t('screens:clear')}
-            </Text>
-          </Pressable>
-        ) : null}
-      </View>
+      <ThemeHeader
+          title={t('funds:addFundHistory')}
+          right={
+            <FilterButton
+              count={activeFilterCount}
+              onPress={openFilter}
+              onClear={clearAll}
+            />
+          }
+        />
 
       {filtered.length === 0 && !isLoadingDeposits ? (
         <EmptyState
@@ -416,46 +389,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // filter bar
-  filterBar: {
-    position: 'absolute',
-    top: 35,
-    right: 25,
-    zIndex: 10,
-    flexDirection: 'row',
-    paddingTop: 2,
-    paddingBottom: 2,
-  },
-  filterBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderRadius: 10,
-  },
-  filterBtnContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  filterBadge: {
-    borderRadius: 10,
-    minWidth: 20,
-    minHeight: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filterBadgeText: {
-    fontWeight: '900',
-    fontSize: 12,
-  },
-  clearBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 999,
-  },
-  clearBtnText: {
-    fontWeight: '900',
-  },
 
   card: {
     borderRadius: 10,
@@ -476,12 +409,12 @@ const styles = StyleSheet.create({
   cardTopLeft: {
     color: '#fff',
     fontWeight: '900',
-    fontSize: 16,
+    fontSize: FONT.body,
   },
   cardTopRight: {
     color: '#fff',
     fontWeight: '900',
-    fontSize: 18,
+    fontSize: FONT.title,
   },
 
   cardBody: {
@@ -524,7 +457,7 @@ const styles = StyleSheet.create({
   modalHeaderText: {
     color: '#fff',
     fontWeight: '900',
-    fontSize: 18,
+    fontSize: FONT.title,
     letterSpacing: 0.3,
   },
   modalBody: {

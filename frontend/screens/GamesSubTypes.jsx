@@ -10,6 +10,7 @@ import ThemeHeader from "../components/ThemeHeader";
 import EmptyState from "../components/EmptyState";
 import { GameContext } from "../contexts/GameContext";
 import { useTheme } from "../contexts/ThemeContext";
+import { FONT } from '../contexts/Themes';
 
 const RED = "#EF4B3E";
 
@@ -21,7 +22,7 @@ const ClosedPopup = ({ visible, onClose, t }) => {
       <View style={styles.modalOverlay}>
         <View style={[styles.modalCard, { backgroundColor: colors.background, borderColor: colors.border }]}>
           <Pressable onPress={onClose} hitSlop={10} style={styles.modalCloseBtn}>
-            <MaterialCommunityIcons name="close" size={28} color={colors.textTertiary} />
+            <MaterialCommunityIcons name="close" size={24} color={colors.textTertiary} />
           </Pressable>
 
           <View style={styles.modalIconWrap}>
@@ -203,15 +204,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   modalTitle: {
-    fontSize: 28,
+    fontSize: FONT.h1,
     fontWeight: "900",
     marginTop: 6,
   },
   modalMsg: {
     marginTop: 10,
     textAlign: "center",
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: FONT.body,
+    lineHeight: 19,
     fontWeight: "600",
   },
   modalOkBtn: {
@@ -222,7 +223,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalOkText: {
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: "800",
   },
 });

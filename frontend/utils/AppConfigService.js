@@ -1,6 +1,6 @@
 //AppConfigService.js
 // utils/AppConfigService.js
-import { API_URL } from "../env-vars";
+import { API_URL } from './ApiConfig';
 
 // ✅ Backend is: /api/properties/{key}
 const CONFIG_ENDPOINT = `${API_URL}/properties`;

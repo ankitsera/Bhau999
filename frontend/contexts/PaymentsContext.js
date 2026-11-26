@@ -440,7 +440,7 @@ export const PaymentsProvider = ({ children }) => {
       // better:
       dispatch({ type: T.ERROR, error: null }); // sets loading false in reducer
     }
-  }, [user?.mobileNumber, refreshUser, pollGatewayStatus, setGatewayUi, i18n.t]);
+  }, [user?.mobileNumber, refreshUser, pollGatewayStatus, setGatewayUi]);
 
   const addMoneyViaUpi = useCallback(async ({ amountRupees, payeeVpa, payeeName, note }) => {
     try {

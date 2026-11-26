@@ -8,7 +8,7 @@ export default function WithdrawPage() {
   return (
     <>
       <Helmet>
-        <title> Withdraw Request </title>
+        <title> Withdraw Request | Bhau999 Admin </title>
       </Helmet>
 
       <WithdrawView />

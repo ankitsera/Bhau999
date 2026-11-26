@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useTranslation } from 'react-i18next';
 import { useTheme } from "../contexts/ThemeContext";
+import { FONT } from '../contexts/Themes';
 
 const STATUS_COLORS = {
   pending: "#F29F05",
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   date: {
-    fontSize: 13,
+    fontSize: FONT.caption,
   },
   statusWrap: {
     flexDirection: "row",
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   statusText: {
-    fontSize: 13,
+    fontSize: FONT.caption,
     fontWeight: "700",
   },
 
@@ -110,14 +111,14 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   amount: {
-    fontSize: 28,
+    fontSize: FONT.h1,
     fontWeight: "900",
   },
   metaLabel: {
     fontSize: 12,
   },
   orderId: {
-    fontSize: 13,
+    fontSize: FONT.caption,
     fontWeight: "700",
     marginTop: 2,
   },

@@ -16,6 +16,7 @@ import {
 } from "../utils/NotificationsService";
 import { useTranslation } from 'react-i18next';
 import { useTheme } from "../contexts/ThemeContext";
+import { FONT } from '../contexts/Themes';
 
 const NotificationGate = ({ children }) => {
   const { t } = useTranslation(['common']);
@@ -32,7 +33,7 @@ const NotificationGate = ({ children }) => {
   // 🔔 Bell Animation
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
-  const animateBell = () => {
+  const animateBell = useCallback(() => {
     Animated.sequence([
       Animated.timing(scaleAnim, {
         toValue: 1.12,
@@ -45,11 +46,11 @@ const NotificationGate = ({ children }) => {
         useNativeDriver: true,
       }),
     ]).start();
-  };
+  }, [scaleAnim]);
 
   useEffect(() => {
     animateBell();
-  }, []);
+  }, [animateBell]);
 
   const check = useCallback(async () => {
     setChecking(true);
@@ -256,17 +257,17 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 22,
+    fontSize: FONT.h3,
     fontWeight: "800",
     marginBottom: 8,
     textAlign: "center",
   },
 
   subtitle: {
-    fontSize: 14,
+    fontSize: FONT.label,
     textAlign: "center",
     marginBottom: 20,
-    lineHeight: 20,
+    lineHeight: 19,
   },
 
   primaryBtn: {
@@ -278,7 +279,7 @@ const styles = StyleSheet.create({
   },
 
   primaryText: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "700",
   },
 

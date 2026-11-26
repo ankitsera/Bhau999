@@ -80,7 +80,7 @@ android {
 
     namespace "com.bhau999package"
     defaultConfig {
-        applicationId "com.bhau999package"
+        applicationId "com.games.bhau999"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

@@ -6,6 +6,7 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { AuthContext } from "../contexts/AuthContext";
 import { useTheme } from "../contexts/ThemeContext";
+import { FONT } from '../contexts/Themes';
 
 const DynamicHeader = ({ title = "", speed = 60, gap = 80 }) => {
   const navigation = useNavigation();
@@ -39,7 +40,7 @@ const DynamicHeader = ({ title = "", speed = 60, gap = 80 }) => {
   }, [textW, gap, speed, animX]);
 
   return (
-    <View style={[styles.root, { paddingTop: top + 8, backgroundColor: colors.primary }]}>
+    <View style={[styles.root, { paddingTop: top + 6, backgroundColor: colors.primary }]}>
       <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
       <View style={[styles.sheet, { backgroundColor: colors.background }]}>
         <View style={styles.row}>
@@ -48,7 +49,7 @@ const DynamicHeader = ({ title = "", speed = 60, gap = 80 }) => {
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             style={[styles.backBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
           >
-            <MaterialIcons name="chevron-left" size={28} color={colors.text} />
+            <MaterialIcons name="chevron-left" size={24} color={colors.text} />
           </Pressable>
 
           <View style={styles.center}>
@@ -96,21 +97,21 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   sheet: {
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    paddingTop: 18,
-    paddingBottom: 8,
+    borderTopLeftRadius: 26,
+    borderTopRightRadius: 26,
+    paddingTop: 12,
+    paddingBottom: 6,
   },
   row: {
-    minHeight: 56,
+    minHeight: 48,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
   },
   backBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
@@ -123,7 +124,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   title: {
-    fontSize: 22,
+    fontSize: FONT.h3,
     fontWeight: "600",
     flexWrap: 'nowrap',
   },
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
   },
   walletText: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "600",
     marginLeft: 8,
   },

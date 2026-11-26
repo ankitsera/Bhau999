@@ -23,6 +23,20 @@ const getAuthHeaders = (additionalHeaders = {}) => {
 };
 
 /**
+ * Readable error for a failed response: the server's JSON "message" when it sends one,
+ * otherwise the raw body or status text.
+ */
+const readableError = (res, errorText) => {
+  try {
+    const body = JSON.parse(errorText);
+    if (body && typeof body.message === 'string' && body.message) return body.message;
+  } catch (e) {
+    // not JSON, fall through
+  }
+  return `HTTP ${res.status}: ${errorText || res.statusText}`;
+};
+
+/**
  * Base API client with common HTTP methods
  * Handles request/response formatting and error handling
  * Automatically includes JWT token in Authorization header
@@ -44,7 +58,7 @@ export const apiClient = {
 
       if (!res.ok) {
         const errorText = await res.text();
-        throw new Error(`HTTP ${res.status}: ${errorText || res.statusText}`);
+        throw new Error(readableError(res, errorText));
       }
 
       return res.json();
@@ -107,7 +121,7 @@ export const apiClient = {
 
       if (!res.ok) {
         const errorText = await res.text();
-        throw new Error(`HTTP ${res.status}: ${errorText || res.statusText}`);
+        throw new Error(readableError(res, errorText));
       }
 
       return res.json();
@@ -133,7 +147,7 @@ export const apiClient = {
 
       if (!res.ok) {
         const errorText = await res.text();
-        throw new Error(`HTTP ${res.status}: ${errorText || res.statusText}`);
+        throw new Error(readableError(res, errorText));
       }
 
       return res.json();

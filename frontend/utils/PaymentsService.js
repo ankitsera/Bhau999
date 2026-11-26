@@ -1,4 +1,4 @@
-import { API_URL } from "../env-vars";
+import { API_URL } from './ApiConfig';
 import { NativeModules, Platform, Linking } from "react-native";
 
 const { UpiIntentModule } = NativeModules;

@@ -1,6 +1,7 @@
 package com.matka.backend.controller;
 
 import com.matka.backend.Rate;
+import com.matka.backend.ApiRoutes;
 import com.matka.backend.Properties;
 import com.matka.backend.repository.RateRepository;
 import com.matka.backend.repository.PropertiesRepository;
@@ -15,7 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/rate")
+@RequestMapping(ApiRoutes.BASE + "/rate")
 public class RateController {
     private static final Logger log = LoggerFactory.getLogger(RateController.class);
 

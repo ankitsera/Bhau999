@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useTranslation } from 'react-i18next';
 import { useTheme } from "../contexts/ThemeContext";
+import { FONT } from '../contexts/Themes';
 
 const PaginationBar = ({
   page = 1,
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
   },
   disabled: { opacity: 0.35 },
   sideText: { 
-    fontSize: 15, 
+    fontSize: FONT.label, 
     fontWeight: "700",
   },
 
@@ -92,7 +93,7 @@ const styles = StyleSheet.create({
   },
   pageText: { 
     fontWeight: "800", 
-    fontSize: 16 
+    fontSize: FONT.body 
  },
 
 });

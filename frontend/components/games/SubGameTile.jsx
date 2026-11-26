@@ -1,6 +1,7 @@
 import React from "react";
 import { TouchableOpacity, View, Text, StyleSheet, Image } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const SubGameTile = ({ label, image, onPress }) => {
   const { colors } = useTheme();
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   label: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "600",
   },
 });

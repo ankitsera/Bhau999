@@ -3,6 +3,7 @@ import { Modal, View, Pressable, Text, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
+import { FONT } from '../contexts/Themes';
 
 const RED = '#EF4B3E';
 
@@ -20,7 +21,7 @@ const BettingClosedModal = ({ visible, onClose }) => {
       <View style={styles.overlay}>
         <View style={[styles.card, { backgroundColor: colors.background, borderColor: colors.border }]}>
           <Pressable onPress={onClose} hitSlop={10} style={styles.closeBtn}>
-            <MaterialCommunityIcons name="close" size={28} color={colors.textTertiary} />
+            <MaterialCommunityIcons name="close" size={24} color={colors.textTertiary} />
           </Pressable>
 
           <View style={styles.iconWrap}>
@@ -81,15 +82,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 28,
+    fontSize: FONT.h1,
     fontWeight: '900',
     marginTop: 6,
   },
   msg: {
     marginTop: 10,
     textAlign: 'center',
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: FONT.body,
+    lineHeight: 19,
     fontWeight: '600',
   },
   okBtn: {
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
   },
   okText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: '800',
   },
 });

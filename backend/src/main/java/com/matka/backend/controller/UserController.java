@@ -1,6 +1,7 @@
 package com.matka.backend.controller;
 
 import com.matka.backend.User;
+import com.matka.backend.ApiRoutes;
 import com.matka.backend.UserViewMode;
 import com.matka.backend.repository.PropertiesRepository;
 import com.matka.backend.repository.UserRepository;
@@ -23,7 +24,7 @@ import com.matka.backend.service.FcmService;
 import com.matka.backend.service.BalanceNotificationService;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping(ApiRoutes.BASE)
 public class UserController {
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
     @Autowired
@@ -169,6 +170,17 @@ public class UserController {
         userRepository.save(u);
         log.info("View mode for {} set to {}", u.getMobileNumber(), mode);
 
+        // Game result broadcasts go out over a topic, so move the device on or off it
+        // with the view. Best effort: the app re-registers its token on every launch.
+        String token = u.getFcmToken();
+        if (token != null && !token.isBlank()) {
+            if (u.isLimitedView()) {
+                fcmService.unsubscribeTokenFromTopic(token, "game_notifications");
+            } else {
+                fcmService.subscribeTokenToTopic(token, "game_notifications");
+            }
+        }
+
         // The app re-reads /users/{mobile}/balance on this signal, which now carries
         // viewMode, so an open app switches views without a restart.
         balanceNotificationService.pushBalanceChanged(java.util.List.of(u.getMobileNumber()));
@@ -279,7 +291,10 @@ public class UserController {
         }
         userRepository.save(existingUser);
         log.info("updateDetails successful for mobile='{}'", user.getMobileNumber());
-        return ResponseEntity.ok(Map.of("message", "User details updated"));
+        return ResponseEntity.ok(Map.of(
+                "message", "User details updated",
+                "ifscRedFlagged", existingUser.isIfscRedFlagged()
+        ));
     }
 
     public static class LoginRequest {
@@ -350,7 +365,13 @@ public class UserController {
         if (req.getUpiId() != null) { user.setUpiId(req.getUpiId()); changed = true; }
         if (changed) {
             userRepository.save(user);
-            return ResponseEntity.ok(Map.of("message", "Bank details updated", "user", user));
+            java.util.Map<String, Object> safeUser = new java.util.HashMap<>();
+            safeUser.put("mobileNumber", user.getMobileNumber());
+            safeUser.put("accountHolderName", user.getAccountHolderName());
+            safeUser.put("accountNumber", user.getAccountNumber());
+            safeUser.put("ifscCode", user.getIfscCode());
+            safeUser.put("upiId", user.getUpiId());
+            return ResponseEntity.ok(Map.of("message", "Bank details updated", "user", safeUser));
         }
         return ResponseEntity.badRequest().body(Map.of("message", "No updatable fields provided"));
     }
@@ -437,7 +458,8 @@ public class UserController {
             // always subscribe to all_users
             boolean okAll = fcmService.subscribeTokenToTopic(token, "all_users");
             boolean okGame = true;
-            if (Boolean.FALSE.equals(gameNotification)) {
+            // limited-view users never get game result broadcasts
+            if (Boolean.FALSE.equals(gameNotification) || u.isLimitedView()) {
                 // explicitly unsubscribe if previously subscribed
                 okGame = fcmService.unsubscribeTokenFromTopic(token, "game_notifications");
             } else {

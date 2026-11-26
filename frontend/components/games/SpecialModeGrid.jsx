@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TextInput, StyleSheet } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const SpecialModeGrid = ({ digits, pointsByDigit, onChangePoint }) => {
   const { colors } = useTheme();
@@ -60,7 +61,7 @@ const styles = StyleSheet.create({
   },
   digitText: {
     color: "#FFF",
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: "700",
   },
   pointInput: {
@@ -68,6 +69,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 6,
     borderBottomRightRadius: 6,
     paddingHorizontal: 10,
-    fontSize: 16,
+    fontSize: FONT.body,
   },
 });

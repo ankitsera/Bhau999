@@ -16,6 +16,7 @@ import EmptyState from '../components/EmptyState';
 import LoadingView from '../components/LoadingView';
 import { GameContext } from '../contexts/GameContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { FONT } from '../contexts/Themes';
 
 const Row = ({ name, onPanel, t }) => {
   const { colors } = useTheme();
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: FONT.label,
     paddingRight: 10,
   },
 
@@ -167,6 +168,6 @@ const styles = StyleSheet.create({
   btnText: {
     color: '#fff',
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: FONT.label,
   },
 });

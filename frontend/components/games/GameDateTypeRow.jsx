@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import GameTypePicker from "./GameTypePicker";
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const GameDateTypeRow = ({
   dateLabel,        // e.g. "29-11-2025"
@@ -46,7 +47,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   dateText: {
-    fontSize: 14,
+    fontSize: FONT.label,
     fontWeight: "600",
   },
 });

@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  Image,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -11,10 +10,25 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import Svg, { Circle, Rect } from "react-native-svg";
 import Snackbar from "react-native-snackbar";
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
+import LoginIllustration from "../../components/LoginIllustration";
+import BrandLogo from "../../components/BrandLogo";
+
+const APP_NAME = "Bhau999";
+
+const IndiaFlag = () => (
+  <Svg width={30} height={20} viewBox="0 0 30 20">
+    <Rect x="0" y="0" width="30" height="6.67" fill="#FF9933" />
+    <Rect x="0" y="6.67" width="30" height="6.66" fill="#FFFFFF" />
+    <Rect x="0" y="13.33" width="30" height="6.67" fill="#138808" />
+    <Circle cx="15" cy="10" r="2.6" stroke="#000080" strokeWidth="0.8" fill="none" />
+    <Circle cx="15" cy="10" r="0.6" fill="#000080" />
+  </Svg>
+);
 
 const UserCheck = ({ navigation }) => {
   const { t } = useTranslation(['auth', 'validation', 'common']);
@@ -22,6 +36,16 @@ const UserCheck = ({ navigation }) => {
   const { colors, isDarkMode } = useTheme();
 
   const [mobileNumber, setMobileNumber] = useState("");
+
+  const fieldBorder = isDarkMode ? colors.cardBorder : colors.divider;
+
+  const handleBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+    navigation.replace("Language Select");
+  };
 
   const handleNext = () => {
     const phoneRegex = /^[0-9]{10}$/;
@@ -50,89 +74,97 @@ const UserCheck = ({ navigation }) => {
 
   return (
     <SafeAreaView
-      style={[styles.safe, { backgroundColor: colors.background }]}
+      style={[styles.safe, { backgroundColor: colors.surface }]}
       edges={["bottom", "top"]}
     >
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.background} />
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.surface} />
       <ScrollView
         contentContainerStyle={styles.scrollGrow}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.container, { backgroundColor: colors.background }]}>
-          {/* Title Row like screenshot */}
-          <View style={styles.titleRow}>
-            <View
-              style={[styles.primaryBar, { backgroundColor: colors.primary }]}
-            />
-            <Text style={[styles.title, { color: colors.heading }]}>
-              {t('auth:enterMobileNumber')}
-            </Text>
+        <View style={styles.container}>
+          {/* Header: back button + brand */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={[styles.backBtn, { borderColor: fieldBorder, backgroundColor: colors.surface }]}
+              onPress={handleBack}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={t('common:goBack')}
+              hitSlop={8}
+            >
+              <MaterialCommunityIcons name="chevron-left" size={28} color={colors.text} />
+            </TouchableOpacity>
+
+            <BrandLogo size={48} />
           </View>
 
-          {/* Big Illustration */}
-          <Image
-            source={require("../../assets/Images/UserCheck.webp")}
-            style={styles.image}
-            resizeMode="contain"
-          />
+          {/* Illustration */}
+          <LoginIllustration style={styles.illustration} />
 
-          {/* Input pill */}
-          <View
-            style={[
-              styles.inputPill,
-              {
-                backgroundColor: colors.surface,
-                borderColor: colors.cardBorder,
-              },
-            ]}
-          >
-            <View
-              style={[styles.iconCircle, { backgroundColor: colors.primary }]}
-            >
-              <MaterialCommunityIcons
-                name="cellphone"
-                size={24}
-                color={colors.onPrimary || "#fff"}
-              />
+          {/* Welcome copy */}
+          <Text style={[styles.title, { color: colors.heading }]}>
+            {t('auth:welcomeTo', { appName: APP_NAME })} 💚
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            {t('auth:welcomeSubtitle')}
+          </Text>
+
+          {/* Country + phone */}
+          <View style={styles.phoneRow}>
+            <View style={[styles.countryBox, { borderColor: fieldBorder }]}>
+              <IndiaFlag />
+              <MaterialCommunityIcons name="chevron-down" size={22} color={colors.text} />
             </View>
 
-            <Text style={[styles.prefix, { color: colors.text }]}>+91</Text>
+            <View style={[styles.inputBox, { borderColor: fieldBorder }]}>
+              <Text style={[styles.prefix, { color: colors.text }]}>+91</Text>
+              <TextInput
+                style={[styles.input, { color: colors.text }]}
+                placeholder="9876543210"
+                placeholderTextColor={colors.textTertiary}
+                keyboardType="phone-pad"
+                value={mobileNumber}
+                maxLength={10}
+                accessibilityLabel={t('auth:phoneNumber')}
+                returnKeyType="done"
+                onSubmitEditing={handleNext}
+                onChangeText={(text) => {
+                  const digits = String(text || "").replace(/[^0-9]/g, "");
 
-            <TextInput
-              style={[styles.input, { color: colors.text }]}
-              placeholder={t('auth:phoneNumber')}
-              placeholderTextColor={colors.textTertiary}
-              keyboardType="phone-pad"
-              value={mobileNumber}
-              maxLength={10}
-              onChangeText={(t) => {
-                const digits = String(t || "").replace(/[^0-9]/g, "");
+                  // handle common paste formats: +91XXXXXXXXXX / 91XXXXXXXXXX / 0XXXXXXXXXX
+                  if (digits.length === 12 && digits.startsWith("91")) {
+                    setMobileNumber(digits.slice(2));
+                    return;
+                  }
+                  if (digits.length === 11 && digits.startsWith("0")) {
+                    setMobileNumber(digits.slice(1));
+                    return;
+                  }
 
-                // handle common paste formats: +91XXXXXXXXXX / 91XXXXXXXXXX / 0XXXXXXXXXX
-                if (digits.length === 12 && digits.startsWith("91")) {
-                  setMobileNumber(digits.slice(2));
-                  return;
-                }
-                if (digits.length === 11 && digits.startsWith("0")) {
-                  setMobileNumber(digits.slice(1));
-                  return;
-                }
-
-                setMobileNumber(digits.slice(0, 10));
-              }}
-            />
+                  setMobileNumber(digits.slice(0, 10));
+                }}
+              />
+            </View>
           </View>
 
-          {/* Next button */}
+          {/* Continue button */}
           <TouchableOpacity
-            style={[styles.nextBtn, { backgroundColor: colors.dark }]}
+            style={[styles.continueBtn, { backgroundColor: colors.dark }]}
             onPress={handleNext}
             activeOpacity={0.85}
           >
-            <Text style={[styles.nextText, { color: colors.onDark || "#fff" }]}>
-              {t('common:next')}
+            <Text style={[styles.continueText, { color: colors.onDark || "#fff" }]}>
+              {t('common:continue')}
             </Text>
           </TouchableOpacity>
+
+          <View style={styles.spacer} />
+
+          <Text style={[styles.footer, { color: colors.text }]}>
+            {t('auth:welcomeFooter')}
+          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -150,83 +182,103 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    paddingHorizontal: 18,
-    paddingTop: 10,
-    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
 
-  titleRow: {
-    width: "100%",
+  header: {
+    height: 64,
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 12,
-    marginTop: 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  primaryBar: {
-    width: 10,
-    height: 50,
-    borderRadius: 2,
-    marginTop: 6,
+  backBtn: {
+    position: "absolute",
+    left: 0,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
+  illustration: {
+    alignSelf: "center",
+    width: "68%",
+    marginTop: 20,
+  },
+
   title: {
-    flex: 1,
-    fontSize: 28,
-    fontWeight: "800",
-    letterSpacing: 0.3,
+    marginTop: 28,
+    fontSize: 24,
+    fontWeight: "700",
+    letterSpacing: 0.2,
+  },
+  subtitle: {
+    marginTop: 8,
+    fontSize: 15,
+    lineHeight: 25,
   },
 
-  image: {
-    width: "92%",
-    height: 300,
-    marginTop: 10,
-    marginBottom: 10,
+  phoneRow: {
+    marginTop: 26,
+    flexDirection: "row",
+    alignItems: "stretch",
+    gap: 10,
   },
-
-  inputPill: {
-    width: "100%",
-    borderRadius: 14,
+  countryBox: {
+    width: 70,
+    height: 52,
+    borderRadius: 10,
     borderWidth: 1,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingRight: 18,
-    marginTop: 12,
+    justifyContent: "center",
+    gap: 4,
   },
-
+  inputBox: {
+    flex: 1,
+    height: 52,
+    borderRadius: 10,
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+  },
   prefix: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginRight: 10,
+    fontSize: 16,
+    fontWeight: "500",
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    paddingVertical: 0,
   },
 
-  iconCircle: {
-    width: 46,
-    height: 46,
+  continueBtn: {
+    marginTop: 32,
+    height: 52,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginLeft: 8,
-    marginRight: 12,
+  },
+  continueText: {
+    fontSize: 17,
+    fontWeight: "600",
+    letterSpacing: 0.3,
   },
 
-  input: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: "500",
+  spacer: {
+    flexGrow: 1,
+    minHeight: 36,
+    maxHeight: 64,
   },
 
-  nextBtn: {
-    width: "100%",
-    marginTop: 26,
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  nextText: {
-    fontSize: 20,
-    fontWeight: "700",
-    letterSpacing: 0.5,
+  footer: {
+    textAlign: "center",
+    fontSize: 15,
+    lineHeight: 22,
   },
 });

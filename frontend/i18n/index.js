@@ -11,6 +11,7 @@ import enFunds from './locales/en/funds.json';
 import enGames from './locales/en/games.json';
 import enScreens from './locales/en/screens.json';
 import enValidation from './locales/en/validation.json';
+import enLibrary from './locales/en/library.json';
 
 // Hindi translations
 import hiCommon from './locales/hi/common.json';
@@ -129,6 +130,8 @@ const resources = {
     funds: enFunds,
     games: enGames,
     screens: enScreens,
+    // English only for now; other languages fall back to it
+    library: enLibrary,
     validation: enValidation,
   },
   hi: {

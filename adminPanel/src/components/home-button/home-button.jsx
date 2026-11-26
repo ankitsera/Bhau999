@@ -1,7 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '@mui/material/styles';
+
 import Fab from '@mui/material/Fab';
+import { useTheme } from '@mui/material/styles';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
+
+import { pulseRingKf } from 'src/theme/motion';
 
 export default function HomeButton() {
   const navigate = useNavigate();
@@ -17,7 +20,8 @@ export default function HomeButton() {
         bottom: { xs: 24, md: 32 },
         right: { xs: 20, md: 32 },
         zIndex: theme.zIndex.appBar + 1,
-        boxShadow: theme.shadows[8],
+        boxShadow: theme.customShadows.primary,
+        animation: `${pulseRingKf} 2s ease-out 1.2s 2`,
       }}
     >
       <HomeRoundedIcon />

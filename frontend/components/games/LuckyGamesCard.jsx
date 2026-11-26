@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
-import { ThemeColor } from '../../contexts/Themes';
+import { ThemeColor, FONT } from '../../contexts/Themes';
 
 const GREEN = ThemeColor;
 const CARD_BORDER = '#D9D9D9';
@@ -68,13 +68,13 @@ const styles = StyleSheet.create({
     width: 110,
   },
   timeText: {
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: '700',
     color: '#111',
   },
   statusText: {
     marginTop: 4,
-    fontSize: 14,
+    fontSize: FONT.label,
     fontWeight: '700',
   },
 
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   },
   resultText: {
     color: '#FFF',
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: '800',
     letterSpacing: 0.3,
   },
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   playText: {
-    fontSize: 14,
+    fontSize: FONT.label,
     fontWeight: '700',
     color: '#222',
   },

@@ -14,7 +14,7 @@ import ThemeHeader from "../components/ThemeHeader";
 import EmptyState from "../components/EmptyState";
 import LoadingView from "../components/LoadingView";
 import { GameContext } from "../contexts/GameContext";
-import { ThemeColor } from "../contexts/Themes";
+import { ThemeColor, FONT } from "../contexts/Themes";
 
 const sumDigitsMod10 = (val) => {
   if (val === null || val === undefined) return null;
@@ -158,14 +158,14 @@ const styles = StyleSheet.create({
     marginRight: 12,
     color: ThemeColor,
     fontWeight: "900",
-    fontSize: 16,
+    fontSize: FONT.body,
     letterSpacing: 0.3,
   },
 
   resultText: {
     color: "#111",
     fontWeight: "900",
-    fontSize: 18,
+    fontSize: FONT.title,
     letterSpacing: 0.6,
   },
 });

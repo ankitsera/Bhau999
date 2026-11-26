@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../contexts/ThemeContext';
+import { FONT } from '../contexts/Themes';
 
 const { UpdateModule } = NativeModules;
 
@@ -340,12 +341,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   title: {
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: '800',
     marginBottom: 8,
   },
   body: {
-    fontSize: 14,
+    fontSize: FONT.label,
     marginBottom: 10,
   },
   note: {

@@ -1,5 +1,5 @@
 import { PermissionsAndroid, Platform, Linking } from "react-native";
-import { API_URL } from "../env-vars";
+import { API_URL } from './ApiConfig';
 
 /* =========================================================
    NOTIFICATION PERMISSION (Android 13+)

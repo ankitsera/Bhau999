@@ -1,21 +1,15 @@
-import React, { useContext, useState, useMemo, useEffect, useRef } from 'react';
+import React, { useContext, useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  Pressable,
-  TextInput,
   TouchableOpacity,
   Linking,
   Alert,
-  FlatList,
-  Image,
   Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTranslation } from 'react-i18next';
 import ButtonLoader from '../../components/ButtonLoader';
 import { AuthContext } from '../../contexts/AuthContext';
@@ -29,149 +23,19 @@ import {
 } from '../../utils/AppConfigService';
 import { useTheme } from '../../contexts/ThemeContext';
 
-import { ADD_MONEY_CAROUSEL_DUMMY } from '../../data/addMoneyCarouselDummy';
 import ThemeHeader from '../../components/ThemeHeader';
+import {
+  AccountCard,
+  SectionLabel,
+  AmountInput,
+  PrimaryButton,
+  HelpRow,
+  fundStyles,
+} from '../../components/funds/FundParts';
+import { FONT } from '../../contexts/Themes';
 
-/* ------------------ Carousel helpers ------------------ */
-const maskMobile = (m) => {
-  const s = String(m || "").replace(/\D/g, "");
-  if (s.length < 10) return s || "--";
-  return `${s.slice(0, 2)}****${s.slice(-4)}`;
-};
+const PRESET_AMOUNTS = [100, 200, 500, 1000, 1500, 2000, 5000, 10000];
 
-const TopCarouselBar = ({ data, statusText }) => {
-  const { colors } = useTheme();
-  const listRef = useRef(null);
-  const idxRef = useRef(0);
-
-  const [wrapW, setWrapW] = useState(0);
-
-  const GAP = 12;
-  const SIDE_PAD = 0;      // ScrollView already has padding: 16
-  const PEEK = 0;         // how much next card peeks on right
-
-  const ITEM_W = useMemo(() => {
-    const w = Math.floor(wrapW || 0);
-    if (!w) return 0;
-    // keep it responsive + never too tiny
-    return Math.max(240, w - PEEK);
-  }, [wrapW]);
-
-  const INTERVAL = ITEM_W + GAP;
-
-  useEffect(() => {
-    if (!Array.isArray(data) || data.length === 0) return;
-    if (!ITEM_W) return;
-
-    const t = setInterval(() => {
-      idxRef.current = (idxRef.current + 1) % data.length;
-      try {
-        listRef.current?.scrollToOffset?.({
-          offset: idxRef.current * INTERVAL,
-          animated: true,
-        });
-      } catch {}
-    }, 5500);
-
-    return () => clearInterval(t);
-  }, [data, ITEM_W, INTERVAL]);
-
-  const renderItem = ({ item }) => {
-    const mobile = maskMobile(item?.mobile);
-    const amount = Number(item?.amount || 0) || 0;
-
-    return (
-      <View style={{ width: ITEM_W }}>
-        <View
-          style={[
-            styles.carouselPill,
-            {
-              backgroundColor: colors.background,
-              borderColor: colors.primary,
-              shadowColor: colors.text,
-            },
-          ]}
-        >
-          {/* left group */}
-          <View style={styles.carouselLeft}>
-            <Text
-              style={[styles.carouselMobile, { color: colors.primary }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {mobile}
-            </Text>
-
-            <Text style={[styles.carouselPointer, { color: colors.text }]}>👉</Text>
-
-            <Text
-              style={[styles.carouselAmt, { color: colors.text }]}
-              numberOfLines={1}
-            >
-              ₹{amount}
-            </Text>
-          </View>
-
-          {/* right pill */}
-          <View
-            style={[
-              styles.carouselStatusPill,
-              { backgroundColor: "#22c55e" },
-            ]}
-          >
-            <Text
-              style={[styles.carouselStatusText, { color: colors.text }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {statusText}
-            </Text>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  if (!Array.isArray(data) || data.length === 0) return null;
-
-  return (
-    <View
-      style={styles.carouselWrap}
-      onLayout={(e) => {
-        const w = e?.nativeEvent?.layout?.width || 0;
-        if (w && w !== wrapW) setWrapW(w);
-      }}
-    >
-      {!!ITEM_W && (
-        <FlatList
-          ref={listRef}
-          data={data}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(it, i) => `${it?.mobile || "m"}-${it?.amount || "a"}-${i}`}
-          renderItem={renderItem}
-          ItemSeparatorComponent={() => <View style={{ width: GAP }} />}
-          contentContainerStyle={{ paddingHorizontal: SIDE_PAD }}
-          snapToInterval={INTERVAL}
-          decelerationRate="fast"
-          snapToAlignment="start"
-          bounces={false}
-          getItemLayout={(_, index) => ({
-            length: INTERVAL,
-            offset: INTERVAL * index,
-            index,
-          })}
-          onMomentumScrollEnd={(e) => {
-            const x = e?.nativeEvent?.contentOffset?.x || 0;
-            const nextIdx = Math.round(x / INTERVAL);
-            idxRef.current = Math.max(0, Math.min(nextIdx, data.length - 1));
-          }}
-        />
-      )}
-    </View>
-  );
-};
-/* ------------------ end carousel ------------------ */
 
 const AddMoney = ({ navigation }) => {
   const { t } = useTranslation(['screens', 'funds', 'common']);
@@ -235,12 +99,6 @@ const AddMoney = ({ navigation }) => {
 
   const setPreset = v => setAmount(String(v));
 
-  // ✅ payee config from AppConfigService
-  const getPayeeConfig = () => ({
-    payeeVpa: upiId,
-    payeeName: bankingName,
-  });
-
   // ✅ tighter disable logic (handles " ", "0", etc.)
   const amtNum = useMemo(() => Number(String(amount).trim()), [amount]);
   const isDisabled = !Number.isFinite(amtNum) || amtNum <= 0 || payLoading;
@@ -284,126 +142,64 @@ const AddMoney = ({ navigation }) => {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* ThemeColor HEADER (inline) */}
-      <ThemeHeader
-        title={t('funds:addFund')}
-        right={
-          <View style={[styles.walletPill, { backgroundColor: colors.dark }]}>
-            <MaterialCommunityIcons name="wallet" size={20} color={colors.onDark} />
-            <Text style={[styles.walletPillText, { color: colors.onDark }]}>
-              ₹{user?.balance ? user.balance : '0.0'}
-            </Text>
-          </View>
-        }
-      />
+      <ThemeHeader title={t('funds:addFund')} />
 
-      {/* CONTENT */}
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 160 }}
+        contentContainerStyle={[fundStyles.content, { paddingBottom: insets.bottom + 32 }]}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* ✅ TOP CAROUSEL */}
-        <TopCarouselBar data={ADD_MONEY_CAROUSEL_DUMMY} statusText={t('screens:depositSuccessfully')} />
+        <AccountCard
+          user={user}
+          tiles={[
+            { label: t('screens:availableBalance'), value: `₹${user?.balance ? user.balance : '0.00'}` },
+            { label: t('funds:minimumDeposit'), value: minDeposit > 0 ? `₹${minDeposit}` : '--' },
+          ]}
+        />
 
-        {/* Wallet card */}
-        <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
-          <View style={[styles.innerCard, { backgroundColor: colors.background, shadowColor: colors.text }]}>
-            <Image source={require("../../assets/Images/logo.webp")} style={styles.walletImage} />
-            <View style={{ width: "70%", borderWidth: 1, borderColor: colors.divider }}></View>
-            <View style={[styles.balanceStrip, { backgroundColor: colors.background }]}>
-              <Text style={[styles.balanceLabel, { color: colors.text }]}>{t('screens:availableBalance')}</Text>
-              <Text style={[styles.balanceValue, { color: colors.text }]}>₹ {user?.balance ? user.balance : '0.0'}</Text>
-            </View>
-          </View>
+        <SectionLabel>{t('funds:enterAmount')}</SectionLabel>
+        <AmountInput value={amount} onChange={setAmount} editable={!payLoading} />
 
-          {/* help section */}
-          <View style={[styles.divider, { backgroundColor: colors.divider }]} />
-          <Text style={[styles.helpTitle, { color: colors.text }]}>
-            {t('screens:forFundQueries')}
-          </Text>
-
-          <View style={styles.helpBtns}>
-            <TouchableOpacity style={[styles.helpBtn, { backgroundColor: colors.background, shadowColor: colors.text }]} onPress={openDialer}>
-              <MaterialIcons name="call" size={20} color={colors.text} />
-              <Text style={[styles.helpText, { color: colors.text }]}>{t('common:call')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.helpBtn, { backgroundColor: colors.background, shadowColor: colors.text }]} onPress={openWhatsapp}>
-              <MaterialCommunityIcons name="whatsapp" size={20} color='#1ed514' />
-              <Text style={[styles.helpText, { color: colors.text }]}>{t('common:whatsapp')}</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={[styles.divider, { backgroundColor: colors.divider }]} />
-
-          {/* amount input */}
-          <View style={[styles.amountInputWrap, { borderColor: colors.primary, backgroundColor: colors.background }]}>
-            <View style={[styles.bankIcon, { backgroundColor: colors.primaryIconBg }]}>
-              <MaterialCommunityIcons
-                name="bank-outline"
-                size={22}
-                color={colors.primary}
-              />
-            </View>
-            <TextInput
-              placeholder={t('screens:enterAmount')}
-              placeholderTextColor={colors.textTertiary}
-              keyboardType="numeric"
-              style={[styles.amountInput, { color: colors.text }]}
-              value={amount}
-              onChangeText={setAmount}
-              editable={!payLoading}
-            />
-          </View>
-
-          {/* presets */}
-          <View style={styles.presets}>
-            {[500, 1000, 5000, 10000].map(v => {
-              const selected = String(amtNum) === String(v);
-              return (
-                <TouchableOpacity
-                  key={v}
-                  onPress={() => setPreset(v)}
-                  disabled={payLoading}
-                  style={[
-                    styles.presetBtn,
-                    { borderColor: colors.border, backgroundColor: colors.background },
-                    selected && {
-                      borderColor: colors.primary,
-                      backgroundColor: colors.surface,
-                    },
-                    payLoading && { opacity: 0.6 },
-                  ]}
+        {/* Quick amounts */}
+        <View style={styles.presets}>
+          {PRESET_AMOUNTS.map((v) => {
+            const selected = amtNum === v;
+            const belowMin = minDeposit > 0 && v < minDeposit;
+            return (
+              <TouchableOpacity
+                key={v}
+                onPress={() => setPreset(v)}
+                disabled={payLoading || belowMin}
+                activeOpacity={0.8}
+                style={[
+                  styles.presetBtn,
+                  { borderColor: colors.primaryTile, backgroundColor: colors.primaryIconBg },
+                  selected && { borderColor: colors.primary, backgroundColor: colors.primary },
+                  (payLoading || belowMin) && styles.presetDisabled,
+                ]}
+              >
+                <Text
+                  style={[styles.presetText, { color: selected ? colors.onPrimary : colors.primaryDark }]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
                 >
-                  <Text
-                    style={[
-                      styles.presetText,
-                      { color: colors.text },
-                      selected && { color: colors.primary, fontWeight: '700' },
-                    ]}
-                  >
-                    {v}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+                  ₹{v}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
-      </ScrollView>
 
-      {/* BOTTOM CTA */}
-      <View style={[styles.bottomWrap, { paddingBottom: insets.bottom, backgroundColor: colors.background }]}>
-        <TouchableOpacity
-          style={[styles.bottomBtn, { backgroundColor: colors.primary, shadowColor: colors.text }, isDisabled && { opacity: 0.6 }]}
+        <PrimaryButton
+          label={t('screens:payNow')}
           onPress={handleAdd}
           disabled={isDisabled}
-          activeOpacity={0.85}
-        >
-          {payLoading ? (
-            <ButtonLoader size={24} />
-          ) : (
-            <Text style={styles.bottomText}>{t('screens:payNow')}</Text>
-          )}
-        </TouchableOpacity>
-      </View>
+          busy={payLoading}
+          Loader={ButtonLoader}
+        />
+
+        <HelpRow onCall={openDialer} onWhatsapp={openWhatsapp} />
+      </ScrollView>
 
       {/* Overlay modal */}
       <Modal
@@ -416,14 +212,14 @@ const AddMoney = ({ navigation }) => {
           <View style={modalStyles.card}>
             <Text style={modalStyles.title}>{modalTitle}</Text>
 
-            <View style={{ height: 12 }} />
+            <View style={modalStyles.spacer} />
 
             {(gatewayUi?.step === 'opening' ||
               gatewayUi?.step === 'confirming') && (
               <ButtonLoader size={24} />
             )}
 
-            <View style={{ height: 12 }} />
+            <View style={modalStyles.spacer} />
 
             <Text style={modalStyles.msg}>
               {gatewayUi?.message || t('common:pleaseWait')}
@@ -455,249 +251,37 @@ const AddMoney = ({ navigation }) => {
 
 export default AddMoney;
 
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: { flex: 1 },
-
-  // ✅ carousel
-  carouselWrap: {
-    marginTop: 6,
-    marginBottom: 14,
-  },
-  carouselPill: {
-    borderWidth: 2,
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    elevation: 4,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-  },
-  carouselLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1,
-    minWidth: 0, // 🔥 allows text truncation in RN
-  },
-  carouselMobile: {
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: 0.3,
-    flexShrink: 1,
-    minWidth: 0,
-  },
-  carouselPointer: {
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  carouselAmt: {
-    fontSize: 16,
-    fontWeight: '900',
-    flexShrink: 0,
-  },
-  carouselStatusPill: {
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    marginLeft: 10,
-    maxWidth: '45%', // 🔥 prevents overflow on small screens
-  },
-  carouselStatusText: {
-    fontSize: 14,
-    fontWeight: '900',
-  },
-
-  // header
-  walletPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 24,
-  },
-  walletPillText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  headerRoot: {
-    width: '100%',
-  },
-  headerBg: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 90,
-    borderBottomLeftRadius: 36,
-    borderBottomRightRadius: 36,
-  },
-  headerRow: {
-    height: 60,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 24,
-    fontWeight: '600',
-    marginLeft: 6,
-    marginBottom: 15,
-  },
-  walletRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 15,
-  },
-  walletAmt: {
-    fontSize: 26,
-  },
-
-  // card
-  card: {
-    borderRadius: 16,
-    padding: 14,
-    elevation: 6,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-  },
-  innerCard: {
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-    elevation: 3,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    marginBottom: 12,
-  },
-  walletImage: {
-    width: 120,
-    height: 64,
-    marginBottom: 10,
-  },
-  mobile: {
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  balanceStrip: {
-    width: '100%',
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  balanceLabel: {
-    fontSize: 15,
-    marginBottom: 4,
-  },
-  balanceValue: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  divider: {
-    height: 2,
-    marginVertical: 10,
-  },
-  helpTitle: {
-    textAlign: 'center',
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  helpBtns: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
-    marginBottom: 12,
-  },
-  helpBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 22,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    elevation: 3,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-  },
-  helpText: {
-    marginLeft: 6,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-
-  amountInputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderRadius: 40,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginTop: 6,
-  },
-  bankIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-  },
-  amountInput: {
-    flex: 1,
-    fontSize: 16,
-  },
   presets: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    rowGap: 12,
+    rowGap: 10,
     marginTop: 16,
   },
   presetBtn: {
-    width: '48%',
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1.2,
-    alignItems: 'center',
-  },
-  presetText: {
-    fontSize: 18,
-  },
-  bottomWrap: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: 'center',
-  },
-  bottomBtn: {
-    width: '92%',
-    borderRadius: 30,
-    paddingVertical: 14,
-    marginVertical: 8,
+    width: '23%',
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 6,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
+    paddingHorizontal: 4,
   },
-  bottomText: {
-    color: '#fff',
-    fontSize: 18,
+  presetDisabled: {
+    opacity: 0.45,
+  },
+  presetText: {
+    fontSize: 13.5,
     fontWeight: '700',
   },
 });
 
 const modalStyles = StyleSheet.create({
+  spacer: {
+    height: 12,
+  },
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.55)',
@@ -713,17 +297,17 @@ const modalStyles = StyleSheet.create({
     elevation: 8,
   },
   title: {
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: '800',
     color: '#111',
     textAlign: 'center',
   },
   msg: {
-    fontSize: 15,
+    fontSize: FONT.label,
     color: '#111',
     textAlign: 'center',
   },
-  ref: {
+  refText: {
     marginTop: 8,
     fontSize: 12,
     color: '#555',
@@ -739,7 +323,7 @@ const modalStyles = StyleSheet.create({
   },
   btnText: {
     fontWeight: '800',
-    fontSize: 16,
+    fontSize: FONT.body,
   },
   hint: {
     marginTop: 10,

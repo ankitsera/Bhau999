@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-nati
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useTranslation } from 'react-i18next';
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const DELETE_COL_W = 44; // keep header + rows aligned
 
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontWeight: "700",
-    fontSize: 14,
+    fontSize: FONT.label,
     textAlign: "center",
   },
   body: {
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
   cellText: {
     flex: 1,
     textAlign: "center",
-    fontSize: 15,
+    fontSize: FONT.label,
   },
   deleteBtn: {
     width: 26,

@@ -8,7 +8,7 @@ export default function SettingsPage() {
   return (
     <>
       <Helmet>
-        <title> Settings </title>
+        <title> Settings | Bhau999 Admin </title>
       </Helmet>
 
       <SettingsView />

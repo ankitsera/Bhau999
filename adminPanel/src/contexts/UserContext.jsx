@@ -24,6 +24,7 @@ export const UserProvider = ({ children }) => {
         accountNumber: user.accountNumber,
         accountHolderName: user.accountHolderName,
         ifscCode: user.ifscCode,
+        ifscRedFlagged: Boolean(user.ifscRedFlagged),
         upiId: user.upiId,
         approvalStatus: user.approvalStatus,
         viewMode: user.viewMode || 'FULL',

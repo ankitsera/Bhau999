@@ -9,6 +9,9 @@ import { getSelectedLanguage } from '../utils/LanguagePreference';
 import { canUseFeature, FEATURES } from '../utils/Features';
 import LoadingView from '../components/LoadingView';
 import Home from "../screens/Home";
+import LibraryHome from "../screens/Library/LibraryHome";
+import BookDetails from "../screens/Library/BookDetails";
+import BookReader from "../screens/Library/BookReader";
 import UserCheck from "../screens/Auth/UserCheck";
 import Signup from "../screens/Auth/Signup";
 import Login from "../screens/Auth/Login";
@@ -97,6 +100,9 @@ const Navigation = ({ navigationRef }) => {
   // (a stray button, a deep link) can open them.
   const canPay = canUseFeature(user, FEATURES.PAYMENTS);
   const canBet = canUseFeature(user, FEATURES.BETTING);
+  // Without the games feature the "Home" route is the Library, so every existing
+  // navigate("Home") (login, footer, back to home) lands there automatically.
+  const canSeeGames = canUseFeature(user, FEATURES.GAMES);
   
   const [languageReady, setLanguageReady] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(null);
@@ -145,24 +151,33 @@ const Navigation = ({ navigationRef }) => {
               headerTintColor: theme.text.color,
             }}
         >
-        <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} /> 
+        <Stack.Screen name="Home" component={canSeeGames ? Home : LibraryHome} options={{ headerShown: false }} /> 
         <Stack.Screen name="UserCheck" component={UserCheck} options={{ headerShown: false }} /> 
         <Stack.Screen name="Signup" component={Signup} options={{ headerShown: false }} /> 
         <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} /> 
-        <Stack.Screen name="Notifications" component={Notifications} options={{ headerShown: false }} /> 
-        <Stack.Screen name="Charts" component={Charts} options={{ headerShown: false }} />
-        <Stack.Screen name="Matka Chart" component={MatkaChart} options={{ headerShown: false }} />
-        <Stack.Screen name="GameChartPanel" component={GameChartPanel} options={{ headerShown: false }} />
-        <Stack.Screen name="Game Rate" component={GameRate} options={{ headerShown: false }} />
-        <Stack.Screen name="Time Table" component={TimeTable} options={{ headerShown: false }} /> 
-        <Stack.Screen name="Notice board / Rules" component={NoticeBoard} options={{ headerShown: false }} />
-        <Stack.Screen name="Settings" component={Settings} options={{ headerShown: false }} />
-        <Stack.Screen name="How to Play" component={HowToPlay} options={{ headerShown: false }} />
         <Stack.Screen name="Language Select" component={LanguageSelect} options={{ headerShown: false }} />
         <Stack.Screen name="Language" component={LanguageSwitcher} options={{ headerShown: false }} />
 
-        {/* Result Screen */}
-        <Stack.Screen name="Game Results" component={GameResults} options={{ headerShown: false }} />
+
+        {/* Library Screens */}
+        <Stack.Screen name="Book Details" component={BookDetails} options={{ headerShown: false }} />
+        <Stack.Screen name="Book Reader" component={BookReader} options={{ headerShown: false }} />
+
+        {/* Games Info Screens */}
+        {canSeeGames && (
+          <Stack.Group>
+            <Stack.Screen name="Notifications" component={Notifications} options={{ headerShown: false }} />
+            <Stack.Screen name="Charts" component={Charts} options={{ headerShown: false }} />
+            <Stack.Screen name="Matka Chart" component={MatkaChart} options={{ headerShown: false }} />
+            <Stack.Screen name="GameChartPanel" component={GameChartPanel} options={{ headerShown: false }} />
+            <Stack.Screen name="Game Rate" component={GameRate} options={{ headerShown: false }} />
+            <Stack.Screen name="Time Table" component={TimeTable} options={{ headerShown: false }} />
+            <Stack.Screen name="Notice board / Rules" component={NoticeBoard} options={{ headerShown: false }} />
+            <Stack.Screen name="Settings" component={Settings} options={{ headerShown: false }} />
+            <Stack.Screen name="How to Play" component={HowToPlay} options={{ headerShown: false }} />
+            <Stack.Screen name="Game Results" component={GameResults} options={{ headerShown: false }} />
+          </Stack.Group>
+        )}
 
         {/* Payment Screens */}
         {canPay && (

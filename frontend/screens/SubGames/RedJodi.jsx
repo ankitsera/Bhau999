@@ -20,6 +20,7 @@ import { useBettingGuard } from "../../utils/BettingGuard";
 import { fetchBetLimits } from "../../utils/BetValidationService";
 
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 // Order is IMPORTANT: even indexes render left column, odd indexes render right column
 const RED_JODI_NUMBERS = [
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
   },
   specialSubmitText: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "700",
   },
 });

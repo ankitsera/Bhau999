@@ -5,7 +5,6 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  Image,
   ScrollView,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -14,7 +13,9 @@ import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../contexts/AuthContext';
 import { PaymentsContext } from '../contexts/PaymentsContext';
 import ThemeHeader from '../components/ThemeHeader';
+import BrandLogo from '../components/BrandLogo';
 import { useTheme } from '../contexts/ThemeContext';
+import { FONT } from '../contexts/Themes';
 
 const RED = '#cc1f1f';
 const GREY = '#E5E5E5';
@@ -136,11 +137,7 @@ const BankDetails = () => {
       >
       {/* Logo */}
       <View style={styles.logoWrap}>
-        <Image
-          source={require('../assets/Images/logo.webp')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+        <BrandLogo size={52} />
       </View>
 
       <View style={styles.form}>
@@ -258,12 +255,8 @@ const styles = StyleSheet.create({
   logoWrap: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 12,
-    paddingBottom: 8,
-  },
-  logo: {
-    width: 280,
-    height: 190,
+    paddingTop: 28,
+    paddingBottom: 24,
   },
 
   form: {
@@ -299,11 +292,11 @@ const styles = StyleSheet.create({
 
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: FONT.body,
   },
 
   hint: {
-    fontSize: 13,
+    fontSize: FONT.caption,
     marginLeft: 8,
   },
 
@@ -323,7 +316,7 @@ const styles = StyleSheet.create({
 
   saveText: {
     color: '#111',
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: '800',
     letterSpacing: 0.5,
   },

@@ -24,6 +24,7 @@ import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const ODD_DIGITS = ["1", "3", "5", "7", "9"];
 const EVEN_DIGITS = ["0", "2", "4", "6", "8"];
@@ -283,7 +284,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   radioText: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "600",
   },
 
@@ -293,7 +294,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   label: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "500",
     marginBottom: 4,
   },
@@ -302,7 +303,7 @@ const styles = StyleSheet.create({
     width: 150,
     borderRadius: 22,
     borderWidth: 1,
-    fontSize: 16,
+    fontSize: FONT.body,
     marginBottom: 12,
     textAlign: "center",
     writingDirection: "ltr",
@@ -320,7 +321,7 @@ const styles = StyleSheet.create({
   },
   addText: {
     color: "#FFF",
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "700",
   },
 

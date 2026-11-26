@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DeviceInfo from "react-native-device-info";
-import { API_URL } from "../env-vars";
+import { API_URL } from './ApiConfig';
 import { getApkUrl } from "./AppConfigService";
 
 const LAST_CHECK_KEY = "update_last_check_at";

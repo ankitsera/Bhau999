@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import ThemeHeader from './ThemeHeader';
 import { markLanguageSelected } from '../utils/LanguagePreference';
 import { useTheme } from '../contexts/ThemeContext';
+import { FONT } from '../contexts/Themes';
 
 const LANGUAGES = [
   { code: 'en', name: 'English', nativeName: 'English', icon: 'E' },
@@ -136,12 +137,12 @@ const styles = StyleSheet.create({
   },
 
   circleText: {
-    fontSize: 22,
+    fontSize: FONT.h3,
     fontWeight: '800',
   },
 
   langText: {
-    fontSize: 15,
+    fontSize: FONT.label,
     fontWeight: '800',
     textAlign: 'center',
   },

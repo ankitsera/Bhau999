@@ -8,7 +8,7 @@ export default function GameSettingPage() {
   return (
     <>
       <Helmet>
-        <title> Report Management </title>
+        <title> Report Management | Bhau999 Admin </title>
       </Helmet>
 
       <ReportView />

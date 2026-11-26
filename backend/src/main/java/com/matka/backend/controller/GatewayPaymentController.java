@@ -1,6 +1,7 @@
 package com.matka.backend.controller;
 
 import com.matka.backend.GatewayPayment;
+import com.matka.backend.ApiRoutes;
 import com.matka.backend.TransactionEntity;
 import com.matka.backend.repository.GatewayPaymentRepository;
 import com.matka.backend.repository.TransactionRepository;
@@ -27,7 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/gateway-payments")
+@RequestMapping(ApiRoutes.BASE + "/gateway-payments")
 public class GatewayPaymentController {
     private static final Logger log = LoggerFactory.getLogger(GatewayPaymentController.class);
 

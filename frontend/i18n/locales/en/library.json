@@ -1,0 +1,23 @@
+{
+  "title": "Library",
+  "greeting": "Hello, {{name}}",
+  "tagline": "Free books to read anytime",
+  "searchPlaceholder": "Search books or authors",
+  "all": "All",
+  "allBooks": "All Books",
+  "featured": "Featured",
+  "noBooks": "No books match your search",
+  "free": "Free",
+  "minRead": "{{count}} min read",
+  "chapters": "{{count}} chapters",
+  "about": "About this book",
+  "contents": "Contents",
+  "chapter": "Chapter {{number}}",
+  "readNow": "Read Now",
+  "previous": "Previous",
+  "next": "Next",
+  "theEnd": "You have finished the sample. More books are coming soon.",
+  "backToLibrary": "Back to Library",
+  "search": "Search",
+  "support": "Support"
+}

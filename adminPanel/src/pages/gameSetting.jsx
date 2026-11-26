@@ -8,7 +8,7 @@ export default function GameSettingPage() {
   return (
     <>
       <Helmet>
-        <title> Game Settings </title>
+        <title> Game Settings | Bhau999 Admin </title>
       </Helmet>
 
       <GameSettingsView />

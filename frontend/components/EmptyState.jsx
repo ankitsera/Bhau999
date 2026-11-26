@@ -4,6 +4,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from 'react-i18next';
 import { useTheme } from "../contexts/ThemeContext";
+import { FONT } from '../contexts/Themes';
 
 const EmptyState = ({
   message = "NO DATA FOUND",
@@ -73,7 +74,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   message: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "700",
     textAlign: "center",
     letterSpacing: 0.3,
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   buttonText: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "900",
     letterSpacing: 0.5,
   },

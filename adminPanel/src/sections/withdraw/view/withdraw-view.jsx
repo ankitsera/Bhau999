@@ -24,6 +24,7 @@ import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import { transactionService } from 'src/services';
+import { useUsers } from 'src/contexts/UserContext';
 
 // Pagination Actions Component
 function TablePaginationActions(props) {
@@ -63,6 +64,7 @@ function TablePaginationActions(props) {
 const WithdrawPage = () => {
     const navigate = useNavigate()
     const location = useLocation()
+    const { users } = useUsers()
     const [withdrawals, setWithdrawals] = useState([])
     const [filteredWithdrawals, setFilteredWithdrawals] = useState([])
     const [loading, setLoading] = useState(false)
@@ -85,6 +87,10 @@ const WithdrawPage = () => {
     const [searchMobile, setSearchMobile] = useState(getInitialSearchMobile())
     const [selectedDate, setSelectedDate] = useState(getInitialDate())
     const [sortOrder, setSortOrder] = useState('desc') // 'desc' = latest first, 'asc' = oldest first
+    const usersByMobile = React.useMemo(
+        () => new Map(users.map((user) => [user.mobileNumber, user])),
+        [users],
+    )
 
     // Pagination state
     const [page, setPage] = useState(0)
@@ -216,7 +222,13 @@ const WithdrawPage = () => {
         setFilteredWithdrawals(filtered)
     }, [statusFilter, withdrawals, searchMobile, selectedDate, sortOrder])
     const handleApprove = async(id) => {
-        if (!window.confirm('Are you sure you want to approve this withdrawal?')) {
+        const withdrawal = withdrawals.find((item) => item.id === id)
+        const user = usersByMobile.get(withdrawal?.mobileNumber)
+        const confirmationMessage = user?.ifscRedFlagged
+            ? `RED FLAG: IFSC ${user.ifscCode} is on the watchlist. Are you sure you want to approve this withdrawal?`
+            : 'Are you sure you want to approve this withdrawal?'
+
+        if (!window.confirm(confirmationMessage)) {
             return
         }
 
@@ -439,6 +451,7 @@ const WithdrawPage = () => {
                 <TableRow>
                     <TableCell>S.No.</TableCell>
                     <TableCell>Mobile Number</TableCell>
+                    <TableCell>Risk</TableCell>
                     <TableCell align='right'>
                         <Stack direction="row" alignItems="center" justifyContent="flex-end" spacing={1}>
                             <span>Created at</span>
@@ -460,7 +473,7 @@ const WithdrawPage = () => {
                 <TableBody>
                 {filteredWithdrawals.length === 0 ? (
                     <TableRow>
-                        <TableCell colSpan={7} align="center">
+                        <TableCell colSpan={8} align="center">
                             <Typography variant="body2" color="text.secondary" py={3}>
                                 No withdrawals found
                             </Typography>
@@ -496,6 +509,18 @@ const WithdrawPage = () => {
                                 >
                                     {row.mobileNumber}
                                 </Link>
+                            </TableCell>
+                            <TableCell>
+                                {usersByMobile.get(row.mobileNumber)?.ifscRedFlagged ? (
+                                    <Chip
+                                        label="IFSC Red Flag"
+                                        color="error"
+                                        size="small"
+                                        title={`Watchlist match: ${usersByMobile.get(row.mobileNumber)?.ifscCode}`}
+                                    />
+                                ) : (
+                                    '-'
+                                )}
                             </TableCell>
                             <TableCell align="right">
                                 {row.txDate && row.txTime ?
@@ -555,7 +580,7 @@ const WithdrawPage = () => {
                 )}
                 {emptyRows > 0 && (
                     <TableRow style={{ height: 53 * emptyRows }}>
-                        <TableCell colSpan={7} />
+                        <TableCell colSpan={8} />
                     </TableRow>
                 )}
                 </TableBody>
@@ -563,7 +588,7 @@ const WithdrawPage = () => {
                     <TableRow>
                         <TablePagination
                             rowsPerPageOptions={[5, 10, 25, 50, 100, { label: 'All', value: -1 }]}
-                            colSpan={7}
+                            colSpan={8}
                             count={filteredWithdrawals.length}
                             rowsPerPage={rowsPerPage}
                             page={page}

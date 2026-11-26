@@ -15,6 +15,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { FONT } from '../../contexts/Themes';
 
 const Signup = ({ navigation, route }) => {
   const { t } = useTranslation(['auth', 'validation', 'common']);
@@ -225,7 +226,7 @@ const styles = StyleSheet.create({
     marginRight: 14,
   },
   titleText: {
-    fontSize: 36,
+    fontSize: FONT.display,
     fontWeight: '700',
     letterSpacing: 1,
   },
@@ -255,12 +256,12 @@ const styles = StyleSheet.create({
 
   input: {
     flex: 1,
-    fontSize: 18,
+    fontSize: FONT.title,
   },
 
   errorText: {
     color: '#d32f2f',
-    fontSize: 14,
+    fontSize: FONT.label,
     textAlign: 'center',
     marginTop: 10,
     marginBottom: 10,
@@ -281,7 +282,7 @@ const styles = StyleSheet.create({
 
   signupText: {
     color: '#fff',
-    fontSize: 20,
+    fontSize: FONT.title,
     fontWeight: '900',
     letterSpacing: 1,
   },

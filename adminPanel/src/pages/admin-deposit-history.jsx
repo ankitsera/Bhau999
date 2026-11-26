@@ -8,7 +8,7 @@ export default function AdminDepositHistoryPage() {
   return (
     <>
       <Helmet>
-        <title> Admin Deposit History </title>
+        <title> Admin Deposit History | Bhau999 Admin </title>
       </Helmet>
 
       <AdminDepositHistoryView />

@@ -103,5 +103,6 @@
   "close": "Close",
   "ref": "Ref",
   "paymentTo": "Payment to {{name}}",
-  "noThanks": "No, Thanks"
+  "noThanks": "No, Thanks",
+  "continue": "Continue"
 }

@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const DigitGrid = ({ digits, pointsByDigit, onPressDigit }) => {
   const { colors } = useTheme();
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
   },
   digitText: {
     color: "#FFF",
-    fontSize: 22,
+    fontSize: FONT.h3,
     fontWeight: "800",
   },
   pointsText: {

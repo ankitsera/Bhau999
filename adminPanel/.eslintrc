@@ -134,7 +134,7 @@
       {
         "order": "asc",
         "type": "line-length",
-        "newlines-between": "always",
+        "newlinesBetween": "always",
         "groups": [
           [
             "builtin",
@@ -156,19 +156,19 @@
           "object",
           "unknown"
         ],
-        "custom-groups": {
+        "customGroups": {
           "value": {
-            "custom-mui": "@mui/**",
-            "custom-routes": "src/routes/**",
-            "custom-hooks": "src/hooks/**",
-            "custom-utils": "src/utils/**",
-            "custom-components": "src/components/**",
-            "custom-sections": "src/sections/**",
-            "custom-types": "src/types/**"
+            "custom-mui": "^@mui/.+",
+            "custom-routes": "^src/routes/.+",
+            "custom-hooks": "^src/hooks/.+",
+            "custom-utils": "^src/utils/.+",
+            "custom-components": "^src/components/.+",
+            "custom-sections": "^src/sections/.+",
+            "custom-types": "^src/types/.+"
           }
         },
-        "internal-pattern": [
-          "src/**"
+        "internalPattern": [
+          "^src/.+"
         ]
       }
     ]

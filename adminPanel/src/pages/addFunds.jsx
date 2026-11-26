@@ -8,7 +8,7 @@ export default function AddFundsPage() {
   return (
     <>
       <Helmet>
-        <title> Add Funds </title>
+        <title> Add Funds | Bhau999 Admin </title>
       </Helmet>
 
       <AddFundsView />

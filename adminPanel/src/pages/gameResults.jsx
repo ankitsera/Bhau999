@@ -8,7 +8,7 @@ export default function GameResultsPage() {
   return (
     <>
       <Helmet>
-        <title> Declare Result </title>
+        <title> Declare Result | Bhau999 Admin </title>
       </Helmet>
 
       <GameResultsView />

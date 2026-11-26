@@ -8,7 +8,7 @@ export default function UserPage() {
   return (
     <>
       <Helmet>
-        <title> User </title>
+        <title> User | Bhau999 Admin </title>
       </Helmet>
 
       <UserView />

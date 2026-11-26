@@ -28,6 +28,7 @@ import { useBettingGuard } from '../../utils/BettingGuard';
 import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
 
 import { useTheme } from '../../contexts/ThemeContext';
+import { FONT } from '../../contexts/Themes';
 
 const BLACK = '#000';
 
@@ -441,7 +442,7 @@ const modeStyles = StyleSheet.create({
   },
   text: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: FONT.label,
     fontWeight: '700',
   },
 });
@@ -492,7 +493,7 @@ const styles = StyleSheet.create({
   },
   specialSubmitText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '700',
   },
 });
@@ -509,7 +510,7 @@ const formStyles = StyleSheet.create({
     alignItems: 'center',
   },
   label: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '500',
   },
 
@@ -523,7 +524,7 @@ const formStyles = StyleSheet.create({
     width: 150,
     borderRadius: 22,
     borderWidth: 1,
-    fontSize: 16,
+    fontSize: FONT.body,
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -546,7 +547,7 @@ const formStyles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   suggestionText: {
-    fontSize: 14,
+    fontSize: FONT.label,
   },
 
   addButton: {
@@ -560,7 +561,7 @@ const formStyles = StyleSheet.create({
   },
   addText: {
     color: '#FFF',
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '700',
   },
 });

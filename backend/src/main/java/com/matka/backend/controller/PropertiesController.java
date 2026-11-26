@@ -1,6 +1,7 @@
 package com.matka.backend.controller;
 
 import com.matka.backend.Properties;
+import com.matka.backend.ApiRoutes;
 import com.matka.backend.repository.PropertiesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/properties")
+@RequestMapping(ApiRoutes.BASE + "/properties")
 public class PropertiesController {
 
     @Autowired

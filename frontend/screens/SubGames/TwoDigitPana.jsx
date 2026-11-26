@@ -30,6 +30,7 @@ import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 // 00..99 suggestions by first digit: "3" -> ["30".."39"]
 const FIRST_DIGIT_MAP = Array.from({ length: 10 }, (_, d) => {
@@ -362,7 +363,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   label: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "500",
     marginBottom: 4,
   },
@@ -376,7 +377,7 @@ const styles = StyleSheet.create({
     width: 180,
     borderRadius: 22,
     borderWidth: 1,
-    fontSize: 16,
+    fontSize: FONT.body,
     marginBottom: 12,
     textAlign: "center",
   },
@@ -398,7 +399,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   suggestionText: {
-    fontSize: 14,
+    fontSize: FONT.label,
   },
 
   addButton: {
@@ -411,7 +412,7 @@ const styles = StyleSheet.create({
     width: 180,
   },
   addText: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "700",
   },
 

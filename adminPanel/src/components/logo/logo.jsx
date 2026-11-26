@@ -5,7 +5,7 @@ import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 
 import { RouterLink } from 'src/routes/components';
-import LogoSvg from '../../assets/logo.svg';
+import LogoImg from '../../assets/logo.png';
 
 // ----------------------------------------------------------------------
 
@@ -14,8 +14,8 @@ const Logo = forwardRef(({ disabledLink = false, sx, ...other }, ref) => {
     <Box
       ref={ref}
       component="img"
-      src={LogoSvg}
-      sx={{ width: 150, height: 50, cursor: 'pointer', ...sx }}
+      src={LogoImg}
+      sx={{ width: 150, height: 50, objectFit: 'contain', objectPosition: 'left center', cursor: 'pointer', ...sx }}
       {...other}
     />
   );

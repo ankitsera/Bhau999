@@ -21,6 +21,7 @@ import BettingClosedModal from "../../components/BettingClosedModal";
 import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const DIGIT_ROWS = [
   ["1", "2", "3", "4", "5"],
@@ -231,7 +232,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   label: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "500",
   },
   input: {
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
     width: 150,
     borderRadius: 22,
     borderWidth: 1,
-    fontSize: 16,
+    fontSize: FONT.body,
     textAlign: "center",
   },
 
@@ -261,7 +262,7 @@ const styles = StyleSheet.create({
   },
   digitText: {
     color: "#FFF",
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: "800",
   },
 

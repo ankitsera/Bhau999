@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import ThemeHeader from "../../components/ThemeHeader";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const ITEMS = [
   {
@@ -76,7 +77,7 @@ const Chevron = () => {
 
   return (
     <View style={[styles.chevWrap, { backgroundColor: colors.surface }]}>
-      <MaterialIcons name="chevron-right" size={26} color={colors.textTertiary} />
+      <MaterialIcons name="chevron-right" size={22} color={colors.textTertiary} />
     </View>
   );
 };
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "600",
   },
   subtitle: {

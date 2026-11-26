@@ -13,12 +13,15 @@ export const FEATURES = {
   PAYMENTS: "payments",
   // Placing bets and bet history
   BETTING: "betting",
+  // Games home, results, charts, timings, rates, notices. Without it the user
+  // gets the Library as their home screen instead.
+  GAMES: "games",
 };
 
 // The single place that decides what each view mode can see. FULL sees everything.
 const HIDDEN_FEATURES = {
   [VIEW_MODES.FULL]: [],
-  [VIEW_MODES.LIMITED]: [FEATURES.PAYMENTS, FEATURES.BETTING],
+  [VIEW_MODES.LIMITED]: [FEATURES.PAYMENTS, FEATURES.BETTING, FEATURES.GAMES],
 };
 
 export const getViewMode = (user) =>

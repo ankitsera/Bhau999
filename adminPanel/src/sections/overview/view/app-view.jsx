@@ -17,6 +17,9 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import MoneyOffIcon from '@mui/icons-material/MoneyOff';
 import PersonIcon from '@mui/icons-material/Person';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
+
+import { fadeUp, staggerChildren } from 'src/theme/motion';
 
 import AppWidgetSummary from '../app-widget-summary';
 
@@ -127,6 +130,7 @@ export default function AppView() {
   const { getTodayUniqueBidsCount } = useBets();
   const [dashData, setDashData] = useState({
     user_count: 0,
+    ifsc_red_flagged_users: 0,
     today_registrations: 0,
     bid_count: 0,
     bid_amount: 0,
@@ -264,6 +268,7 @@ export default function AppView() {
 
     const calculatedData = {
       user_count: users.length,
+      ifsc_red_flagged_users: users.filter((user) => user.ifscRedFlagged).length,
       today_registrations: todayRegistrations,
       bid_count: allBets.length,
       bid_amount: totalBetAmount,
@@ -604,19 +609,28 @@ export default function AppView() {
 
   return (
     <Container>
-      <Typography variant="h4" sx={{ mb: 5 }}>
+      <Typography variant="h4" sx={{ mb: 5, color: 'secondary.main', ...fadeUp(0) }}>
         Hi, Welcome back 👋
       </Typography>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={3} sx={staggerChildren()}>
         <Grid size={{ xs: 6, sm: 6, md: 3 }}>
           <AppWidgetSummary
             title="Total Users"
             total={dashData.user_count}
-            color="success"
-            icon={<PeopleAltIcon sx={{ width: 36, height: 36, color: '#00AB55' }} />}
+            color="primary"
+            icon={<PeopleAltIcon />}
             onClick={() => navigate('/user')}
-            sx={{ cursor: 'pointer', '&:hover': { transform: 'translateY(-4px)', boxShadow: 3 }, transition: 'all 0.3s ease' }}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 6, sm: 6, md: 3 }}>
+          <AppWidgetSummary
+            title="IFSC Red Flags"
+            total={dashData.ifsc_red_flagged_users}
+            color="error"
+            icon={<ReportProblemOutlinedIcon />}
+            onClick={() => navigate('/user', { state: { showIfscRedFlags: true } })}
           />
         </Grid>
 
@@ -625,7 +639,7 @@ export default function AppView() {
             title="Today Registrations"
             total={dashData.today_registrations}
             color="info"
-            icon={<PersonAddIcon sx={{ width: 36, height: 36, color: '#00B8D9' }} />}
+            icon={<PersonAddIcon />}
           />
         </Grid>
 
@@ -633,14 +647,13 @@ export default function AppView() {
           <AppWidgetSummary
             title="Today Active Users"
             total={dashData.today_active_users}
-            color="success"
-            icon={<PersonIcon sx={{ width: 36, height: 36, color: '#00AB55' }} />}
+            color="primary"
+            icon={<PersonIcon />}
             onClick={() => {
               setActiveUsersDialogDate(dayjs());
               setActiveUsersPage(0);
               setActiveUsersDialogOpen(true);
             }}
-            sx={{ cursor: 'pointer', '&:hover': { transform: 'translateY(-4px)', boxShadow: 3 }, transition: 'all 0.3s ease' }}
           />
         </Grid>
 
@@ -648,10 +661,9 @@ export default function AppView() {
           <AppWidgetSummary
             title="Today Bid"
             total={dashData.today_bid}
-            color="info"
-            icon={<CasinoIcon sx={{ width: 36, height: 36, color: '#7635DC' }} />}
+            color="secondary"
+            icon={<CasinoIcon />}
             onClick={() => navigate('/bid-history')}
-            sx={{ cursor: 'pointer', '&:hover': { transform: 'translateY(-4px)', boxShadow: 3 }, transition: 'all 0.3s ease' }}
           />
         </Grid>
 
@@ -660,9 +672,8 @@ export default function AppView() {
             title="Today Unique Bids"
             total={dashData.today_unique_bids}
             color="info"
-            icon={<CasinoIcon sx={{ width: 36, height: 36, color: '#00B8D9' }} />}
+            icon={<CasinoIcon />}
             onClick={() => navigate('/bid-history')}
-            sx={{ cursor: 'pointer', '&:hover': { transform: 'translateY(-4px)', boxShadow: 3 }, transition: 'all 0.3s ease' }}
           />
         </Grid>
 
@@ -671,9 +682,8 @@ export default function AppView() {
             title="Today Bid Amount"
             total={dashData.today_bid_amount}
             color="warning"
-            icon={<AttachMoneyIcon sx={{ width: 36, height: 36, color: '#FFAB00' }} />}
+            icon={<AttachMoneyIcon />}
             onClick={() => navigate('/bid-history')}
-            sx={{ cursor: 'pointer', '&:hover': { transform: 'translateY(-4px)', boxShadow: 3 }, transition: 'all 0.3s ease' }}
           />
         </Grid>
 
@@ -681,10 +691,9 @@ export default function AppView() {
           <AppWidgetSummary
             title="Total Games"
             total={dashData.game_count}
-            color="error"
-            icon={<SportsEsportsIcon sx={{ width: 36, height: 36, color: '#FF5630' }} />}
+            color="secondary"
+            icon={<SportsEsportsIcon />}
             onClick={() => navigate('/game-setting')}
-            sx={{ cursor: 'pointer', '&:hover': { transform: 'translateY(-4px)', boxShadow: 3 }, transition: 'all 0.3s ease' }}
           />
         </Grid>
 
@@ -692,10 +701,9 @@ export default function AppView() {
           <AppWidgetSummary
             title="Total Wallet"
             total={dashData.total_wallet}
-            color="info"
-            icon={<AccountBalanceWalletIcon sx={{ width: 36, height: 36, color: '#00B8D9' }} />}
+            color="primary"
+            icon={<AccountBalanceWalletIcon />}
             onClick={() => navigate('/user', { state: { presetBalanceSort: 'desc' } })}
-            sx={{ cursor: 'pointer', '&:hover': { transform: 'translateY(-4px)', boxShadow: 3 }, transition: 'all 0.3s ease' }}
           />
         </Grid>
 
@@ -704,9 +712,8 @@ export default function AppView() {
             title="Today Deposit"
             total={dashData.today_deposit}
             color="success"
-            icon={<AttachMoneyIcon sx={{ width: 36, height: 36, color: '#00AB55' }} />}
+            icon={<AttachMoneyIcon />}
             onClick={() => navigate('/deposit-history')}
-            sx={{ cursor: 'pointer', '&:hover': { transform: 'translateY(-4px)', boxShadow: 3 }, transition: 'all 0.3s ease' }}
           />
         </Grid>
 
@@ -715,9 +722,8 @@ export default function AppView() {
             title="Today Withdraw"
             total={dashData.today_withdraw}
             color="error"
-            icon={<MoneyOffIcon sx={{ width: 36, height: 36, color: '#FF5630' }} />}
+            icon={<MoneyOffIcon />}
             onClick={() => navigate('/withdraw')}
-            sx={{ cursor: 'pointer', '&:hover': { transform: 'translateY(-4px)', boxShadow: 3 }, transition: 'all 0.3s ease' }}
           />
         </Grid>
 
@@ -726,9 +732,8 @@ export default function AppView() {
             title="Today Withdrawal Requests"
             total={dashData.today_withdrawal_requests}
             color="error"
-            icon={<MoneyOffIcon sx={{ width: 36, height: 36, color: '#FF5630' }} />}
+            icon={<MoneyOffIcon />}
             onClick={() => navigate('/withdraw')}
-            sx={{ cursor: 'pointer', '&:hover': { transform: 'translateY(-4px)', boxShadow: 3 }, transition: 'all 0.3s ease' }}
           />
         </Grid>
 
@@ -737,9 +742,8 @@ export default function AppView() {
             title="Total Deposit"
             total={dashData.total_deposit_lifetime}
             color="success"
-            icon={<AttachMoneyIcon sx={{ width: 36, height: 36, color: '#00AB55' }} />}
+            icon={<AttachMoneyIcon />}
             onClick={() => navigate('/deposit-history')}
-            sx={{ cursor: 'pointer', '&:hover': { transform: 'translateY(-4px)', boxShadow: 3 }, transition: 'all 0.3s ease' }}
           />
         </Grid>
 
@@ -748,7 +752,7 @@ export default function AppView() {
             title="Admin Deposit"
             total={dashData.today_admin_deposit}
             color="warning"
-            icon={<AdminPanelSettingsIcon sx={{ width: 36, height: 36, color: '#FFAB00' }} />}
+            icon={<AdminPanelSettingsIcon />}
           />
         </Grid>
       </Grid>
@@ -921,7 +925,7 @@ export default function AppView() {
       </TableContainer>
 
       <Stack direction='row' spacing={2} style={{marginTop: "20px"}} alignItems='center'>
-        <p>Set Upproval Status</p>
+        <p>Set Approval Status</p>
         <Switch checked={upprove} onChange={handleApprove} inputProps={{ 'aria-label': 'controlled' }} />
       </Stack>
 

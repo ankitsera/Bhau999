@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   FlatList,
-  Image,
   StatusBar,
 } from 'react-native';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -13,6 +12,8 @@ import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../contexts/AuthContext';
 import { markLanguageSelected } from '../utils/LanguagePreference';
 import { useTheme } from '../contexts/ThemeContext';
+import BrandLogo from '../components/BrandLogo';
+import { FONT } from '../contexts/Themes';
 
 const LANGUAGES = [
   { code: 'en', name: 'English', nativeName: 'English', icon: 'E' },
@@ -128,13 +129,7 @@ export default function LanguageSelect({ navigation }) {
           columnWrapperStyle={styles.row}
           ListHeaderComponent={
             <>
-              <View style={[styles.logoWrap,]}>
-                <Image
-                  source={require('../assets/Images/logo.webp')}
-                  style={styles.logo}
-                  resizeMode="contain"
-                />
-              </View>
+              <BrandLogo size={44} style={styles.logo} />
 
               <Text style={[styles.title, { color: colors.text }]}>
                 {t('chooseYourLanguage')}
@@ -188,23 +183,14 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
 
-  logoWrap: {
-    width: 80,
-    height: 80,
-    alignSelf: 'center',
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
-  },
-
   logo: {
-    width: 150,
-    height: 150,
+    alignSelf: 'center',
+    marginTop: 6,
+    marginBottom: 18,
   },
 
   title: {
-    fontSize: 22,
+    fontSize: FONT.h3,
     fontWeight: '900',
     textAlign: 'center',
     letterSpacing: 0.2,
@@ -213,9 +199,9 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: 8,
     marginBottom: 16,
-    fontSize: 15,
+    fontSize: FONT.label,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 19,
     fontWeight: '600',
   },
 
@@ -269,12 +255,12 @@ const styles = StyleSheet.create({
   },
 
   iconText: {
-    fontSize: 28,
+    fontSize: FONT.h1,
     fontWeight: '900',
   },
 
   nativeName: {
-    fontSize: 15,
+    fontSize: FONT.label,
     fontWeight: '800',
     textAlign: 'center',
   },

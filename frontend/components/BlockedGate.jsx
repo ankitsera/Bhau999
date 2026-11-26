@@ -10,6 +10,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { FONT } from '../contexts/Themes';
 
 export default function BlockedGate({ visible, navigationRef }) {
   const { t } = useTranslation(['auth', 'common']);
@@ -86,12 +87,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   title: {
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: '900',
     marginBottom: 8,
   },
   body: {
-    fontSize: 14,
+    fontSize: FONT.label,
     opacity: 0.85,
     marginBottom: 14,
   },
@@ -108,6 +109,6 @@ const styles = StyleSheet.create({
   btnText: {
     color: '#fff',
     fontWeight: '900',
-    fontSize: 16,
+    fontSize: FONT.body,
   },
 });

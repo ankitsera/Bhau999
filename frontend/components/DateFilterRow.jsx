@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
+import { FONT } from '../contexts/Themes';
 
 const formatDatePretty = dt => {
   if (!(dt instanceof Date)) return '--';
@@ -93,7 +94,7 @@ export default DateFilterRow;
 
 const styles = StyleSheet.create({
   sectionTitle: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '900',
     color: '#111',
     marginBottom: 10,
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EAEAEA',
   },
   clearText: {
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: '900',
     color: '#111',
     marginTop: -2,

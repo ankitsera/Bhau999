@@ -30,6 +30,7 @@ import {
   Slide,
   Select,
   MenuItem,
+  Alert,
 } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faWhatsapp } from '@fortawesome/free-brands-svg-icons';
@@ -614,7 +615,11 @@ export default function UserEditPage() {
         upiId: singleUserInfo.upiId || null
       };
 
-      await userService.updateUserDetails(payload);
+      const response = await userService.updateUserDetails(payload);
+      setSingleUserInfo((current) => ({
+        ...current,
+        ifscRedFlagged: Boolean(response?.ifscRedFlagged),
+      }));
       alert('User details updated successfully');
       setPass('');
       refetch();
@@ -679,6 +684,11 @@ export default function UserEditPage() {
           <Card sx={{ p: 3 }}>
             <Typography variant="h6" mb={2}>User Information</Typography>
             <Stack spacing={2}>
+              {singleUserInfo.ifscRedFlagged && (
+                <Alert severity="error">
+                  Red flag: IFSC {singleUserInfo.ifscCode} is on the watchlist. Review this account carefully.
+                </Alert>
+              )}
               <TextField
                 label="Mobile Number"
                 value={singleUserInfo.mobileNumber || ''}

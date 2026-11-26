@@ -23,6 +23,7 @@ import { useBettingGuard } from '../../utils/BettingGuard';
 import { validateAndAlertBetAmount, fetchBetLimits } from '../../utils/BetValidationService';
 
 import { useTheme } from '../../contexts/ThemeContext';
+import { FONT } from '../../contexts/Themes';
 
 const HalfSangamB = ({ route }) => {
   const { t } = useTranslation(['games', 'validation', 'common']);
@@ -345,7 +346,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   label: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '500',
   },
   inputWrapper: {
@@ -357,7 +358,7 @@ const styles = StyleSheet.create({
     width: 150,
     borderRadius: 22,
     borderWidth: 1,
-    fontSize: 16,
+    fontSize: FONT.body,
     textAlign: 'center',
     paddingHorizontal: 10,
   },
@@ -378,7 +379,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   suggestionText: {
-    fontSize: 14,
+    fontSize: FONT.label,
   },
   addButton: {
     marginTop: 6,
@@ -391,7 +392,7 @@ const styles = StyleSheet.create({
   },
   addText: {
     color: '#FFF',
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '700',
   },
   tableHeader: {
@@ -404,7 +405,7 @@ const styles = StyleSheet.create({
   },
   headerCell: {
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: FONT.label,
     textAlign: 'center',
   },
   rowCard: {
@@ -418,7 +419,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   rowText: {
-    fontSize: 14,
+    fontSize: FONT.label,
     fontWeight: '500',
   },
   deleteCircle: {
@@ -443,7 +444,7 @@ const styles = StyleSheet.create({
   },
   submitText: {
     color: '#FFF',
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: '700',
   },
 });

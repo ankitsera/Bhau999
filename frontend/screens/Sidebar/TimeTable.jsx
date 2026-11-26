@@ -14,6 +14,7 @@ import EmptyState from '../../components/EmptyState';
 import LoadingView from '../../components/LoadingView';
 import { GameContext } from '../../contexts/GameContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { FONT } from '../../contexts/Themes';
 
 /** --- Row component --- */
 const TimeRow = ({ gameName, openTime, closeTime }) => {
@@ -123,7 +124,7 @@ const styles = StyleSheet.create({
   headerText: {
     color: '#fff',
     fontWeight: '800',
-    fontSize: 16,
+    fontSize: FONT.body,
   },
 
   // Row card
@@ -142,10 +143,10 @@ const styles = StyleSheet.create({
   gameName: {
     flex: 1.2,
     fontWeight: '800',
-    fontSize: 16,
+    fontSize: FONT.body,
   },
   timeText: {
-    fontSize: 15,
+    fontSize: FONT.label,
     textAlign: 'right',
   },
   center: {

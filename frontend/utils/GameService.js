@@ -1,5 +1,5 @@
 // utils/GameService.js
-import { API_URL } from "../env-vars";
+import { API_URL } from './ApiConfig';
 
 // GET /api/rate  ->  ${API_URL}/rate
 export const getGameRates = async () => {

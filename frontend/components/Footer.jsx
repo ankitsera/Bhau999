@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from 'react-i18next';
 import { useTheme } from "../contexts/ThemeContext";
 import { useFeature, FEATURES } from "../utils/Features";
+import { FONT } from '../contexts/Themes';
 
 const Footer = ({ navigation, active = "Home", onSupportPress }) => {
   const { t } = useTranslation(['common']);
@@ -39,15 +40,6 @@ const Footer = ({ navigation, active = "Home", onSupportPress }) => {
               label={t('common:passbook')}
               icon={<Image source={require("../assets/Images/Passbook.webp")} style={[styles.tabIcon, { tintColor: colors.textTertiary }]} resizeMode="contain" />}
               onPress={() => navigation.navigate("Passbook")}
-              colors={colors}
-            />
-          )}
-          {/* Keeps the left side from sitting empty when bets and payments are both hidden */}
-          {!canBet && !canPay && (
-            <TabItem
-              label={t('common:charts')}
-              icon={<Image source={require("../assets/Images/Charts.webp")} style={[styles.tabIcon, { tintColor: colors.textTertiary }]} resizeMode="contain" />}
-              onPress={() => navigation.navigate("Charts")}
               colors={colors}
             />
           )}
@@ -134,7 +126,7 @@ const styles = StyleSheet.create({
     height: 30,
   },
   tabLabel: {
-    fontSize: 13,
+    fontSize: FONT.caption,
     fontWeight: "500",
     marginTop: 4,
   },

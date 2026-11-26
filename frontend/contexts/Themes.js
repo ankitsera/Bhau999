@@ -5,6 +5,21 @@ export const ThemeColor = '#23B26D';
 export const ThemeColorTile = '#D4EDE0';
 export const ThemeIconBg = '#E3F5EC';
 
+// Text size scale used across the app. Pick by role, not by look:
+// display = screen hero title, h1-h3 = headings, title = card/section titles,
+// body = normal text, label = secondary text, caption = hints and meta.
+export const FONT = {
+  display: 24,
+  h1: 22,
+  h2: 20,
+  h3: 18,
+  title: 16,
+  subtitle: 15,
+  body: 14,
+  label: 13,
+  caption: 12,
+};
+
 // Light Mode Colors Palette
 export const lightColors = {
   primary: '#23B26D',

@@ -33,6 +33,7 @@ import {
   IconButton,
   Slide,
   Link,
+  Chip,
 } from '@mui/material';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWhatsapp } from "@fortawesome/free-brands-svg-icons"
@@ -102,6 +103,9 @@ export default function UserPage() {
   const [open, setOpen] = useState(false);
   const [userInfo, setUserInfo] = useState({});
   const [searchVal, setSearchVal] = useState(location.state?.searchMobile || '');
+  const [showIfscRedFlagsOnly, setShowIfscRedFlagsOnly] = useState(
+    Boolean(location.state?.showIfscRedFlags),
+  );
   const [singleUserInfo, setSingleUserInfo] = useState({});
   const [userFund, setUserFund] = useState([]);
   const [userWithdraw, setUserWithdraw] = useState([]);
@@ -120,6 +124,7 @@ export default function UserPage() {
   const [winrowsPerPage, setWinRowsPerPage] = React.useState(10);
   const [userWalletPoints, setUserWalletPoints] = useState(0);
   const getInitialSelectedDate = () => {
+    if (location.state?.showIfscRedFlags) return null;
     const savedDate = sessionStorage.getItem('user-list-date');
     if (savedDate === 'null') return null;
     if (savedDate) return dayjs(savedDate);
@@ -315,8 +320,9 @@ export default function UserPage() {
       });
       setUserDataCopy(usersWithId);
       
-      // Apply date filter if selected
-      if (selectedDate) {
+      if (showIfscRedFlagsOnly) {
+        setUserData(usersWithId.filter((user) => user.ifscRedFlagged));
+      } else if (selectedDate) {
         const filtered = usersWithId.filter(user => {
           if (!user.dateSignup) return false;
           return dayjs(user.dateSignup).isSame(selectedDate, 'day');
@@ -326,7 +332,7 @@ export default function UserPage() {
         setUserData(usersWithId);
       }
     }
-  }, [contextUsers, selectedDate, createdAtSortOrder, balanceSortOrder]);
+  }, [contextUsers, selectedDate, createdAtSortOrder, balanceSortOrder, showIfscRedFlagsOnly]);
   const unverifyUser = async (mobileNumber) => {
     try {
       await userService.unapproveUser(mobileNumber);
@@ -371,7 +377,10 @@ export default function UserPage() {
     if (searchVal == '') {
       return;
     }
-    const newData = userDataCopy.filter(
+    const searchPool = showIfscRedFlagsOnly
+      ? userDataCopy.filter((user) => user.ifscRedFlagged)
+      : userDataCopy;
+    const newData = searchPool.filter(
       (user) => user.mobileNumber.includes(searchVal) || (user.username && user.username.includes(searchVal))
     );
     setUserData(newData);
@@ -385,19 +394,28 @@ export default function UserPage() {
     navigate(`/user/${user.mobileNumber}`);
   };
   const showUnapprove = () => {
+    setShowIfscRedFlagsOnly(false);
     let newarr = userDataCopy.filter((user) => user.is_subscriber === false)
     setUserData(newarr)
     setuserPage(0);
     sessionStorage.setItem('user-list-page', '0');
   }
   const showApprove = () => {
+    setShowIfscRedFlagsOnly(false);
     let newarr = userDataCopy.filter((user) => user.is_subscriber === true)
     setUserData(newarr)
     setuserPage(0);
     sessionStorage.setItem('user-list-page', '0');
   }
   const showAllUser = () => {
+    setShowIfscRedFlagsOnly(false);
     setUserData(userDataCopy)
+    setuserPage(0);
+    sessionStorage.setItem('user-list-page', '0');
+  }
+  const showIfscRedFlags = () => {
+    setShowIfscRedFlagsOnly(true);
+    setUserData(userDataCopy.filter((user) => user.ifscRedFlagged));
     setuserPage(0);
     sessionStorage.setItem('user-list-page', '0');
   }
@@ -454,6 +472,13 @@ export default function UserPage() {
           <Button variant='outlined' onClick={showAllUser}>All</Button>
           <Button variant="outlined" onClick={showUnapprove}>Unapproved</Button>
           <Button variant="outlined" onClick={showApprove}>Approved</Button>
+          <Button
+            variant={showIfscRedFlagsOnly ? 'contained' : 'outlined'}
+            color="error"
+            onClick={showIfscRedFlags}
+          >
+            IFSC Red Flags
+          </Button>
         </Stack>
       </Stack>
       <Stack direction="row" alignItems="center" justifyContent="space-between" mb={3}>
@@ -529,6 +554,9 @@ export default function UserPage() {
                         Name
                       </TableCell>
                       <TableCell component="th" scope="row">
+                        Risk
+                      </TableCell>
+                      <TableCell component="th" scope="row">
                         <Stack direction="row" alignItems="center" spacing={1}>
                           <span>Balance</span>
                           <IconButton
@@ -597,6 +625,18 @@ export default function UserPage() {
                           {row.username || '-'}
                         </TableCell>
                         <TableCell component="th" scope="row">
+                          {row.ifscRedFlagged ? (
+                            <Chip
+                              color="error"
+                              label="IFSC Red Flag"
+                              size="small"
+                              title={`Watchlist match: ${row.ifscCode || 'unknown IFSC'}`}
+                            />
+                          ) : (
+                            '-'
+                          )}
+                        </TableCell>
+                        <TableCell component="th" scope="row">
                           {row.balance || 0}
                         </TableCell>
                         <TableCell style={{ width: 160 }} align="right">
@@ -641,7 +681,7 @@ export default function UserPage() {
                     ))}
                     {emptyRowsUser > 0 && (
                       <TableRow style={{ height: 53 * emptyRowsUser }}>
-                        <TableCell colSpan={6} />
+                        <TableCell colSpan={11} />
                       </TableRow>
                     )}
                   </TableBody>
@@ -649,7 +689,7 @@ export default function UserPage() {
                     <TableRow>
                       <TablePagination
                         rowsPerPageOptions={[5, 10, 25, 100, 500, 1000, { label: 'All', value: -1 }]}
-                        colSpan={9}
+                        colSpan={11}
                         count={userData.length}
                         rowsPerPage={userrowsPerPage}
                         page={userpage}

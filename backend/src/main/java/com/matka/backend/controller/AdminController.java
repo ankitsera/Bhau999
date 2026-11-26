@@ -1,6 +1,7 @@
 package com.matka.backend.controller;
 
 import com.matka.backend.Admin;
+import com.matka.backend.ApiRoutes;
 import com.matka.backend.repository.AdminRepository;
 import com.matka.backend.security.JwtUtil;
 import org.slf4j.Logger;
@@ -18,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping(ApiRoutes.BASE + "/users")
 public class AdminController {
     private static final Logger log = LoggerFactory.getLogger(AdminController.class);
     

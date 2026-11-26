@@ -12,6 +12,7 @@ import LoadingView from "../../components/LoadingView";
 import { GameContext } from "../../contexts/GameContext";
 import { getBaseRate } from "../../utils/AppConfigService";
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const SectionHeader = ({ title }) => {
   const { colors } = useTheme();
@@ -138,7 +139,7 @@ const GameRate = () => {
         }),
       },
     ];
-  }, [rates, minBetAmount]);
+  }, [rates, minBetAmount, t]);
 
   const isLoading = (isLoadingRates || isConfigLoading) && !refreshing;
 
@@ -191,7 +192,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: "800",
     textAlign: "center",
   },
@@ -211,11 +212,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   rateLabel: {
-    fontSize: 18,
+    fontSize: FONT.title,
     textAlign: "center",
   },
   rateValue: {
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: "800",
     textAlign: "center",
   },

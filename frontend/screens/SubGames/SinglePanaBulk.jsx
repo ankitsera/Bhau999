@@ -25,6 +25,7 @@ import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const DIGITS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
@@ -263,7 +264,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   label: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "500",
   },
   input: {
@@ -271,7 +272,7 @@ const styles = StyleSheet.create({
     width: 150,
     borderRadius: 22,
     borderWidth: 1,
-    fontSize: 16,
+    fontSize: FONT.body,
     textAlign: "center",
     writingDirection: "ltr",
     paddingHorizontal: 8,
@@ -294,7 +295,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   digitText: {
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: "700",
   },
 

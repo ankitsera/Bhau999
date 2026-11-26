@@ -1,6 +1,7 @@
 package com.matka.backend.controller;
 
 import com.matka.backend.GameHistory;
+import com.matka.backend.ApiRoutes;
 import com.matka.backend.repository.GameHistoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/game-history")
+@RequestMapping(ApiRoutes.BASE + "/game-history")
 public class GameHistoryController {
 
     @Autowired

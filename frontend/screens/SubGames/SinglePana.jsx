@@ -36,6 +36,7 @@ import {
 } from '../../utils/BetValidationService';
 
 import { useTheme } from '../../contexts/ThemeContext';
+import { FONT } from '../../contexts/Themes';
 
 const BLACK = '#000';
 
@@ -561,7 +562,7 @@ const modeStyles = StyleSheet.create({
   },
   text: {
     color: '#fff',
-    fontSize: 15,
+    fontSize: FONT.label,
     fontWeight: '700',
   },
 });
@@ -617,7 +618,7 @@ const styles = StyleSheet.create({
   },
 
   specialSubmitText: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '700',
   },
 
@@ -641,7 +642,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   groupHeaderText: {
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: '700',
   },
 });
@@ -657,7 +658,7 @@ const formStyles = StyleSheet.create({
     marginBottom: 8,
   },
   label: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '500',
   },
   inputWrapper: {
@@ -669,7 +670,7 @@ const formStyles = StyleSheet.create({
     width: 150,
     borderRadius: 22,
     borderWidth: 1,
-    fontSize: 16,
+    fontSize: FONT.body,
     marginBottom: 12,
     textAlign: 'center',
     writingDirection: 'ltr',
@@ -695,7 +696,7 @@ const formStyles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   itemText: {
-    fontSize: 14,
+    fontSize: FONT.label,
   },
   addButton: {
     marginTop: 4,
@@ -707,7 +708,7 @@ const formStyles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   addText: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '700',
   },
 });

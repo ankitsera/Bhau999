@@ -1,10 +1,12 @@
 package com.matka.backend.controller;
 
 import com.matka.backend.ActiveGame;
+import com.matka.backend.ApiRoutes;
 import com.matka.backend.Game;
 import com.matka.backend.repository.ActiveGameRepository;
 import com.matka.backend.repository.GameRepository;
 import com.matka.backend.service.BetProcessingService;
+import com.matka.backend.service.GameSchedule;
 import org.springframework.transaction.annotation.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/active-games")
+@RequestMapping(ApiRoutes.BASE + "/active-games")
 public class ActiveGameController {
 
     @Autowired
@@ -80,9 +82,7 @@ public class ActiveGameController {
     public ResponseEntity<List<ActiveGameWithAllowedTypes>> listAll() {
         List<ActiveGame> list = activeGameRepository.findAll();
 
-    java.time.LocalTime now = java.time.LocalTime.now();
-    // treat post-midnight window (00:00-02:00) as next-day: no allowed types should be returned
-    java.time.LocalTime twoAmWindow = java.time.LocalTime.of(2, 0);
+        java.time.LocalTime now = java.time.LocalTime.now();
 
     List<ActiveGameWithAllowedTypes> out = new java.util.ArrayList<>();
         for (ActiveGame active : list) {
@@ -106,18 +106,7 @@ public class ActiveGameController {
                 // not running today -> no allowed types
                 allowed = java.util.Collections.emptyList();
             } else {
-                // If current time is between 00:00 and 02:00 treat it as next-day and don't allow any types
-                if (now.isBefore(twoAmWindow)) {
-                    allowed = java.util.Collections.emptyList();
-                } else {
-                    if (openTime != null && now.isBefore(openTime)) {
-                        allowed = java.util.List.of("Open", "Close");
-                    } else if (closeTime != null && now.isAfter(closeTime)) {
-                        allowed = java.util.Collections.emptyList();
-                    } else {
-                        allowed = java.util.List.of("Close");
-                    }
-                }
+                allowed = GameSchedule.allowedTypes(openTime, closeTime, now);
             }
 
             ActiveGameWithAllowedTypes dto = new ActiveGameWithAllowedTypes();
@@ -167,16 +156,7 @@ public class ActiveGameController {
                 return ResponseEntity.status(404).body(Map.of("message","Game not found for active game: " + ag.getGameName()));
             }
             Game g = gopt.get();
-            java.time.LocalTime openTime = g.getOpenTime();
-            java.time.LocalTime closeTime = g.getCloseTime();
-
-            if (openTime != null && now.isBefore(openTime)) {
-                allowed = java.util.List.of("Open", "Close");
-            } else if (closeTime != null && now.isAfter(closeTime)) {
-                allowed = java.util.Collections.emptyList();
-            } else {
-                allowed = java.util.List.of("Close");
-            }
+            allowed = GameSchedule.allowedTypes(g.getOpenTime(), g.getCloseTime(), now);
             ag.setRunningToday(true);
             activeGameRepository.save(ag);
         }
@@ -233,12 +213,9 @@ public class ActiveGameController {
             if (game.getOpenTime() == null) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Game open time not configured for: " + gameName));
             }
-            // allow declaration in post-midnight window (00:00 - 02:00) as it may be the next day
-            java.time.LocalTime twoAm = java.time.LocalTime.of(2,0);
-            if (now.isBefore(game.getOpenTime())) {
-                if (!now.isBefore(twoAm)) {
-                    return ResponseEntity.status(400).body(Map.of("message", "Too early to declare open result. Current time: " + now + ", openTime: " + game.getOpenTime()));
-                }
+            // compared within the 02:00-02:00 game day, so after-midnight times count as late tonight
+            if (GameSchedule.isBefore(now, GameSchedule.effectiveOpenTime(game.getOpenTime(), game.getCloseTime()))) {
+                return ResponseEntity.status(400).body(Map.of("message", "Too early to declare open result. Current time: " + now + ", openTime: " + game.getOpenTime()));
             }
             active.setOpenPana(result);
             activeGameRepository.save(active);
@@ -254,12 +231,9 @@ public class ActiveGameController {
             if (game.getCloseTime() == null) {
                 return ResponseEntity.badRequest().body(Map.of("message", "Game close time not configured for: " + gameName));
             }
-            // allow declaration in post-midnight window (00:00 - 02:00) as it may be the next day
-            java.time.LocalTime twoAmClose = java.time.LocalTime.of(2,0);
-            if (now.isBefore(game.getCloseTime())) {
-                if (!now.isBefore(twoAmClose)) {
-                    return ResponseEntity.status(400).body(Map.of("message", "Too early to declare close result. Current time: " + now + ", closeTime: " + game.getCloseTime()));
-                }
+            // compared within the 02:00-02:00 game day, so after-midnight times count as late tonight
+            if (GameSchedule.isBefore(now, game.getCloseTime())) {
+                return ResponseEntity.status(400).body(Map.of("message", "Too early to declare close result. Current time: " + now + ", closeTime: " + game.getCloseTime()));
             }
             active.setClosePana(result);
             activeGameRepository.save(active);
@@ -409,4 +383,3 @@ public class ActiveGameController {
         return Math.abs(sum) % 10;
     }
 }
-    

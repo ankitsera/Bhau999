@@ -8,7 +8,7 @@ export default function AppPage() {
   return (
     <>
       <Helmet>
-        <title> Dashboard </title>
+        <title> Dashboard | Bhau999 Admin </title>
       </Helmet>
 
       <AppView />

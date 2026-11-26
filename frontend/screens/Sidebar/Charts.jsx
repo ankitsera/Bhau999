@@ -5,6 +5,7 @@ import ThemeHeader from "../../components/ThemeHeader";
 import EmptyState from "../../components/EmptyState";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const ROWS = [
   {
@@ -51,7 +52,7 @@ const Row = ({ item, navigation, t }) => {
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{t(item.subtitleKey)}</Text>
       </View>
       <View style={[styles.chevWrap, { backgroundColor: colors.surface }]}>
-        <MaterialCommunityIcons name="chevron-right" size={26} color={colors.textTertiary} />
+        <MaterialCommunityIcons name="chevron-right" size={22} color={colors.textTertiary} />
       </View>
     </TouchableOpacity>
   );
@@ -113,7 +114,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   title: { 
-    fontSize: 18, 
+    fontSize: FONT.title, 
     fontWeight: "500" 
   },
   subtitle: { 

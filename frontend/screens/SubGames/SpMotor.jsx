@@ -31,6 +31,7 @@ import {
 } from '../../utils/BetValidationService';
 
 import { useTheme } from '../../contexts/ThemeContext';
+import { FONT } from '../../contexts/Themes';
 
 const hasDuplicateDigits = s => {
   const str = String(s || '');
@@ -374,7 +375,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   label: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '500',
   },
   input: {
@@ -382,7 +383,7 @@ const styles = StyleSheet.create({
     width: 150,
     borderRadius: 22,
     borderWidth: 1,
-    fontSize: 16,
+    fontSize: FONT.body,
     textAlign: 'center',
   },
   errorInput: {
@@ -406,7 +407,7 @@ const styles = StyleSheet.create({
     opacity: 0.55,
   },
   addText: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '700',
   },
 

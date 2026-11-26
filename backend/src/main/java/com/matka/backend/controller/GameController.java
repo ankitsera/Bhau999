@@ -1,10 +1,12 @@
 package com.matka.backend.controller;
 
 import com.matka.backend.Game;
+import com.matka.backend.ApiRoutes;
 import com.matka.backend.repository.GameRepository;
 import com.matka.backend.repository.BetRepository;
 import com.matka.backend.ActiveGame;
 import com.matka.backend.repository.ActiveGameRepository;
+import com.matka.backend.service.GameSchedule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/game")
+@RequestMapping(ApiRoutes.BASE + "/game")
 public class GameController {
     private static final Logger log = LoggerFactory.getLogger(GameController.class);
 
@@ -57,44 +59,27 @@ public class GameController {
         if (game.getSunday() != null) {
             entity.setSunday(game.getSunday());
         }
-        // set enabled flag: if provided use it, else default to true for new games
+        // set enabled flag: if provided use it. Otherwise new games start enabled, and saving a
+        // game that was disabled (admin "Delete" only disables) means adding it back, so re-enable it.
         if (game.getEnabled() != null) {
             entity.setEnabled(game.getEnabled());
-        } else if (isNew) {
+        } else if (isNew || Boolean.FALSE.equals(entity.getEnabled())) {
+            if (!isNew) log.info("Re-enabling previously disabled game '{}'", normalized);
             entity.setEnabled(true);
         }
 
+        if (GameSchedule.crossesDayStart(entity.getOpenTime(), entity.getCloseTime())) {
+            return ResponseEntity.badRequest().body(Map.of("message",
+                    "Close time must come after open time within the game day (02:00 to 02:00). "
+                            + "A game cannot be open across 2:00 AM, when the daily reset runs."));
+        }
+
         Game saved = gameRepository.save(entity);
-        // If this was a new Game, ensure there is a corresponding ActiveGame entry
-        if (isNew) {
-            try {
-                // Do not create ActiveGame rows for games that are disabled
-                if (Boolean.FALSE.equals(saved.getEnabled())) {
-                    log.info("New game '{}' is disabled; skipping creation of ActiveGame entry", saved.getName());
-                } else {
-                    if (!activeGameRepository.existsById(saved.getName())) {
-                        ActiveGame ag = new ActiveGame();
-                        ag.setGameName(saved.getName());
-                        ag.setOpenPana(null);
-                        ag.setClosePana(null);
-                        // determine runningToday based on current day and game's flags
-                        java.time.DayOfWeek dow = java.time.LocalDate.now().getDayOfWeek();
-                        boolean isSat = dow == java.time.DayOfWeek.SATURDAY;
-                        boolean isSun = dow == java.time.DayOfWeek.SUNDAY;
-                        if (isSat) {
-                            ag.setRunningToday(Boolean.TRUE.equals(saved.getSaturday()));
-                        } else if (isSun) {
-                            ag.setRunningToday(Boolean.TRUE.equals(saved.getSunday()));
-                        } else {
-                            ag.setRunningToday(true);
-                        }
-                        activeGameRepository.save(ag);
-                        log.info("Created ActiveGame entry for new game {} (runningToday={})", saved.getName(), ag.getRunningToday());
-                    }
-                }
-            } catch (Exception ex) {
-                log.error("Failed to create ActiveGame for game {}", saved.getName(), ex);
-            }
+        // Every enabled game must be in active_games, which is the list the app shows.
+        if (Boolean.FALSE.equals(saved.getEnabled())) {
+            log.info("Game '{}' is disabled; not adding it to active_games", saved.getName());
+        } else {
+            ensureActiveGame(saved);
         }
         log.info("Saved game name={} openTime={} closeTime={} saturday={} sunday={}", saved.getName(), saved.getOpenTime(), saved.getCloseTime(), saved.getSaturday(), saved.getSunday());
         return ResponseEntity.ok(saved);
@@ -160,6 +145,9 @@ public class GameController {
         }
         g.setEnabled(en);
         gameRepository.save(g);
+        if (en) {
+            ensureActiveGame(g);
+        }
         // If game was disabled, remove it from active_games and delete any pending bets for that game
         if (!en) {
             try {
@@ -182,5 +170,25 @@ public class GameController {
             }
         }
         return ResponseEntity.ok(Map.of("message","Game updated","name",g.getName(),"enabled",g.getEnabled()));
+    }
+
+    /**
+     * Adds the game to active_games for the current game day if it is not there yet, so it
+     * shows up in the app right away instead of after the 02:00 daily rollup. Existing rows
+     * are left alone so today's declared results are kept.
+     */
+    private void ensureActiveGame(Game game) {
+        try {
+            if (activeGameRepository.existsById(game.getName())) return;
+            ActiveGame ag = new ActiveGame();
+            ag.setGameName(game.getName());
+            ag.setOpenPana(null);
+            ag.setClosePana(null);
+            ag.setRunningToday(GameSchedule.runsOn(game, GameSchedule.gameDate(java.time.LocalDateTime.now())));
+            activeGameRepository.save(ag);
+            log.info("Added game {} to active_games (runningToday={})", game.getName(), ag.getRunningToday());
+        } catch (Exception ex) {
+            log.error("Failed to add game {} to active_games", game.getName(), ex);
+        }
     }
 }

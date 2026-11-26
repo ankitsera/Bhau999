@@ -23,6 +23,7 @@ import { useBettingGuard } from "../../utils/BettingGuard";
 import { validateAndAlertBetAmount, fetchBetLimits } from "../../utils/BetValidationService";
 
 import { useTheme } from "../../contexts/ThemeContext";
+import { FONT } from '../../contexts/Themes';
 
 const TriplePana = ({ route }) => {
   const { t } = useTranslation(['games', 'validation', 'common']);
@@ -214,7 +215,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   submitText: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: "700",
   },
 });

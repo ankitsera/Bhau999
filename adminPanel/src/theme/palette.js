@@ -17,57 +17,59 @@ export const grey = {
   900: '#161C24',
 };
 
+// Bhau999 brand green (same as the app's ThemeColor).
 export const primary = {
-  lighter: '#D0ECFE',
-  light: '#73BAFB',
-  main: '#1877F2',
-  dark: '#0C44AE',
-  darker: '#042174',
+  lighter: '#D4EDE0',
+  light: '#5CCB95',
+  main: '#23B26D',
+  dark: '#1A8F56',
+  darker: '#0E5C37',
   contrastText: '#FFFFFF',
 };
 
+// Bhau999 heading purple.
 export const secondary = {
-  lighter: '#EFD6FF',
-  light: '#C684FF',
-  main: '#8E33FF',
-  dark: '#5119B7',
-  darker: '#27097A',
+  lighter: '#E4DDF0',
+  light: '#6B5A85',
+  main: '#2A1B3D',
+  dark: '#1E1330',
+  darker: '#120B1D',
   contrastText: '#FFFFFF',
 };
 
 export const info = {
-  lighter: '#CAFDF5',
-  light: '#61F3F3',
-  main: '#00B8D9',
-  dark: '#006C9C',
-  darker: '#003768',
+  lighter: '#D9E8FC',
+  light: '#7AB0F5',
+  main: '#2F80ED',
+  dark: '#1A5DB8',
+  darker: '#0D3878',
   contrastText: '#FFFFFF',
 };
 
 export const success = {
-  lighter: '#C8FAD6',
-  light: '#5BE49B',
-  main: '#00A76F',
-  dark: '#007867',
-  darker: '#004B50',
+  lighter: '#E3F5EC',
+  light: '#6FD39F',
+  main: '#1FA463',
+  dark: '#147A48',
+  darker: '#0B4D2D',
   contrastText: '#FFFFFF',
 };
 
 export const warning = {
-  lighter: '#FFF5CC',
-  light: '#FFD666',
-  main: '#FFAB00',
-  dark: '#B76E00',
-  darker: '#7A4100',
+  lighter: '#FFF3DC',
+  light: '#FFD36E',
+  main: '#F2A93B',
+  dark: '#B7741A',
+  darker: '#7A4A0B',
   contrastText: grey[800],
 };
 
 export const error = {
-  lighter: '#FFE9D5',
-  light: '#FFAC82',
-  main: '#FF5630',
-  dark: '#B71D18',
-  darker: '#7A0916',
+  lighter: '#FDE4E2',
+  light: '#F7928A',
+  main: '#EF4B3E',
+  dark: '#B72A20',
+  darker: '#7A140E',
   contrastText: '#FFFFFF',
 };
 
@@ -106,13 +108,13 @@ export function palette() {
     ...base,
     mode: 'light',
     text: {
-      primary: grey[800],
+      primary: secondary.main,
       secondary: grey[600],
       disabled: grey[500],
     },
     background: {
       paper: '#FFFFFF',
-      default: grey[100],
+      default: '#F7F7F7',
       neutral: grey[200],
     },
     action: {

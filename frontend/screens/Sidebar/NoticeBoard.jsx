@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
+  Linking,
+  Pressable,
   View,
   Text,
   StyleSheet,
@@ -16,42 +18,33 @@ import {
   getNoticeBoard3,
   getNoticeBoard4,
   getNoticeBoard5,
+  getWhatsappSupport,
 } from '../../utils/AppConfigService';
 import { useTheme } from '../../contexts/ThemeContext';
+import { FONT } from '../../contexts/Themes';
 
-const Section = ({ title, points, t }) => {
+const normalizePhoneDigits = value => String(value || '').replace(/\D/g, '');
+
+const formatWhatsappNumber = value => {
+  const digits = normalizePhoneDigits(value);
+  if (!digits) return '';
+  if (digits.length === 10) return `+91 ${digits}`;
+  return `+${digits}`;
+};
+
+const NoticeList = ({ title, points }) => {
   const { colors } = useTheme();
 
   return (
     <View style={styles.section}>
       <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
 
-      <View style={[styles.ruleWrap, { backgroundColor: colors.surface, borderColor: colors.border, shadowColor: colors.text }]}>
-        <View style={[styles.ruleTopLine, { backgroundColor: colors.text }]} />
-
-        {points?.length ? (
-          points.map((p, idx) => (
-            <View key={idx} style={[styles.ruleRow, { borderBottomColor: colors.divider }]}>
-              <View style={[styles.ruleIndex, { backgroundColor: colors.text }]}>
-                <Text style={[styles.ruleIndexText, { color: colors.background }]}>{idx + 1}</Text>
-              </View>
-
-              <View style={styles.ruleTextWrap}>
-                <Text style={[styles.pointText, { color: colors.text }]}>{p}</Text>
-              </View>
-
-              <MaterialCommunityIcons
-                name="information-outline"
-                size={18}
-                color={colors.textTertiary}
-                style={{ marginLeft: 8, marginTop: 2 }}
-              />
-            </View>
-          ))
-        ) : (
-          <Text style={[styles.sectionText, { color: colors.textSecondary }]}>{t('screens:noDetailsAvailable')}</Text>
-        )}
-      </View>
+      {points.map((point, index) => (
+        <View key={`${index}-${point}`} style={styles.noticeRow}>
+          <Text style={[styles.bullet, { color: colors.textTertiary }]}>•</Text>
+          <Text style={[styles.pointText, { color: colors.textSecondary }]}>{point}</Text>
+        </View>
+      ))}
     </View>
   );
 };
@@ -62,22 +55,25 @@ const NoticeBoard = () => {
 
   const [loading, setLoading] = useState(true);
   const [notices, setNotices] = useState([]);
+  const [whatsappPhone, setWhatsappPhone] = useState('');
 
   const loadNotices = async () => {
     try {
       setLoading(true);
 
       // NoticeBoard is non-critical, helpers return null when missing/empty
-      const [n1, n2, n3, n4, n5] = await Promise.all([
+      const [n1, n2, n3, n4, n5, whatsapp] = await Promise.all([
         getNoticeBoard1(),
         getNoticeBoard2(),
         getNoticeBoard3(),
         getNoticeBoard4(),
         getNoticeBoard5(),
+        getWhatsappSupport(),
       ]);
 
       const list = [n1, n2, n3, n4, n5].filter(Boolean);
       setNotices(list);
+      setWhatsappPhone(String(whatsapp || ''));
     } finally {
       setLoading(false);
     }
@@ -87,7 +83,6 @@ const NoticeBoard = () => {
     loadNotices();
   }, []);
 
-  // Keep UI same shape as before (sections with title + points[])
   const sections = useMemo(() => {
     if (!notices || notices.length === 0) return [];
     return [
@@ -98,6 +93,16 @@ const NoticeBoard = () => {
     ];
   }, [notices, t]);
 
+  const openWhatsapp = () => {
+    const digits = normalizePhoneDigits(whatsappPhone);
+    if (!digits) return;
+
+    const number = digits.length === 10 ? `91${digits}` : digits;
+    Linking.openURL(
+      `https://wa.me/${number}?text=${encodeURIComponent(t('common:whatsappMessage'))}`,
+    ).catch(() => {});
+  };
+
   return (
     <LoadingView loading={loading}>
       <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -107,18 +112,35 @@ const NoticeBoard = () => {
           <EmptyState icon="file-document-outline" message={t('screens:noNoticesFound')} />
         ) : (
           <ScrollView
-          contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
-          showsVerticalScrollIndicator={false}
-        >
-          {sections.map((section, idx) => (
-            <React.Fragment key={idx}>
-              <Section title={section.title} points={section.points} t={t} />
-              {idx !== sections.length - 1 && <View style={[styles.divider, { backgroundColor: colors.divider }]} />}
-            </React.Fragment>
-          ))}
-        </ScrollView>
-      )}
-    </View>
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
+            {!!whatsappPhone && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={openWhatsapp}
+                style={({ pressed }) => [
+                  styles.whatsappCard,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.cardBorder,
+                    opacity: pressed ? 0.82 : 1,
+                  },
+                ]}
+              >
+                <MaterialCommunityIcons name="whatsapp" size={36} color={colors.primary} />
+                <Text style={[styles.whatsappNumber, { color: colors.text }]}>
+                  {formatWhatsappNumber(whatsappPhone)}
+                </Text>
+              </Pressable>
+            )}
+
+            {sections.map((section, index) => (
+              <NoticeList key={`${index}-${section.title}`} title={section.title} points={section.points} />
+            ))}
+          </ScrollView>
+        )}
+      </View>
     </LoadingView>
   );
 };
@@ -129,77 +151,52 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  center: {
-    flex: 1,
+  content: {
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 40,
+  },
+  whatsappCard: {
+    minHeight: 88,
+    borderRadius: 16,
+    borderWidth: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    paddingHorizontal: 18,
+    marginBottom: 28,
+  },
+  whatsappNumber: {
+    marginLeft: 12,
+    fontSize: FONT.h3,
+    fontWeight: '800',
   },
 
   section: {
-    marginBottom: 18,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '900',
-    textAlign: 'center',
     marginBottom: 12,
   },
-
-  ruleWrap: {
-    borderRadius: 14,
-    borderWidth: 1,
-    overflow: 'hidden',
-    elevation: 5,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
+  sectionTitle: {
+    fontSize: FONT.title,
+    fontWeight: '800',
+    marginBottom: 14,
   },
-  ruleTopLine: {
-    height: 3,
-    width: '100%',
-  },
-
-  ruleRow: {
+  noticeRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
+    marginBottom: 14,
+    paddingRight: 6,
   },
-
-  ruleIndex: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-    marginTop: 1,
-  },
-  ruleIndexText: {
-    fontWeight: '900',
-    fontSize: 13,
-  },
-
-  ruleTextWrap: {
-    flex: 1,
+  bullet: {
+    width: 24,
+    fontSize: FONT.h3,
+    lineHeight: 24,
+    textAlign: 'center',
   },
   pointText: {
-    fontSize: 15,
-    lineHeight: 22,
-    fontWeight: '700',
+    flex: 1,
+    fontSize: FONT.body,
+    lineHeight: 24,
+    fontWeight: '500',
     textAlign: 'left',
-  },
-
-  sectionText: {
-    textAlign: 'center',
-    paddingVertical: 16,
-    fontWeight: '700',
-  },
-
-  divider: {
-    height: 2,
-    marginVertical: 12,
   },
 });

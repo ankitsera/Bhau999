@@ -1,17 +1,13 @@
-import React, { useState, useContext, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useContext, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  Pressable,
-  TextInput,
   TouchableOpacity,
   Modal,
   Linking,
   Alert,
-  FlatList,
-  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -24,148 +20,22 @@ import { getCallSupport, getWhatsappSupport } from '../../utils/AppConfigService
 import { getWithdrawalRules } from '../../utils/PaymentsService';
 import { useTheme } from '../../contexts/ThemeContext';
 
-import { WITHDRAW_MONEY_CAROUSEL_DUMMY } from '../../data/withdrawMoneyCarouselDummy';
 import ThemeHeader from '../../components/ThemeHeader';
+import {
+  AccountCard,
+  SectionLabel,
+  AmountInput,
+  PrimaryButton,
+  HelpRow,
+  fundStyles,
+} from '../../components/funds/FundParts';
+import { FONT } from '../../contexts/Themes';
 
-/* ------------------ Carousel helpers ------------------ */
-const maskMobile = (m) => {
-  const s = String(m || "").replace(/\D/g, "");
-  if (s.length < 10) return s || "--";
-  return `${s.slice(0, 2)}****${s.slice(-4)}`;
+const maskAccount = (no) => {
+  const d = String(no || '').replace(/\s/g, '');
+  return d.length > 4 ? `•••• ${d.slice(-4)}` : d;
 };
 
-const CAROUSEL_GAP = 12;
-
-const CarouselSeparator = () => <View style={styles.carouselSeparator} />;
-
-const TopCarouselBar = ({ data, statusText }) => {
-  const { colors } = useTheme();
-  const listRef = useRef(null);
-  const idxRef = useRef(0);
-
-  const [wrapW, setWrapW] = useState(0);
-
-  const GAP = CAROUSEL_GAP;
-  const SIDE_PAD = 0;      // ScrollView already has padding: 16
-  const PEEK = 0;         // how much next card peeks on right
-
-  const ITEM_W = useMemo(() => {
-    const w = Math.floor(wrapW || 0);
-    if (!w) return 0;
-    // keep it responsive + never too tiny
-    return Math.max(240, w - PEEK);
-  }, [wrapW]);
-
-  const INTERVAL = ITEM_W + GAP;
-
-  useEffect(() => {
-    if (!Array.isArray(data) || data.length === 0) return;
-    if (!ITEM_W) return;
-
-    const timer = setInterval(() => {
-      idxRef.current = (idxRef.current + 1) % data.length;
-      try {
-        listRef.current?.scrollToOffset?.({
-          offset: idxRef.current * INTERVAL,
-          animated: true,
-        });
-      } catch {}
-    }, 5500);
-
-    return () => clearInterval(timer);
-  }, [data, ITEM_W, INTERVAL]);
-
-  const renderItem = ({ item }) => {
-    const mobile = maskMobile(item?.mobile);
-    const amount = Number(item?.amount || 0) || 0;
-
-    return (
-      <View style={{ width: ITEM_W }}>
-        <View
-          style={[
-            styles.carouselPill,
-            {
-              backgroundColor: colors.background,
-              borderColor: colors.primary,
-              shadowColor: colors.text,
-            },
-          ]}
-        >
-          {/* left group */}
-          <View style={styles.carouselLeft}>
-            <Text
-              style={[styles.carouselMobile, { color: colors.primary }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {mobile}
-            </Text>
-
-            <Text style={[styles.carouselPointer, { color: colors.text }]}>👉</Text>
-
-            <Text
-              style={[styles.carouselAmt, { color: colors.text }]}
-              numberOfLines={1}
-            >
-              ₹{amount}
-            </Text>
-          </View>
-
-          {/* right pill */}
-          <View style={styles.carouselStatusPill}>
-            <Text
-              style={[styles.carouselStatusText, { color: colors.text }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {statusText}
-            </Text>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  if (!Array.isArray(data) || data.length === 0) return null;
-
-  return (
-    <View
-      style={styles.carouselWrap}
-      onLayout={(e) => {
-        const w = e?.nativeEvent?.layout?.width || 0;
-        if (w && w !== wrapW) setWrapW(w);
-      }}
-    >
-      {!!ITEM_W && (
-        <FlatList
-          ref={listRef}
-          data={data}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(it, i) => `${it?.mobile || "m"}-${it?.amount || "a"}-${i}`}
-          renderItem={renderItem}
-          ItemSeparatorComponent={CarouselSeparator}
-          contentContainerStyle={{ paddingHorizontal: SIDE_PAD }}
-          snapToInterval={INTERVAL}
-          decelerationRate="fast"
-          snapToAlignment="start"
-          bounces={false}
-          getItemLayout={(_, index) => ({
-            length: INTERVAL,
-            offset: INTERVAL * index,
-            index,
-          })}
-          onMomentumScrollEnd={(e) => {
-            const x = e?.nativeEvent?.contentOffset?.x || 0;
-            const nextIdx = Math.round(x / INTERVAL);
-            idxRef.current = Math.max(0, Math.min(nextIdx, data.length - 1));
-          }}
-        />
-      )}
-    </View>
-  );
-};
-/* ------------------ end carousel ------------------ */
 
 // "HH:mm" (as sent by the server) -> "h:mm AM/PM"
 function formatTime(hhmm) {
@@ -326,109 +196,79 @@ const WithdrawMoney = ({ navigation }) => {
     }
   };
 
+  const bankName = String(user?.accountHolderName || '').trim();
+  const bankNo = String(user?.accountNumber || '').trim();
+  const bankIfsc = String(user?.ifscCode || '').trim();
+  const hasBank = !!bankName && !!bankNo && !!bankIfsc;
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* ThemeColor HEADER (inline) */}
-      <ThemeHeader
-        title={t('funds:withdrawFund')}
-        right={
-          <View style={[styles.walletPill, { backgroundColor: colors.dark }]}>
-            <MaterialCommunityIcons name="wallet" size={20} color={colors.onDark} />
-            <Text style={[styles.walletPillText, { color: colors.onDark }]}>
-              ₹{user?.balance ? user.balance : '0.0'}
-            </Text>
-          </View>
-        }
-      />
+      <ThemeHeader title={t('funds:withdrawFund')} />
 
-      {/* CONTENT */}
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[fundStyles.content, { paddingBottom: insets.bottom + 32 }]}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* TOP CAROUSEL */}
-        <TopCarouselBar data={WITHDRAW_MONEY_CAROUSEL_DUMMY} statusText={t('screens:withdrawSuccessfully')} />
+        <AccountCard
+          user={user}
+          tiles={[
+            { label: t('screens:availableBalance'), value: `₹${user?.balance ? user.balance : '0.00'}` },
+            { label: t('funds:minimumWithdrawal'), value: rules?.minAmount ? `₹${rules.minAmount}` : '--' },
+          ]}
+        />
 
-        <View style={[styles.card, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
-          <View style={[styles.innerCard, { backgroundColor: colors.background, shadowColor: colors.text }]}>
-            <Image source={require("../../assets/Images/logo.webp")} style={styles.walletImage} />
-
-            <View style={[styles.logoDivider, { borderColor: colors.divider }]} />
-            <View style={[styles.balanceStrip, { backgroundColor: colors.background }]}>
-              <Text style={[styles.balanceLabel, { color: colors.text }]}>{t('screens:availableBalance')}</Text>
-              <Text style={[styles.balanceValue, { color: colors.text }]}>₹ {user?.balance ? user.balance : '0.0'}</Text>
-
-            </View>
-          </View>
-
-          <View style={[styles.divider, { backgroundColor: colors.divider }]} />
-          <Text style={[styles.helpTitle, { color: colors.text }]}>
-            {t('screens:forFundQueries')}
-          </Text>
-
-          <View style={styles.helpBtns}>
-            <TouchableOpacity style={[styles.helpBtn, { backgroundColor: colors.background, shadowColor: colors.text }]} onPress={openDialer}>
-              <MaterialIcons name="call" size={20} color={colors.text} />
-              <Text style={[styles.helpText, { color: colors.text }]}>{t('common:call')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.helpBtn, { backgroundColor: colors.background, shadowColor: colors.text }]} onPress={openWhatsapp}>
-              <MaterialCommunityIcons name="whatsapp" size={20} color='#1ed514' />
-              <Text style={[styles.helpText, { color: colors.text }]}>{t('common:whatsapp')}</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={[styles.divider, { backgroundColor: colors.divider }]} />
-
-          {/* amount input ONLY (no presets) */}
-          <View style={[styles.amountInputWrap, { borderColor: colors.primary, backgroundColor: colors.background }]}>
-            <View style={[styles.bankIcon, { backgroundColor: colors.primaryIconBg }]}>
-              <MaterialCommunityIcons
-                name="bank-outline"
-                size={22}
-                color={colors.primary}
-              />
-            </View>
-            <TextInput
-              placeholder={t('screens:enterAmount')}
-              placeholderTextColor={colors.textTertiary}
-              keyboardType="numeric"
-              style={[styles.amountInput, { color: colors.text }]}
-              value={amount}
-              onChangeText={setAmount}
-              editable={!payLoading}
-            />
-          </View>
-
-          {rulesStatus === 'error' ? (
-            <View style={[styles.rulesError, { backgroundColor: colors.background }]}>
-              <View style={styles.rulesErrorRow}>
-                <MaterialIcons name="error-outline" size={22} color="#EF4444" />
-                <Text style={[styles.rulesErrorText, { color: colors.text }]}>
-                  {t('screens:withdrawRulesLoadFailed')}
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={[styles.retryBtn, { backgroundColor: colors.primary }]}
-                onPress={loadRules}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.retryText}>{t('common:tryAgain')}</Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
-        </View>
-      </ScrollView>
-
-      {/* BOTTOM CTA */}
-      <View style={[styles.bottomWrap, { paddingBottom: insets.bottom, backgroundColor: colors.background }]}>
+        {/* Bank account the money goes to */}
         <TouchableOpacity
-          style={[styles.bottomBtn, { backgroundColor: colors.primary, shadowColor: colors.text }, isDisabled && styles.bottomBtnDisabled]}
+          style={[styles.bankRow, { backgroundColor: colors.surface, borderColor: hasBank ? colors.cardBorder : colors.primary }]}
+          onPress={() => navigation.navigate('Bank Details')}
+          activeOpacity={0.8}
+        >
+          <View style={[styles.bankIcon, { backgroundColor: colors.primaryIconBg }]}>
+            <MaterialCommunityIcons name="bank-outline" size={18} color={colors.primary} />
+          </View>
+          <View style={styles.bankInfo}>
+            <Text style={[styles.bankTitle, { color: colors.text }]} numberOfLines={1}>
+              {hasBank ? bankName : t('screens:addBankDetails')}
+            </Text>
+            <Text style={[styles.bankSub, { color: colors.textTertiary }]} numberOfLines={1}>
+              {hasBank ? `${maskAccount(bankNo)}  ·  ${t('screens:ifsc')} ${bankIfsc}` : t('screens:pleaseAddBankDetails')}
+            </Text>
+          </View>
+          <MaterialIcons name="chevron-right" size={22} color={colors.textTertiary} />
+        </TouchableOpacity>
+
+        <SectionLabel>{t('funds:enterAmount')}</SectionLabel>
+        <AmountInput value={amount} onChange={setAmount} editable={!payLoading} />
+
+        {rulesStatus === 'error' ? (
+          <View style={[styles.rulesError, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+            <View style={styles.rulesErrorRow}>
+              <MaterialIcons name="error-outline" size={18} color="#EF4444" />
+              <Text style={[styles.rulesErrorText, { color: colors.text }]}>
+                {t('screens:withdrawRulesLoadFailed')}
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.retryBtn, { backgroundColor: colors.primary }]}
+              onPress={loadRules}
+              activeOpacity={0.85}
+            >
+              <Text style={[styles.retryText, { color: colors.onPrimary }]}>{t('common:tryAgain')}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        <PrimaryButton
+          label={t('screens:sendRequest')}
           onPress={handleWithdraw}
           disabled={isDisabled}
-          activeOpacity={0.85}
-        >
-          {isBusy ? <ButtonLoader size={24} /> : <Text style={styles.bottomText}>{t('screens:sendRequest')}</Text>}
-        </TouchableOpacity>
-      </View>
+          busy={isBusy}
+          Loader={ButtonLoader}
+        />
+
+        <HelpRow onCall={openDialer} onWhatsapp={openWhatsapp} />
+      </ScrollView>
 
       {/* MODAL: Out-of-hours */}
       <Modal
@@ -546,276 +386,64 @@ export default WithdrawMoney;
 const styles = StyleSheet.create({
   container: { flex: 1 },
 
-  // ✅ carousel
-  // ✅ carousel
-  carouselWrap: {
-    marginTop: 6,
-    marginBottom: 14,
-  },
-  carouselPill: {
-    borderWidth: 2,
-    borderRadius: 12,
+  // bank account row
+  bankRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 14,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    elevation: 4,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-  },
-  carouselLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    flex: 1,
-    minWidth: 0, // 🔥 allows text truncation in RN
-  },
-  carouselMobile: {
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: 0.3,
-    flexShrink: 1,
-    minWidth: 0,
-  },
-  carouselPointer: {
-    fontSize: 16,
-    fontWeight: '900',
-  },
-  carouselAmt: {
-    fontSize: 16,
-    fontWeight: '900',
-    flexShrink: 0,
-  },
-  carouselSeparator: {
-    width: CAROUSEL_GAP,
-  },
-  carouselStatusPill: {
-    backgroundColor: '#22c55e',
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    marginLeft: 10,
-    maxWidth: '45%', // 🔥 prevents overflow on small screens
-  },
-  carouselStatusText: {
-    fontSize: 12,
-    fontWeight: '900',
-  },
-
-  walletPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 24,
-  },
-  walletPillText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  headerRoot: { width: '100%' },
-  headerBg: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 90,
-    borderBottomLeftRadius: 36,
-    borderBottomRightRadius: 36,
-  },
-  headerRow: {
-    height: 60,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 24,
-    fontWeight: '600',
-    marginLeft: 6,
-    marginBottom: 15,
-  },
-  backBtn: {
-    paddingRight: 8,
-    marginBottom: 15,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 160,
-  },
-  walletRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 15,
-  },
-  walletAmt: {
-    fontSize: 22,
-  },
-
-  card: {
-    borderRadius: 16,
-    padding: 14,
-    elevation: 6,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-  },
-  innerCard: {
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-    elevation: 3,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    marginBottom: 12,
-  },
-  walletImage: {
-    width: 120,
-    height: 64,
-    marginBottom: 10,
-  },
-  logoDivider: {
-    width: '70%',
+    borderRadius: 14,
     borderWidth: 1,
-  },
-  name: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  mobile: {
-    fontSize: 16,
-    marginBottom: 10,
-  },
-  balanceStrip: {
-    width: '100%',
-    borderRadius: 8,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  balanceLabel: {
-    fontSize: 15,
-    marginBottom: 4,
-  },
-  balanceValue: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-
-  divider: {
-    height: 2,
-    marginVertical: 10,
-  },
-  helpTitle: {
-    textAlign: 'center',
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  helpBtns: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
-    marginBottom: 12,
-  },
-  helpBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 22,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    elevation: 3,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-  },
-  helpText: {
-    marginLeft: 6,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-
-  amountInputWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderRadius: 40,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    marginTop: 6,
   },
   bankIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
   },
-  amountInput: {
+  bankInfo: {
     flex: 1,
-    fontSize: 16,
+    marginLeft: 10,
   },
+  bankTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  bankSub: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+
+  // rules failed to load
   rulesError: {
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: '#EF4444',
-    borderRadius: 12,
+    marginTop: 14,
     padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
   },
   rulesErrorRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 8,
   },
   rulesErrorText: {
     flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '600',
+    fontSize: 13,
   },
   retryBtn: {
-    alignSelf: 'flex-end',
+    alignSelf: 'flex-start',
     marginTop: 10,
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 18,
-  },
-  retryText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  bottomWrap: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: 'center',
-  },
-  bottomBtn: {
-    width: '92%',
-    borderRadius: 30,
-    paddingVertical: 14,
-    marginVertical: 8,
+    height: 32,
+    paddingHorizontal: 16,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 6,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
   },
-  bottomBtnDisabled: {
-    opacity: 0.6,
-  },
-  bottomText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
+  retryText: {
+    fontSize: 13,
+    fontWeight: '600',
   },
 
   // Modals shared styles
@@ -833,7 +461,7 @@ const styles = StyleSheet.create({
   },
   modalPrimaryText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '800',
   },
   modalHr: {
@@ -842,17 +470,17 @@ const styles = StyleSheet.create({
   },
   modalRow: {
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: FONT.body,
     marginBottom: 4,
   },
   modalRowLast: {
     marginBottom: 16,
   },
   modalLabel: {
-    fontSize: 16,
+    fontSize: FONT.body,
   },
   modalValue: {
-    fontSize: 16,
+    fontSize: FONT.body,
     fontWeight: '800',
   },
 
@@ -879,7 +507,7 @@ const styles = StyleSheet.create({
   closedTitle: {
     textAlign: 'center',
     fontWeight: '700',
-    fontSize: 16,
+    fontSize: FONT.body,
   },
 
   // T&C card
@@ -896,7 +524,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#fff',
     fontWeight: '800',
-    fontSize: 18,
+    fontSize: FONT.title,
     paddingVertical: 12,
   },
   tncScroll: {
@@ -916,14 +544,14 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   tncBullet: {
-    fontSize: 18,
-    lineHeight: 22,
+    fontSize: FONT.title,
+    lineHeight: 20,
     fontWeight: '900',
   },
   tncText: {
     flex: 1,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: FONT.label,
+    lineHeight: 19,
     fontWeight: '700',
   },
 });

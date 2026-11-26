@@ -59,12 +59,38 @@ export function overrides(theme) {
     },
     MuiButton: {
       styleOverrides: {
+        root: {
+          borderRadius: Number(theme.shape.borderRadius) * 1.25,
+          fontWeight: theme.typography.fontWeightSemiBold,
+          transition: theme.transitions.create(
+            ['transform', 'box-shadow', 'background-color', 'border-color', 'color'],
+            { duration: theme.transitions.duration.shorter }
+          ),
+          '&:active': {
+            transform: 'scale(0.97)',
+          },
+        },
+        containedPrimary: {
+          boxShadow: theme.customShadows.primary,
+          '&:hover': {
+            boxShadow: `0 10px 20px 0 ${alpha(theme.palette.primary.main, 0.32)}`,
+            transform: 'translateY(-1px)',
+          },
+        },
         containedInherit: {
+          // Matches the app's dark "Continue" button.
           color: theme.palette.common.white,
-          backgroundColor: theme.palette.grey[800],
+          backgroundColor: '#333333',
           '&:hover': {
             color: theme.palette.common.white,
-            backgroundColor: theme.palette.grey[800],
+            backgroundColor: '#222222',
+            transform: 'translateY(-1px)',
+            boxShadow: `0 10px 20px 0 ${alpha(theme.palette.common.black, 0.18)}`,
+          },
+        },
+        outlined: {
+          '&:hover': {
+            transform: 'translateY(-1px)',
           },
         },
         sizeLarge: {
@@ -79,6 +105,9 @@ export function overrides(theme) {
           borderRadius: Number(theme.shape.borderRadius) * 2,
           position: 'relative',
           zIndex: 0, // Fix Safari overflow: hidden with border radius
+          transition: theme.transitions.create(['transform', 'box-shadow'], {
+            duration: theme.transitions.duration.short,
+          }),
         },
       },
     },
@@ -98,6 +127,12 @@ export function overrides(theme) {
         root: {
           [`& .${outlinedInputClasses.notchedOutline}`]: {
             borderColor: alpha(theme.palette.grey[500], 0.24),
+            transition: theme.transitions.create(['border-color', 'box-shadow'], {
+              duration: theme.transitions.duration.shorter,
+            }),
+          },
+          [`&.${outlinedInputClasses.focused} .${outlinedInputClasses.notchedOutline}`]: {
+            boxShadow: `0 0 0 4px ${alpha(theme.palette.primary.main, 0.12)}`,
           },
         },
       },
@@ -107,11 +142,36 @@ export function overrides(theme) {
         elevation: 0,
       },
     },
+    MuiTableRow: {
+      styleOverrides: {
+        root: {
+          transition: theme.transitions.create('background-color', {
+            duration: theme.transitions.duration.shortest,
+          }),
+          '&.MuiTableRow-hover:hover': {
+            backgroundColor: alpha(theme.palette.primary.main, 0.06),
+          },
+        },
+      },
+    },
+    MuiFab: {
+      styleOverrides: {
+        root: {
+          transition: theme.transitions.create(['transform', 'box-shadow'], {
+            duration: theme.transitions.duration.shorter,
+          }),
+          '&:hover': {
+            transform: 'translateY(-2px) scale(1.05)',
+          },
+        },
+      },
+    },
     MuiTableCell: {
       styleOverrides: {
         head: {
-          color: theme.palette.text.secondary,
-          backgroundColor: theme.palette.background.neutral,
+          color: theme.palette.secondary.main,
+          fontWeight: theme.typography.fontWeightSemiBold,
+          backgroundColor: theme.palette.primary.lighter,
         },
       },
     },

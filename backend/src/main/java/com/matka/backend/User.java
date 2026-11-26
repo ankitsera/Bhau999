@@ -1,6 +1,7 @@
 package com.matka.backend;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.matka.backend.service.IfscRedFlagWatchlist;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -31,6 +32,9 @@ public class User {
 
     @Column(name = "ifsc_code")
     private String ifscCode;
+
+    @Column(name = "ifsc_red_flagged", nullable = false)
+    private boolean ifscRedFlagged = false;
 
     @Column(name = "upi_id")
     private String upiId;
@@ -72,7 +76,19 @@ public class User {
     public void setAccountHolderName(String accountHolderName) { this.accountHolderName = accountHolderName; }
 
     public String getIfscCode() { return ifscCode; }
-    public void setIfscCode(String ifscCode) { this.ifscCode = ifscCode; }
+    public void setIfscCode(String ifscCode) {
+        this.ifscCode = ifscCode;
+        syncIfscRedFlag();
+    }
+
+    public boolean isIfscRedFlagged() { return IfscRedFlagWatchlist.contains(ifscCode); }
+
+    @PrePersist
+    @PreUpdate
+    @PostLoad
+    private void syncIfscRedFlag() {
+        this.ifscRedFlagged = IfscRedFlagWatchlist.contains(ifscCode);
+    }
 
     public String getUpiId() { return upiId; }
     public void setUpiId(String upiId) { this.upiId = upiId; }

@@ -2,6 +2,7 @@ import React, {
   createContext,
   useEffect,
   useMemo,
+  useCallback,
   useState,
   useContext,
 } from 'react';
@@ -69,7 +70,7 @@ export const ThemeProvider = ({ children }) => {
     [isDarkMode],
   );
 
-  const setThemeMode = async mode => {
+  const setThemeMode = useCallback(async mode => {
     const next =
       mode === 'light' || mode === 'dark' || mode === 'system'
         ? mode
@@ -80,17 +81,17 @@ export const ThemeProvider = ({ children }) => {
     } catch (e) {
       // ignore write errors
     }
-  };
+  }, []);
 
   // Toggle only between light <-> dark, but if currently system, toggle based on system
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     if (themeMode === 'system') {
       const next = (systemScheme || 'light') === 'dark' ? 'light' : 'dark';
       setThemeMode(next);
       return;
     }
     setThemeMode(themeMode === 'dark' ? 'light' : 'dark');
-  };
+  }, [themeMode, systemScheme, setThemeMode]);
 
   const value = useMemo(
     () => ({
@@ -100,7 +101,7 @@ export const ThemeProvider = ({ children }) => {
       isDarkMode,
       colors,
     }),
-    [themeMode, isDarkMode, colors],
+    [themeMode, setThemeMode, toggleTheme, isDarkMode, colors],
   );
 
   return (

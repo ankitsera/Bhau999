@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, StyleSheet, Modal } from 'react-native';
-import LottieView from 'lottie-react-native';
+import { ActivityIndicator, View, StyleSheet, Modal } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
 
 const CustomLoader = ({ visible = false, transparent = true }) => {
+  const { colors } = useTheme();
+
   return (
     <Modal
       transparent={transparent}
@@ -20,13 +22,16 @@ const CustomLoader = ({ visible = false, transparent = true }) => {
           },
         ]}
       >
-        <View style={styles.loaderBox}>
-          <LottieView
-            source={require('../assets/loader.json')}
-            autoPlay
-            loop
-            style={styles.lottie}
-          />
+        <View
+          style={[
+            styles.loaderCircle,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.primary,
+            },
+          ]}
+        >
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       </View>
     </Modal>
@@ -40,13 +45,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  loaderBox: {
-    width: 60,
-    height: 60,
-  },
-  lottie: {
-    width: 60,
-    height: 60,
+  loaderCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Modal,
   Pressable,
-  Image,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useTranslation } from 'react-i18next';
@@ -16,6 +15,7 @@ import { GameContext } from "../../contexts/GameContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useLoader } from "../../contexts/LoaderContext";
 import { useFeature, FEATURES } from "../../utils/Features";
+import { FONT } from '../../contexts/Themes';
 
 const RED = "#EF4B3E";
 
@@ -99,7 +99,7 @@ const ClosedPopup = ({ visible, onClose, game }) => {
         >
           {/* close icon top-right */}
           <Pressable onPress={onClose} hitSlop={10} style={styles.modalCloseBtn2}>
-            <MaterialCommunityIcons name="close" size={26} color={colors.textTertiary} />
+            <MaterialCommunityIcons name="close" size={24} color={colors.textTertiary} />
           </Pressable>
 
           {/* big X circle */}
@@ -191,7 +191,7 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
       activeOpacity={0.85}
     >
       <View style={styles.cardTop}>
-        <View style={{ flex: 1, paddingRight: 10 }}>
+        <View style={styles.cardTitleCol}>
           <Text style={[styles.title, { color: colors.primary }]} numberOfLines={1}>
             {String(item.gameName || "").toUpperCase()}
           </Text>
@@ -205,12 +205,12 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
               { backgroundColor: item.isClosed ? "#9E9E9E" : colors.primary },
             ]}
           >
-            <MaterialCommunityIcons name="play-outline" size={24} color="#FFFFFF" />
+            <MaterialCommunityIcons name="play-outline" size={18} color="#FFFFFF" />
             <Text style={styles.playText}>{t('games:playGame')}</Text>
           </View>
         ) : (
           <View style={[styles.playBtn, { backgroundColor: colors.primary }]}>
-            <MaterialCommunityIcons name="chart-bar" size={22} color="#FFFFFF" />
+            <MaterialCommunityIcons name="chart-bar" size={17} color="#FFFFFF" />
             <Text style={styles.playText}>{t('common:charts')}</Text>
           </View>
         )}
@@ -224,7 +224,7 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
             {t('games:openBids')}:{" "}
             <Text style={[styles.timeValue, { color: colors.textSecondary }]}>{item.openTimeText}</Text>
           </Text>
-          <Text style={[styles.timeLabel, { color: colors.textTertiary, marginTop: 2 }]}>
+          <Text style={[styles.timeLabel, styles.timeLabelGap, { color: colors.textTertiary }]}>
             {t('games:closeBids')}:{" "}
             <Text style={[styles.timeValue, { color: colors.textSecondary }]}>{item.closeTimeText}</Text>
           </Text>
@@ -240,8 +240,7 @@ const GameCard = ({ item, navigation, onPressClosed }) => {
 
 const GamesList = ({ navigation, refreshing, onRefresh }) => {
   const { t } = useTranslation(['games']);
-  const { colors } = useTheme();
-  const { showLoader, hideLoader } = useLoader(); 
+  const { showLoader, hideLoader } = useLoader();
 
   const { activeGamesUi, isLoadingActiveGames, loadActiveGames } =
     useContext(GameContext);
@@ -308,9 +307,9 @@ export default GamesList;
 
 const styles = StyleSheet.create({
   listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 120,
-    paddingTop: 12,
+    paddingHorizontal: 14,
+    paddingBottom: 110,
+    paddingTop: 10,
   },
   center: {
     flex: 1,
@@ -319,49 +318,54 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    borderRadius: 16,
+    borderRadius: 14,
     borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 12,
+    paddingHorizontal: 14,
+    paddingTop: 10,
+    paddingBottom: 9,
+    marginBottom: 10,
     elevation: 1,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
   },
   cardTop: {
     flexDirection: "row",
     alignItems: "center",
   },
+  cardTitleCol: {
+    flex: 1,
+    paddingRight: 10,
+  },
   title: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "700",
     letterSpacing: 0.3,
   },
   result: {
-    fontSize: 26,
+    fontSize: 15,
     fontWeight: "800",
-    marginTop: 2,
-    letterSpacing: 0.5,
+    marginTop: 3,
+    letterSpacing: 1,
   },
   playBtn: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 26,
+    gap: 3,
+    height: 34,
+    paddingHorizontal: 14,
+    borderRadius: 17,
   },
   playText: {
     color: "#FFFFFF",
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "600",
   },
   divider: {
     height: 1,
-    marginTop: 12,
-    marginBottom: 10,
+    marginTop: 9,
+    marginBottom: 7,
   },
   cardBottom: {
     flexDirection: "row",
@@ -369,15 +373,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   timeLabel: {
-    fontSize: 14,
+    fontSize: 12.5,
     fontWeight: "500",
   },
+  timeLabelGap: {
+    marginTop: 2,
+  },
   timeValue: {
-    fontSize: 14,
+    fontSize: 12.5,
     fontWeight: "600",
   },
   statusText: {
-    fontSize: 15,
+    fontSize: 12.5,
     fontWeight: "600",
     textAlign: "right",
     flexShrink: 1,
@@ -425,14 +432,14 @@ const styles = StyleSheet.create({
 
   closedTitle2: {
     marginTop: 12,
-    fontSize: 20,
+    fontSize: FONT.title,
     fontWeight: "900",
     textAlign: "center",
   },
 
   gameName2: {
     marginTop: 10,
-    fontSize: 22,
+    fontSize: FONT.h3,
     fontWeight: "900",
     textAlign: "center",
     letterSpacing: 0.4,
@@ -451,12 +458,12 @@ const styles = StyleSheet.create({
   },
 
   timeLabel2: {
-    fontSize: 15,
+    fontSize: FONT.label,
     fontWeight: "700",
   },
 
   timeValue2: {
-    fontSize: 15,
+    fontSize: FONT.label,
     fontWeight: "900",
   },
 
@@ -469,7 +476,7 @@ const styles = StyleSheet.create({
   },
 
   modalOkText2: {
-    fontSize: 18,
+    fontSize: FONT.title,
     fontWeight: "900",
   },
 });

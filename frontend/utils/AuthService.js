@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_URL } from "../env-vars";
+import { API_URL } from './ApiConfig';
 
 const CREDS_KEY = "@auth_creds";
 

@@ -1,6 +1,7 @@
 package com.matka.backend.controller;
 
 import com.matka.backend.Notification;
+import com.matka.backend.ApiRoutes;
 import com.matka.backend.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping(ApiRoutes.BASE + "/notifications")
 public class NotificationController {
 
     @Autowired

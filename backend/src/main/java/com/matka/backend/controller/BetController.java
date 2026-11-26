@@ -1,6 +1,7 @@
 package com.matka.backend.controller;
 
 import com.matka.backend.Bet;
+import com.matka.backend.ApiRoutes;
 import com.matka.backend.Game;
 import com.matka.backend.repository.BetRepository;
 import com.matka.backend.repository.UserRepository;
@@ -8,6 +9,7 @@ import com.matka.backend.repository.GameRepository;
 import com.matka.backend.repository.RateRepository;
 import com.matka.backend.repository.TransactionRepository;
 import com.matka.backend.TransactionEntity;
+import com.matka.backend.service.GameSchedule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +24,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping(ApiRoutes.BASE)
 public class BetController {
     private static final Logger log = LoggerFactory.getLogger(BetController.class);
 
@@ -128,24 +130,19 @@ public class BetController {
                 return ResponseEntity.status(404).body(java.util.Map.of("message", "Rate/type not found: " + bet.getType()));
             }
 
-            // enforce time-based acceptance rules:
+            // enforce time-based acceptance rules (within the 02:00-02:00 game day, see GameSchedule):
             // - if current time is after game's openTime, do not accept "Open" bets
             // - if current time is after game's closeTime, do not accept any bets
             Game game = gameOpt.get();
             java.time.LocalTime now = java.time.LocalTime.now();
-            // Do not allow placing bets between 00:00 and 02:00 (post-midnight next-day window)
-            java.time.LocalTime twoAm = java.time.LocalTime.of(2, 0);
-            if (now.isBefore(twoAm)) {
-                return ResponseEntity.status(400).body(java.util.Map.of("message", "Betting not allowed between 00:00 and 02:00"));
-            }
 
-            java.time.LocalTime openTime = game.getOpenTime();
             java.time.LocalTime closeTime = game.getCloseTime();
+            java.time.LocalTime openTime = GameSchedule.effectiveOpenTime(game.getOpenTime(), closeTime);
             String openClose = bet.getOpenClose();
-            if (closeTime != null && now.isAfter(closeTime)) {
+            if (closeTime != null && GameSchedule.isAfter(now, closeTime)) {
                 return ResponseEntity.status(400).body(java.util.Map.of("message", "Betting closed for game: " + normalizedGame + " (after closeTime)"));
             }
-            if (openTime != null && openClose != null && "open".equalsIgnoreCase(openClose) && now.isAfter(openTime)) {
+            if (openTime != null && openClose != null && "open".equalsIgnoreCase(openClose) && GameSchedule.isAfter(now, openTime)) {
                 return ResponseEntity.status(400).body(java.util.Map.of("message", "Too late to place 'Open' bets for game: " + normalizedGame + " (after openTime)"));
             }
 
